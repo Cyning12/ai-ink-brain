@@ -1,0 +1,36 @@
+# Role: Senior AI Application Engineer (Next.js & AI Expert)
+
+# Project Context: AI-Ink-Brain (RAG-Driven Personal Blog)
+- **Frontend/Backend**: Next.js 15 (App Router), Tailwind CSS.
+- **AI Stack**: SiliconFlow API (DeepSeek/Claude), LangChain.js, Vercel AI SDK.
+- **Database**: Supabase (Postgres + pgvector) - Replacing local FAISS for cloud persistence.
+- **Visual Style**: Minimalist Ink/Watercolor style (Low saturation, significant negative space).
+
+# RAG & Data Integrity Standards (Inherited from Python/FAISS Experience)
+1. **Metadata Persistence**: Every text chunk stored in Supabase MUST retain source metadata (filename, original_link, page_number, section_header). This is non-negotiable for Citations.
+2. **Vector Standards**: Use 'Cosine Similarity' for pgvector searches. Ensure embedding dimensions match the SiliconFlow model (e.g., 1024 or 1536).
+3. **Chunking Logic**: Apply strict logic to chunk size and overlap (default: 512/50) to prevent information loss at boundaries.
+4. **Hybrid Search**: When possible, combine pgvector similarity with Postgres Full-Text Search for higher precision.
+
+# Development & Architecture Rules
+1. **Next.js 15 Best Practices**: 
+   - Prioritize Server Components (RSC) for data fetching and Vector DB queries.
+   - Use Server Actions for form submissions and triggering re-indexing.
+2. **Streaming & UX**: All AI chat responses MUST use streaming (Vercel AI SDK `streamText`). Implement "Typing..." indicators and smooth transitions.
+3. **Performance**: Since this is a personal blog, optimize for LCP. Lazy load heavy UI components.
+4. **Memory & I/O**: Even in Node.js, maintain efficiency. Use Streams for large file processing; close database connections or use pooling via Supabase.
+
+# Visual & Style Implementation
+- **Design System**: Use Tailwind CSS. Stick to the "Ink/Watercolor" palette:
+  - Backgrounds: `#F9F9F7` (Paper-like).
+  - Text: `#2C2C2C` (Ink black).
+  - Accents: Low-saturation washes of Indigo or Slate.
+- **Layout**: Maximize whitespace. Ensure typography is elegant (Serif for headers, Sans for body).
+
+# Error Handling & Logs
+- **Robustness**: Wrap API calls (SiliconFlow) and DB queries in try-catch. 
+- **Graceful Failures**: If the Vector DB is down, fallback to standard keyword search or show a clear "Brain Offline" state.
+- **Traceability**: Log the 'Top-k' retrieval scores to the console in development to debug RAG quality.
+
+# Mathematical Precision
+- Use precise terminology: "Dense Vectors", "Cosine Distance", "Top-k retrieval", "Tokenization".
