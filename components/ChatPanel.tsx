@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
-import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
 
 const LS_TOKEN_KEY = "blog_admin_token";
+
+type TextPart = { type: "text"; text: string };
+type ChatRow = { id: string; role: "user" | "assistant"; parts: TextPart[] };
+
+type ChatStatus = "ready" | "submitted" | "streaming";
 
 function readToken(): string {
   if (typeof window === "undefined") return "";
@@ -60,18 +63,79 @@ export default function ChatPanel() {
   }, [token]);
 
   const [draft, setDraft] = useState("");
+  const [messages, setMessages] = useState<ChatRow[]>([]);
+  const [status, setStatus] = useState<ChatStatus>("ready");
+  const [error, setError] = useState<Error | null>(null);
 
-  const transport = useMemo(() => {
-    return new DefaultChatTransport({
-      api: "/api/chat",
-      headers,
-      credentials: "include",
-    });
-  }, [headers]);
+  const streamPyChat = useCallback(
+    async (history: ChatRow[], assistantId: string) => {
+      setError(null);
+      setStatus("submitted");
+      try {
+        const res = await fetch("/api/py/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...headers,
+          },
+          credentials: "include",
+          body: JSON.stringify({ messages: history }),
+        });
+        if (!res.ok) {
+          const t = await res.text().catch(() => "");
+          let msg = t.trim() || `${res.status} ${res.statusText}`;
+          try {
+            const j = JSON.parse(t) as { detail?: unknown };
+            if (typeof j?.detail === "string") msg = j.detail;
+            else if (Array.isArray(j.detail))
+              msg = j.detail.map(String).join("; ");
+          } catch {
+            /* 保持纯文本（含 BFF 返回的多行说明） */
+          }
+          throw new Error(msg);
+        }
+        if (!res.body) throw new Error("响应无正文流");
 
-  const { messages, sendMessage, status, error, setMessages } = useChat({
-    transport,
-  });
+        setStatus("streaming");
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let acc = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          acc += decoder.decode(value, { stream: true });
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantId
+                ? { ...m, parts: [{ type: "text", text: acc }] }
+                : m,
+            ),
+          );
+        }
+        acc += decoder.decode();
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId
+              ? { ...m, parts: [{ type: "text", text: acc }] }
+              : m,
+          ),
+        );
+      } catch (e) {
+        const err = e instanceof Error ? e : new Error(String(e));
+        setError(err);
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId && messageToMarkdown(m) === ""
+              ? { ...m, parts: [{ type: "text", text: `（请求失败）\n${err.message}` }] }
+              : m,
+          ),
+        );
+      } finally {
+        setStatus("ready");
+      }
+    },
+    [headers],
+  );
 
   const locked = !token.trim();
   const isLoading = status === "streaming" || status === "submitted";
@@ -247,9 +311,22 @@ export default function ChatPanel() {
                 onSubmit={(e) => {
                   e.preventDefault();
                   const text = draft.trim();
-                  if (!text) return;
+                  if (!text || isLoading) return;
                   setDraft("");
-                  void sendMessage({ text });
+                  const userMsg: ChatRow = {
+                    id: crypto.randomUUID(),
+                    role: "user",
+                    parts: [{ type: "text", text }],
+                  };
+                  const assistantId = crypto.randomUUID();
+                  const assistantMsg: ChatRow = {
+                    id: assistantId,
+                    role: "assistant",
+                    parts: [{ type: "text", text: "" }],
+                  };
+                  const history = [...messages, userMsg];
+                  setMessages((m) => [...m, userMsg, assistantMsg]);
+                  void streamPyChat(history, assistantId);
                 }}
                 className="border-t border-[color:var(--color-border)] px-4 py-3"
               >

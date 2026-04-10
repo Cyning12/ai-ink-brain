@@ -12,11 +12,16 @@
 3. **Chunking Logic**: Apply strict logic to chunk size and overlap (default: 512/50) to prevent information loss at boundaries.
 4. **Hybrid Search**: When possible, combine pgvector similarity with Postgres Full-Text Search for higher precision.
 
+# Python vs TypeScript（优先级）
+- **涉及 AI / 向量 / LLM 的逻辑**：优先放在 **`api/`（FastAPI）** — 例如 RAG 对话、SiliconFlow Embedding、Supabase `documents` 的 ingest/sync、流式补全。与模型、维度、分块策略相关的改动以 Python 为单一事实来源（见 `api/index.py`、`api/ingest_pipeline.py`、`api/rag_env.py`）。
+- **纯前端 ↔ Next 后端的交互**：用 **TypeScript** — 页面与组件、Cookie/Session 鉴权、将请求 **代理** 到 `PY_API_URL` 的 Route Handler（如 `app/api/py/chat`、`app/api/admin/*` 转发）、无模型调用的 JSON API。
+- 避免在 TS 中重复实现已在 Python 落地的 Embedding/全量 ingest；若需 DashScope 等第二厂商，可短期保留 TS 参考实现或扩展到 Python。
+
 # Development & Architecture Rules
 1. **Next.js 15 Best Practices**: 
-   - Prioritize Server Components (RSC) for data fetching and Vector DB queries.
+   - Prioritize Server Components (RSC) for data fetching; heavy vector/RAG 写入与检索在 Python 服务执行，Next 侧以代理或 BFF 暴露同源路径。
    - Use Server Actions for form submissions and triggering re-indexing.
-2. **Streaming & UX**: All AI chat responses MUST use streaming (Vercel AI SDK `streamText`). Implement "Typing..." indicators and smooth transitions.
+2. **Streaming & UX**: AI 对话须流式输出；当前经 Python `StreamingResponse` + Next 代理/前端解码实现平滑输出（与水墨风 UI 一致）。
 3. **Performance**: Since this is a personal blog, optimize for LCP. Lazy load heavy UI components.
 4. **Memory & I/O**: Even in Node.js, maintain efficiency. Use Streams for large file processing; close database connections or use pooling via Supabase.
 
