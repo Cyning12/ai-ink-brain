@@ -1,9 +1,14 @@
 import Link from "next/link";
 
 const modules = [
-  { title: "学习日志", href: "/blog", hint: "笔记与检索" },
-  { title: "Demo", href: "/projects", hint: "实验与原型" },
-  { title: "学习资源", href: "/blog", hint: "content/learning" },
+  { id: "blog-log", title: "学习日志", href: "/blog", hint: "笔记与检索" },
+  { id: "projects", title: "Demo", href: "/projects", hint: "实验与原型" },
+  {
+    id: "blog-resources",
+    title: "学习资源",
+    href: "/blog",
+    hint: "content/learning",
+  },
 ];
 
 export default function Home() {
@@ -31,7 +36,7 @@ export default function Home() {
         >
           {modules.map((m) => (
             <Link
-              key={m.href}
+              key={m.id}
               href={m.href}
               className="group rounded-2xl border border-[color:var(--color-border)] bg-white/35 px-6 py-7 transition-[background-color,border-color] hover:border-slate-300/80 hover:bg-[color:var(--color-wash)]/45"
             >

@@ -4,6 +4,7 @@ import {
   embedTexts,
   getExpectedEmbeddingDimension,
 } from "@/lib/siliconflow";
+import { getEmbedding } from "@/lib/siliconflow";
 import { getAllMarkdownFiles, type IngestChunk } from "@/lib/ingest-utils";
 import { createSupabaseServerClient } from "@/lib/supabase";
 /** 单次 Embedding 请求条数上限（避免 payload 过大） */
@@ -15,6 +16,13 @@ export type ProcessMarkdownResult = {
   filesScanned: number;
   chunksTotal: number;
   chunksInserted: number;
+  rowsDeleted: number;
+};
+
+export type SyncContentToVectorResult = {
+  filesScanned: number;
+  chunksTotal: number;
+  chunksUpserted: number;
   rowsDeleted: number;
 };
 
@@ -151,6 +159,85 @@ export async function processMarkdownFiles(): Promise<ProcessMarkdownResult> {
     filesScanned,
     chunksTotal: chunks.length,
     chunksInserted: inserted,
+    rowsDeleted,
+  };
+}
+
+async function deleteDocumentsBySlugs(slugs: string[]): Promise<number> {
+  const supabase = createSupabaseServerClient();
+  let deleted = 0;
+  for (const slug of slugs) {
+    // 幂等入口：同一 slug 上传前先删库内旧分块
+    const { error: delErr, count } = await supabase
+      .from("documents")
+      .delete({ count: "exact" })
+      .eq("metadata->>slug", slug);
+    if (delErr) {
+      throw new Error(formatSupabaseError(`删除旧分块失败 (slug=${slug})`, delErr));
+    }
+    deleted += count ?? 0;
+  }
+  return deleted;
+}
+
+/**
+ * 核心 RAG 注入：递归读取 content/ → 512/50 分块 → 每块调用 getEmbedding → 写入 Supabase documents。
+ *
+ * 安全策略：同一 slug 上传前先删除旧数据，避免重复入库。
+ */
+export async function syncContentToVector(): Promise<SyncContentToVectorResult> {
+  const chunks = getAllMarkdownFiles();
+  const uniquePaths = [
+    ...new Set(chunks.map((c) => c.metadata.relativePath)),
+  ];
+  const filesScanned = uniquePaths.length;
+
+  if (chunks.length === 0) {
+    return {
+      filesScanned,
+      chunksTotal: 0,
+      chunksUpserted: 0,
+      rowsDeleted: 0,
+    };
+  }
+
+  const uniqueSlugs = [...new Set(chunks.map((c) => c.metadata.slug))];
+  const rowsDeleted = await deleteDocumentsBySlugs(uniqueSlugs);
+
+  const supabase = createSupabaseServerClient();
+
+  const embeddings: number[][] = [];
+  for (let i = 0; i < chunks.length; i++) {
+    const vec = await getEmbedding(chunks[i]!.content);
+    assertEmbeddingDim(vec, i);
+    embeddings.push(vec);
+    if (process.env.NODE_ENV === "development" && (i + 1) % 25 === 0) {
+      console.log(`[ingest] Embedded ${i + 1}/${chunks.length} chunks`);
+    }
+  }
+
+  // 说明：public.documents 默认无唯一约束，DB 侧 upsert 需要 onConflict 目标；
+  // 这里用“先删后插”实现幂等同步（语义等价于 upsert）。
+  const rows = chunks.map((chunk, idx) => ({
+    content: chunk.content,
+    metadata: toDbMetadata(chunk),
+    embedding: toPgVectorLiteral(embeddings[idx]!),
+  }));
+
+  let inserted = 0;
+  for (let i = 0; i < rows.length; i += INSERT_BATCH_SIZE) {
+    const slice = rows.slice(i, i + INSERT_BATCH_SIZE);
+    const { error } = await supabase.from("documents").insert(slice);
+    if (error) {
+      throw new Error(formatSupabaseError("写入 documents 失败", error));
+    }
+    inserted += slice.length;
+  }
+
+  return {
+    filesScanned,
+    chunksTotal: chunks.length,
+    chunksUpserted: inserted,
     rowsDeleted,
   };
 }
