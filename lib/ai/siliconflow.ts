@@ -6,19 +6,22 @@ type SiliconFlowEmbeddingResponse = {
 };
 
 function mustGetEnv(key: string) {
-  const v = process.env[key];
+  const v = process.env[key]?.trim();
   if (!v) throw new Error(`Missing required env: ${key}`);
   return v;
 }
 
+const DEFAULT_EMBEDDING_ENDPOINT = "https://api.siliconflow.cn/v1/embeddings";
+const DEFAULT_EMBEDDING_MODEL = "BAAI/bge-m3";
+
 export async function embedTexts(texts: string[]) {
   const apiKey = mustGetEnv("SILICONFLOW_API_KEY");
 
-  // 兼容：允许用户通过环境变量覆盖 endpoint/model（不同账号/区域可能不同）
+  // 空字符串须视为未配置（.env 里常写 SILICONFLOW_EMBEDDING_ENDPOINT= 占位）
   const endpoint =
-    process.env.SILICONFLOW_EMBEDDING_ENDPOINT ??
-    "https://api.siliconflow.cn/v1/embeddings";
-  const model = process.env.SILICONFLOW_EMBEDDING_MODEL ?? "BAAI/bge-m3";
+    process.env.SILICONFLOW_EMBEDDING_ENDPOINT?.trim() || DEFAULT_EMBEDDING_ENDPOINT;
+  const model =
+    process.env.SILICONFLOW_EMBEDDING_MODEL?.trim() || DEFAULT_EMBEDDING_MODEL;
 
   const res = await fetch(endpoint, {
     method: "POST",

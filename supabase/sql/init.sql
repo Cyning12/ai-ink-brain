@@ -43,10 +43,14 @@ alter table public.documents enable row level security;
 
 -- -----------------------------------------------------------------------------
 -- 4) RPC：Cosine Distance Top-k（similarity ≈ 1 - cosine_distance）
+--    match_threshold 为 null 时不做阈值过滤（兼容仅传 query_embedding + match_count 的调用）。
 -- -----------------------------------------------------------------------------
+drop function if exists public.match_documents(vector, integer);
+
 create or replace function public.match_documents(
   query_embedding vector(1024),
-  match_count int default 5
+  match_count integer default 5,
+  match_threshold double precision default null
 )
 returns table (
   id bigint,
@@ -64,6 +68,9 @@ as $$
     d.metadata,
     (1 - (d.embedding <=> query_embedding))::double precision as similarity
   from public.documents d
+  where
+    match_threshold is null
+    or (1 - (d.embedding <=> query_embedding))::double precision > match_threshold
   order by d.embedding <=> query_embedding
   limit greatest(match_count, 1);
 $$;
@@ -73,7 +80,7 @@ $$;
 -- -----------------------------------------------------------------------------
 grant select, insert, update, delete on table public.documents to service_role;
 grant usage, select on sequence public.documents_id_seq to service_role;
-grant execute on function public.match_documents(vector, integer) to service_role;
+grant execute on function public.match_documents(vector, integer, double precision) to service_role;
 
 -- -----------------------------------------------------------------------------
 -- 附：若 HNSW 不可用（旧 pgvector），删除 documents_embedding_hnsw 后改用 ivfflat：

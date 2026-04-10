@@ -17,7 +17,7 @@ type MatchDocumentsRow = {
 };
 
 /**
- * 语义检索：依赖 Supabase RPC `match_documents`（见 supabase/sql/match_documents.sql）。
+ * 语义检索：依赖 Supabase RPC `match_documents`（见 supabase/sql/init.sql）。
  * 查询侧：先对用户问题做 Dense Embedding，再 Cosine Distance Top-k。
  */
 export async function searchSimilarChunks(
