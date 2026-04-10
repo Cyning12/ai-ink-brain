@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type StatusPayload = {
   ok: boolean;
@@ -27,6 +27,7 @@ export default function SystemStatus() {
   const [statusError, setStatusError] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
   const [secretInput, setSecretInput] = useState("");
+  const secretInputRef = useRef<HTMLInputElement | null>(null);
   const [unlockError, setUnlockError] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [sessionChecked, setSessionChecked] = useState(false);
@@ -78,6 +79,15 @@ export default function SystemStatus() {
   useEffect(() => {
     void refreshSession();
   }, [refreshSession]);
+
+  useEffect(() => {
+    if (panelOpen && !isAdmin) {
+      // 点击 ADMIN MODE/READ ONLY 后，直接聚焦输入框，减少一步操作
+      queueMicrotask(() => {
+        secretInputRef.current?.focus();
+      });
+    }
+  }, [panelOpen, isAdmin]);
 
   const handleUnlock = async () => {
     setUnlockError(null);
@@ -174,6 +184,7 @@ export default function SystemStatus() {
                   <label className="block text-[9px] text-slate-500">
                     管理员凭证（与 .env 中密钥一致，经服务端校验）
                     <input
+                      ref={secretInputRef}
                       type="password"
                       value={secretInput}
                       onChange={(e) => setSecretInput(e.target.value)}

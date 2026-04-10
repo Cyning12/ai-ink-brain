@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 /**
  * 数据入库：仅管理员（Bearer INGEST_ADMIN_SECRET）。
  * curl 示例：
- * curl -H "Authorization: Bearer $INGEST_ADMIN_SECRET" -F file=@note.mdx http://localhost:3000/api/ingest
+ * curl -H "Authorization: Bearer $INGEST_ADMIN_SECRET" -F file=@note.mdx http://localhost:3001/api/ingest
  */
 export async function POST(request: Request): Promise<Response> {
   const denied = requireBearerSecret(request, "INGEST_ADMIN_SECRET");

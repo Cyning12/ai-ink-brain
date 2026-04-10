@@ -1,5 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { getAdminApiSecret } from "@/lib/auth/admin-env";
+import { verifyAdminSessionCookie } from "@/lib/auth/admin-cookie";
 import { getAdminTokenFromRequest } from "@/lib/auth/parse-admin-token";
 
 export { getAdminApiSecret } from "@/lib/auth/admin-env";
@@ -17,8 +18,22 @@ export { requireBearerSecret } from "@/lib/auth/require-bearer-secret";
  */
 export function validateAdmin(request: Request): boolean {
   const expected = getAdminApiSecret();
-  if (!expected) return false;
+  if (!expected) {
+    if (process.env.NODE_ENV === "development") {
+      console.log("[auth] validateAdmin: missing admin secret env");
+    }
+    return false;
+  }
   const token = getAdminTokenFromRequest(request);
+  const cookieOk = verifyAdminSessionCookie(request.headers.get("cookie"), expected);
+  if (process.env.NODE_ENV === "development") {
+    const hasAuth = Boolean(request.headers.get("authorization"));
+    const hasX = Boolean(request.headers.get("x-blog-admin-token"));
+    console.log(
+      `[auth] validateAdmin: hasAuthorization=${hasAuth} hasXBlogAdminToken=${hasX} hasCookie=${Boolean(request.headers.get("cookie"))} cookieOk=${cookieOk} tokenLen=${token.length} expectedLen=${expected.length}`,
+    );
+  }
+  if (cookieOk) return true;
   if (token.length !== expected.length) return false;
   try {
     return timingSafeEqual(
@@ -46,6 +61,13 @@ export function requireAdminApiSecret(request: Request): Response | null {
     );
   }
   if (!validateAdmin(request)) {
+    if (process.env.NODE_ENV === "development") {
+      const auth = request.headers.get("authorization") ?? "";
+      const x = request.headers.get("x-blog-admin-token") ?? "";
+      console.log(
+        `[auth] requireAdminApiSecret: unauthorized; authorizationPrefix=${auth.slice(0, 12)} xBlogAdminTokenLen=${x.trim().length}`,
+      );
+    }
     return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
   return null;
