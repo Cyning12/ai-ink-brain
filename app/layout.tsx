@@ -3,6 +3,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 import { SiteNav } from "@/app/_components/site-nav";
+import ChatPanel from "@/components/ChatPanel";
 import SystemStatus from "@/components/SystemStatus";
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export default function RootLayout({
         <SiteNav />
         <div className="flex-1">{children}</div>
         <SystemStatus />
+        <ChatPanel />
       </body>
     </html>
   );
