@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from '@vercel/analytics/next';
 
 import { SiteNav } from "@/app/_components/site-nav";
 import SystemStatus from "@/components/SystemStatus";
@@ -21,6 +22,7 @@ export default function RootLayout({
         <SiteNav />
         <div className="flex-1">{children}</div>
         <SystemStatus />
+        <Analytics />
       </body>
     </html>
   );
