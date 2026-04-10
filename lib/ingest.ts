@@ -1,11 +1,11 @@
 import path from "node:path";
 
-import { embedTexts } from "@/lib/siliconflow";
+import {
+  embedTexts,
+  getExpectedEmbeddingDimension,
+} from "@/lib/siliconflow";
 import { getAllMarkdownFiles, type IngestChunk } from "@/lib/ingest-utils";
 import { createSupabaseServerClient } from "@/lib/supabase";
-
-/** 与 supabase/sql/init.sql 中 vector(1024) 及 SiliconFlow BGE-M3 / embedding-v3 对齐 */
-const EMBEDDING_DIM = 1024;
 /** 单次 Embedding 请求条数上限（避免 payload 过大） */
 const EMBED_BATCH_SIZE = 32;
 /** 单次 insert 行数 */
@@ -36,9 +36,10 @@ function toDbMetadata(chunk: IngestChunk): Record<string, unknown> {
 }
 
 function assertEmbeddingDim(vec: number[], index: number) {
-  if (vec.length !== EMBEDDING_DIM) {
+  const expected = getExpectedEmbeddingDimension();
+  if (vec.length !== expected) {
     throw new Error(
-      `Embedding 维度为 ${vec.length}，与数据库 vector(${EMBEDDING_DIM}) 不一致（请检查 SILICONFLOW_EMBEDDING_MODEL）。分块索引：${index}`,
+      `Embedding 维度为 ${vec.length}，与期望 ${expected}（EMBEDDING_DIM / SILICONFLOW_EMBEDDING_DIM 与 supabase vector(N)）不一致。分块索引：${index}`,
     );
   }
 }
@@ -91,7 +92,7 @@ async function deleteDocumentsByRelativePaths(
 }
 
 /**
- * 递归处理 content/ 下全部 .md/.mdx：512/50 分块 → SiliconFlow Embedding → 写入 Supabase documents。
+ * 递归处理 content/ 下全部 .md/.mdx：512/50 分块 → embedTexts（SiliconFlow 或百炼）→ 写入 Supabase documents。
  * 同一 relativePath 会先删库内旧行再插入，便于重复执行同步。
  */
 export async function processMarkdownFiles(): Promise<ProcessMarkdownResult> {
