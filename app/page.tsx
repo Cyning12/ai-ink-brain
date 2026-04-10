@@ -1,55 +1,54 @@
 import Link from "next/link";
-import { SiteNav } from "./_components/site-nav";
+
+const modules = [
+  { title: "学习日志", href: "/blog", hint: "笔记与检索" },
+  { title: "Demo", href: "/projects", hint: "实验与原型" },
+  { title: "日记", href: "/diary", hint: "随想与记录" },
+];
 
 export default function Home() {
   return (
-    <div className="flex min-h-full flex-col">
-      <SiteNav />
+    <div className="flex min-h-screen flex-col">
+      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center px-8 py-28">
+        <p className="text-[11px] tracking-[0.45em] text-slate-500/90">
+          水墨
+        </p>
+        <h1 className="mt-8 font-serif text-[clamp(2rem,6vw,3rem)] font-semibold leading-tight tracking-tight text-[#2C2C2C]">
+          Cyning
+        </h1>
+        <p className="mt-5 max-w-sm text-sm leading-relaxed text-slate-600/95">
+          低密度留白，墨色为骨；学习、实验与日常，分册而置。
+        </p>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-16">
-        <div className="grid gap-10 md:grid-cols-12 md:items-start">
-          <section className="md:col-span-7">
-            <h1 className="text-4xl font-semibold leading-[1.15] tracking-tight">
-              以水墨为壳，以向量为骨。
-            </h1>
-            <p className="mt-5 max-w-xl text-base leading-7 text-[color:var(--color-muted)]">
-              这是一个 RAG 驱动的个人知识库与博客实验场：沉淀学习日志、展示 AI
-              Demo，并提供可引用来源的语义检索与对话。
-            </p>
+        <div
+          className="mt-3 h-px w-12 bg-[color:var(--color-border)]"
+          aria-hidden
+        />
 
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link
-                href="/blog"
-                className="rounded-full bg-[color:var(--color-foreground)] px-5 py-2.5 text-sm font-medium text-[color:var(--color-background)] transition-colors hover:opacity-90"
-              >
-                进入 Blog
-              </Link>
-              <Link
-                href="/projects"
-                className="rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-background)] px-5 py-2.5 text-sm font-medium text-[color:var(--color-foreground)] transition-colors hover:bg-[color:var(--color-wash)]/70"
-              >
-                查看 Projects
-              </Link>
-            </div>
-          </section>
-
-          <aside className="md:col-span-5">
-            <div className="rounded-2xl border border-[color:var(--color-border)] bg-white/50 p-6">
-              <div className="text-sm font-semibold">当前里程碑</div>
-              <ul className="mt-4 space-y-2 text-sm text-[color:var(--color-muted)]">
-                <li>UI：纸张底色 + 衬线标题 + 极简导航</li>
-                <li>RAG：Supabase（pgvector）持久化向量</li>
-                <li>上传：MDX/PDF 分块（512/50）与 Embedding 入库</li>
-              </ul>
-            </div>
-          </aside>
-        </div>
+        <nav
+          className="mt-16 grid gap-8 sm:grid-cols-3 sm:gap-6"
+          aria-label="站点模块"
+        >
+          {modules.map((m) => (
+            <Link
+              key={m.href}
+              href={m.href}
+              className="group rounded-2xl border border-[color:var(--color-border)] bg-white/35 px-6 py-7 transition-[background-color,border-color] hover:border-slate-300/80 hover:bg-[color:var(--color-wash)]/45"
+            >
+              <span className="block font-serif text-lg text-[#2C2C2C] transition-colors group-hover:text-slate-800">
+                {m.title}
+              </span>
+              <span className="mt-2 block text-xs text-slate-500">
+                {m.hint}
+              </span>
+            </Link>
+          ))}
+        </nav>
       </main>
 
-      <footer className="border-t border-[color:var(--color-border)]">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-6 text-xs text-[color:var(--color-muted)]">
-          <span>© {new Date().getFullYear()} AI-Ink-Brain</span>
-          <span>Ink UI · RAG Core</span>
+      <footer className="mt-auto border-t border-[color:var(--color-border)]/70">
+        <div className="mx-auto max-w-3xl px-8 py-10 text-center text-[11px] tracking-wide text-slate-400">
+          © {new Date().getFullYear()} Cyning · Ink
         </div>
       </footer>
     </div>

@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+
+import { SiteNav } from "@/app/_components/site-nav";
+import SystemStatus from "@/components/SystemStatus";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,12 +16,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="zh-CN"
-      className="h-full antialiased"
-    >
-      <body className="min-h-full flex flex-col">
-        {children}
+    <html lang="zh-CN" className="h-full antialiased">
+      <body className="flex min-h-full flex-col bg-background text-foreground">
+        <SiteNav />
+        <div className="flex-1">{children}</div>
+        <SystemStatus />
       </body>
     </html>
   );
