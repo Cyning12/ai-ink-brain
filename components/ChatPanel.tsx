@@ -6,6 +6,10 @@ import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 
+import type { ChatMessage } from "@/lib/chat/chatApi";
+import { streamChat } from "@/lib/chat/chatApi";
+import { useSessionId } from "@/lib/hooks/useSessionId";
+
 const LS_TOKEN_KEY = "blog_admin_token";
 
 type TextPart = { type: "text"; text: string };
@@ -48,12 +52,17 @@ export default function ChatPanel() {
   const [token, setToken] = useState(() => readToken());
   const [tokenInput, setTokenInput] = useState("");
   const tokenInputRef = useRef<HTMLInputElement | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (open && !token) {
       tokenInputRef.current?.focus();
     }
   }, [open, token]);
+
+  const { sessionId, resetSession } = useSessionId("floating");
+  const [debug, setDebug] = useState(false);
+  const [debugLines, setDebugLines] = useState<string[]>([]);
 
   const headers: Record<string, string> = useMemo(() => {
     const t = token.trim();
@@ -67,59 +76,49 @@ export default function ChatPanel() {
   const [status, setStatus] = useState<ChatStatus>("ready");
   const [error, setError] = useState<Error | null>(null);
 
+  const onDebugLog = useCallback((line: string) => {
+    setDebugLines((prev) => {
+      const next = [...prev, line];
+      return next.length > 80 ? next.slice(next.length - 80) : next;
+    });
+  }, []);
+
+  const uiToApiMessages = useCallback((history: ChatRow[]): ChatMessage[] => {
+    return history
+      .map((m) => ({
+        role: m.role,
+        content: messageToMarkdown(m),
+      }))
+      .filter((m) => m.content.trim().length > 0);
+  }, []);
+
   const streamPyChat = useCallback(
-    async (history: ChatRow[], assistantId: string) => {
+    async (history: ChatRow[], assistantId: string, signal: AbortSignal) => {
       setError(null);
       setStatus("submitted");
+      setDebugLines([]);
       try {
-        const res = await fetch("/api/py/chat", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...headers,
-          },
-          credentials: "include",
-          body: JSON.stringify({ messages: history }),
-        });
-        if (!res.ok) {
-          const t = await res.text().catch(() => "");
-          let msg = t.trim() || `${res.status} ${res.statusText}`;
-          try {
-            const j = JSON.parse(t) as { detail?: unknown };
-            if (typeof j?.detail === "string") msg = j.detail;
-            else if (Array.isArray(j.detail))
-              msg = j.detail.map(String).join("; ");
-          } catch {
-            /* 保持纯文本（含 BFF 返回的多行说明） */
-          }
-          throw new Error(msg);
-        }
-        if (!res.body) throw new Error("响应无正文流");
-
         setStatus("streaming");
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
         let acc = "";
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          acc += decoder.decode(value, { stream: true });
-          setMessages((prev) =>
-            prev.map((m) =>
-              m.id === assistantId
-                ? { ...m, parts: [{ type: "text", text: acc }] }
-                : m,
-            ),
-          );
-        }
-        acc += decoder.decode();
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === assistantId
-              ? { ...m, parts: [{ type: "text", text: acc }] }
-              : m,
-          ),
-        );
+        const apiMessages = uiToApiMessages(history);
+        await streamChat({
+          sessionId,
+          messages: apiMessages,
+          headers,
+          signal,
+          debug,
+          onDebugLog,
+          onToken(chunk) {
+            acc += chunk;
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantId
+                  ? { ...m, parts: [{ type: "text", text: acc }] }
+                  : m,
+              ),
+            );
+          },
+        });
       } catch (e) {
         const err = e instanceof Error ? e : new Error(String(e));
         setError(err);
@@ -134,7 +133,7 @@ export default function ChatPanel() {
         setStatus("ready");
       }
     },
-    [headers],
+    [debug, headers, onDebugLog, sessionId, uiToApiMessages],
   );
 
   const locked = !token.trim();
@@ -195,15 +194,35 @@ export default function ChatPanel() {
                 <button
                   type="button"
                   onClick={() => {
+                    abortRef.current?.abort();
+                    abortRef.current = null;
                     writeToken("");
                     setToken("");
                     setTokenInput("");
                     setMessages([]);
+                    setDebugLines([]);
                   }}
                   className="rounded-full border border-[color:var(--color-border)] px-2.5 py-1 text-[11px] text-slate-600 hover:bg-[color:var(--color-wash)]/70"
                   title="清除本地密钥并清空对话"
                 >
                   Lock
+                </button>
+              )}
+              {!locked && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    abortRef.current?.abort();
+                    abortRef.current = null;
+                    resetSession();
+                    setMessages([]);
+                    setDebugLines([]);
+                    setError(null);
+                  }}
+                  className="rounded-full border border-[color:var(--color-border)] px-2.5 py-1 text-[11px] text-slate-600 hover:bg-[color:var(--color-wash)]/70"
+                  title="生成新的 session_id，并清空对话"
+                >
+                  新会话
                 </button>
               )}
               <button
@@ -263,6 +282,20 @@ export default function ChatPanel() {
                     </p>
                   )}
 
+                  <div className="flex items-center justify-between gap-3 text-[10px] text-slate-500">
+                    <div className="min-w-0 truncate">
+                      session_id: <span className="font-mono">{sessionId}</span>
+                    </div>
+                    <label className="flex items-center gap-1.5">
+                      <input
+                        type="checkbox"
+                        checked={debug}
+                        onChange={(e) => setDebug(e.target.checked)}
+                      />
+                      debug
+                    </label>
+                  </div>
+
                   {messages.map((m) => {
                     const isUser = m.role === "user";
                     const content = messageToMarkdown(m);
@@ -303,6 +336,15 @@ export default function ChatPanel() {
                       请求失败：{String(error.message || error)}
                     </p>
                   )}
+
+                  {debug && debugLines.length > 0 && (
+                    <div className="rounded-xl border border-[color:var(--color-border)] bg-white/40 p-2">
+                      <div className="mb-1 text-[10px] text-slate-500">debug logs</div>
+                      <pre className="max-h-28 overflow-auto whitespace-pre-wrap break-words text-[10px] leading-relaxed text-slate-600">
+                        {debugLines.join("\n")}
+                      </pre>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -313,6 +355,9 @@ export default function ChatPanel() {
                   const text = draft.trim();
                   if (!text || isLoading) return;
                   setDraft("");
+                  abortRef.current?.abort();
+                  const controller = new AbortController();
+                  abortRef.current = controller;
                   const userMsg: ChatRow = {
                     id: crypto.randomUUID(),
                     role: "user",
@@ -326,7 +371,7 @@ export default function ChatPanel() {
                   };
                   const history = [...messages, userMsg];
                   setMessages((m) => [...m, userMsg, assistantMsg]);
-                  void streamPyChat(history, assistantId);
+                  void streamPyChat(history, assistantId, controller.signal);
                 }}
                 className="border-t border-[color:var(--color-border)] px-4 py-3"
               >
@@ -338,6 +383,20 @@ export default function ChatPanel() {
                     className="min-h-[42px] flex-1 resize-none rounded-xl border border-[color:var(--color-border)] bg-white/65 px-3 py-2 text-sm text-[#2c2c2c] outline-none focus:border-slate-400"
                     placeholder="问点什么…（Shift+Enter 换行）"
                   />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      abortRef.current?.abort();
+                      abortRef.current = null;
+                      setStatus("ready");
+                      onDebugLog("[chat] aborted by user");
+                    }}
+                    disabled={!isLoading}
+                    className="rounded-xl border border-[color:var(--color-border)] bg-white/60 px-3 py-2 text-sm text-slate-700 disabled:opacity-40"
+                    title="停止生成"
+                  >
+                    停止
+                  </button>
                   <button
                     type="submit"
                     disabled={isLoading || !draft.trim()}

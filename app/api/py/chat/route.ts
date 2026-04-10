@@ -36,8 +36,20 @@ export async function POST(request: Request): Promise<Response> {
       body,
     });
   } catch (e) {
-    const hint =
-      e instanceof Error ? e.message : "未知网络错误";
+    const err = e instanceof Error ? e : new Error(String(e));
+    const cause = (err as Error & { cause?: unknown }).cause;
+    const causeObj =
+      cause && typeof cause === "object"
+        ? (cause as { code?: unknown; errno?: unknown; syscall?: unknown; hostname?: unknown })
+        : null;
+    const hintParts = [
+      err.message || "fetch failed",
+      causeObj?.code ? `code=${String(causeObj.code)}` : "",
+      causeObj?.errno ? `errno=${String(causeObj.errno)}` : "",
+      causeObj?.syscall ? `syscall=${String(causeObj.syscall)}` : "",
+      causeObj?.hostname ? `hostname=${String(causeObj.hostname)}` : "",
+    ].filter(Boolean);
+    const hint = hintParts.join(" ");
     return new Response(
       [
         "无法连接 Python RAG 服务。",
@@ -46,6 +58,10 @@ export async function POST(request: Request): Promise<Response> {
         "",
         "请先在本机启动：cd api && source .venv/bin/activate && uvicorn index:app --host 127.0.0.1 --port 8000",
         "（或设置 PY_API_URL 指向实际地址）",
+        "",
+        "若你已将 PY_API_URL 指向 vercel.app 且浏览器能打开 /api/py/health，但此处仍 fetch failed，常见原因是本机 Node 优先走 IPv6 或被代理/DNS 拦截：",
+        "- 试试用 NODE_OPTIONS=--dns-result-order=ipv4first 重启 next dev",
+        "- 或检查终端环境变量 HTTPS_PROXY/HTTP_PROXY/NO_PROXY",
       ].join("\n"),
       {
         status: 503,
