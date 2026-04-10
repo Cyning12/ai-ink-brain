@@ -3,7 +3,7 @@ import Link from "next/link";
 const modules = [
   { title: "学习日志", href: "/blog", hint: "笔记与检索" },
   { title: "Demo", href: "/projects", hint: "实验与原型" },
-  { title: "日记", href: "/diary", hint: "随想与记录" },
+  { title: "学习资源", href: "/blog", hint: "content/learning" },
 ];
 
 export default function Home() {
