@@ -43,6 +43,29 @@ function toDbMetadata(chunk: IngestChunk): Record<string, unknown> {
   };
 }
 
+function buildEnhancedChunkText(chunk: IngestChunk): string {
+  const m = chunk.metadata;
+  const fileName = path.posix.basename(m.relativePath.replace(/\\/g, "/"));
+  const mtime = m.lastModified;
+  const category = m.category;
+  const chunkContent = chunk.content;
+
+  return [
+    "[Document Context]",
+    `Title: ${fileName}`,
+    `Date: ${mtime}`,
+    `Category: ${category}`,
+    "---",
+    `Content: ${chunkContent}`,
+  ].join("\n");
+}
+
+function logIngestFiles(uniquePaths: string[]) {
+  if (process.env.NODE_ENV !== "development") return;
+  console.log(`[ingest] Files to process: ${uniquePaths.length}`);
+  uniquePaths.forEach((p) => console.log(`[ingest] file: ${p}`));
+}
+
 function assertEmbeddingDim(vec: number[], index: number) {
   const expected = getExpectedEmbeddingDimension();
   if (vec.length !== expected) {
@@ -119,6 +142,8 @@ export async function processMarkdownFiles(): Promise<ProcessMarkdownResult> {
     };
   }
 
+  logIngestFiles(uniquePaths);
+
   const rowsDeleted = await deleteDocumentsByRelativePaths(uniquePaths);
 
   const supabase = createSupabaseServerClient();
@@ -126,7 +151,7 @@ export async function processMarkdownFiles(): Promise<ProcessMarkdownResult> {
 
   for (let i = 0; i < chunks.length; i += EMBED_BATCH_SIZE) {
     const batch = chunks.slice(i, i + EMBED_BATCH_SIZE);
-    const texts = batch.map((c) => c.content);
+    const texts = batch.map((c) => buildEnhancedChunkText(c));
     const vectors = await embedTexts(texts);
     vectors.forEach((vec, j) => {
       assertEmbeddingDim(vec, i + j);
@@ -141,7 +166,8 @@ export async function processMarkdownFiles(): Promise<ProcessMarkdownResult> {
 
   let inserted = 0;
   const rows = chunks.map((chunk, idx) => ({
-    content: chunk.content,
+    // 入库内容也注入上下文，确保检索命中时能直接带出文件名/日期等锚点
+    content: buildEnhancedChunkText(chunk),
     metadata: toDbMetadata(chunk),
     embedding: toPgVectorLiteral(embeddings[idx]!),
   }));
@@ -201,14 +227,24 @@ export async function syncContentToVector(): Promise<SyncContentToVectorResult> 
     };
   }
 
+  logIngestFiles(uniquePaths);
+
   const uniqueSlugs = [...new Set(chunks.map((c) => c.metadata.slug))];
   const rowsDeleted = await deleteDocumentsBySlugs(uniqueSlugs);
 
   const supabase = createSupabaseServerClient();
 
   const embeddings: number[][] = [];
+  let lastRelPath = "";
   for (let i = 0; i < chunks.length; i++) {
-    const vec = await getEmbedding(chunks[i]!.content);
+    const chunk = chunks[i]!;
+    if (process.env.NODE_ENV === "development") {
+      if (chunk.metadata.relativePath !== lastRelPath) {
+        lastRelPath = chunk.metadata.relativePath;
+        console.log(`[ingest] Processing file: ${lastRelPath}`);
+      }
+    }
+    const vec = await getEmbedding(buildEnhancedChunkText(chunk));
     assertEmbeddingDim(vec, i);
     embeddings.push(vec);
     if (process.env.NODE_ENV === "development" && (i + 1) % 25 === 0) {
@@ -219,7 +255,8 @@ export async function syncContentToVector(): Promise<SyncContentToVectorResult> 
   // 说明：public.documents 默认无唯一约束，DB 侧 upsert 需要 onConflict 目标；
   // 这里用“先删后插”实现幂等同步（语义等价于 upsert）。
   const rows = chunks.map((chunk, idx) => ({
-    content: chunk.content,
+    // 入库内容也注入上下文，确保检索命中时能直接带出文件名/日期等锚点
+    content: buildEnhancedChunkText(chunk),
     metadata: toDbMetadata(chunk),
     embedding: toPgVectorLiteral(embeddings[idx]!),
   }));

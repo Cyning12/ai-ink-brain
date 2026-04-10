@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 
+import { validateAdmin } from "@/lib/auth";
 import { syncContentToVector, type SyncContentToVectorResult } from "@/lib/ingest";
 
 export const runtime = "nodejs";
@@ -35,8 +36,15 @@ function requireAdminToken(request: Request): Response | null {
     );
   }
 
+  // 兼容旧触发器：x-admin-token
   const token = request.headers.get("x-admin-token")?.trim() ?? "";
-  if (token !== expected) return deny(403);
+  if (token) {
+    if (token !== expected) return deny(403);
+    return null;
+  }
+
+  // 兼容浏览器已解锁（Cookie）或 Bearer / x-blog-admin-token
+  if (!validateAdmin(request)) return deny(403);
   return null;
 }
 

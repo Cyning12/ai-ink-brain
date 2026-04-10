@@ -15,6 +15,26 @@ type SessionPayload = {
   configured?: boolean;
 };
 
+type SyncJobPayload = {
+  ok: boolean;
+  job?: {
+    id: string;
+    status: "queued" | "running" | "succeeded" | "failed";
+    createdAt: string;
+    startedAt: string | null;
+    finishedAt: string | null;
+    result: {
+      filesScanned: number;
+      chunksTotal: number;
+      chunksUpserted: number;
+      rowsDeleted: number;
+    } | null;
+    error: string | null;
+  };
+  error?: string;
+  statusUrl?: string;
+};
+
 function envLabel(env: string) {
   if (env === "production") return "生产";
   if (env === "preview") return "预览";
@@ -32,6 +52,9 @@ export default function SystemStatus() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [sessionChecked, setSessionChecked] = useState(false);
   const [adminConfigured, setAdminConfigured] = useState(true);
+  const [syncJob, setSyncJob] = useState<SyncJobPayload["job"] | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [syncLoading, setSyncLoading] = useState(false);
 
   const refreshSession = useCallback(async () => {
     try {
@@ -127,6 +150,51 @@ export default function SystemStatus() {
     await refreshSession();
   };
 
+  const pollSyncJob = useCallback(async (jobId: string) => {
+    for (let attempt = 0; attempt < 120; attempt += 1) {
+      try {
+        const res = await fetch(`/api/admin/sync?jobId=${encodeURIComponent(jobId)}`, {
+          credentials: "include",
+          cache: "no-store",
+        });
+        const data = (await res.json().catch(() => ({}))) as SyncJobPayload;
+        if (!res.ok || !data.ok || !data.job) {
+          setSyncError(data.error ?? "同步状态查询失败");
+          return;
+        }
+        setSyncJob(data.job);
+        if (data.job.status === "succeeded" || data.job.status === "failed") return;
+      } catch {
+        setSyncError("同步状态查询失败");
+        return;
+      }
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+  }, []);
+
+  const handleSync = useCallback(async () => {
+    setSyncError(null);
+    setSyncLoading(true);
+    try {
+      const res = await fetch("/api/admin/sync", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = (await res.json().catch(() => ({}))) as SyncJobPayload;
+      if (!res.ok || !data.ok || !data.job) {
+        setSyncError(data.error ?? "同步触发失败");
+        return;
+      }
+      setSyncJob(data.job);
+      void pollSyncJob(data.job.id);
+    } catch {
+      setSyncError("网络错误");
+    } finally {
+      setSyncLoading(false);
+    }
+  }, [pollSyncJob]);
+
   const vercelEnv = status?.vercelEnv ?? "…";
   const envTone =
     vercelEnv === "production"
@@ -206,13 +274,47 @@ export default function SystemStatus() {
                   </button>
                 </>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => void handleLock()}
-                  className="w-full rounded-full border border-[color:var(--color-border)] py-1.5 text-[10px] text-[#2c2c2c]/90 transition-colors hover:bg-[color:var(--color-wash)]/80"
-                >
-                  退出管理
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => void handleSync()}
+                    disabled={syncLoading}
+                    className="w-full rounded-full bg-[#2c2c2c] py-1.5 text-[10px] text-[#f9f9f7] transition-opacity hover:opacity-90 disabled:opacity-40"
+                  >
+                    {syncLoading ? "同步中…" : "同步向量库"}
+                  </button>
+
+                  {syncError && (
+                    <p className="text-[9px] text-red-600/90">{syncError}</p>
+                  )}
+
+                  {syncJob && (
+                    <div className="rounded-lg border border-[color:var(--color-border)] bg-white/60 p-2 text-[9px] text-slate-600">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500">SYNC</span>
+                        <span className="text-[#2c2c2c]/80">{syncJob.status}</span>
+                      </div>
+                      {syncJob.result && (
+                        <div className="mt-1 space-y-0.5">
+                          <div>files: {syncJob.result.filesScanned}</div>
+                          <div>chunks: {syncJob.result.chunksTotal}</div>
+                          <div>deleted: {syncJob.result.rowsDeleted}</div>
+                        </div>
+                      )}
+                      {syncJob.error && (
+                        <div className="mt-1 text-red-600/90">{syncJob.error}</div>
+                      )}
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => void handleLock()}
+                    className="w-full rounded-full border border-[color:var(--color-border)] py-1.5 text-[10px] text-[#2c2c2c]/90 transition-colors hover:bg-[color:var(--color-wash)]/80"
+                  >
+                    退出管理
+                  </button>
+                </>
               )}
               <p className="text-[9px] leading-relaxed text-slate-400">
                 调用 /api/chat 时请附带{" "}
