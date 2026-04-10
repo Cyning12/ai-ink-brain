@@ -1,9 +1,9 @@
+import "./globals.css";
+
 import type { Metadata } from "next";
 
 import { SiteNav } from "@/app/_components/site-nav";
 import SystemStatus from "@/components/SystemStatus";
-
-import "./globals.css";
 
 export const metadata: Metadata = {
   title: "AI-Ink-Brain",
