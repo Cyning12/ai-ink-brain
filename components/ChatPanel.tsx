@@ -6,8 +6,8 @@ import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 
-import type { ChatMessage } from "@/lib/chat/chatApi";
-import { streamChat } from "@/lib/chat/chatApi";
+import type { ChatHistoryRow, ChatMessage } from "@/lib/chat/chatApi";
+import { fetchChatHistory, streamChat } from "@/lib/chat/chatApi";
 import { useSessionId } from "@/lib/hooks/useSessionId";
 
 const LS_TOKEN_KEY = "blog_admin_token";
@@ -47,6 +47,26 @@ function messageToMarkdown(message: unknown): string {
   return "";
 }
 
+function mapHistoryToRows(items: ChatHistoryRow[] | undefined): ChatRow[] {
+  if (!items?.length) return [];
+  return items
+    .filter(
+      (m): m is ChatHistoryRow & { role: "user" | "assistant" } =>
+        m.role === "user" || m.role === "assistant",
+    )
+    .map((m) => ({
+      id: crypto.randomUUID(),
+      role: m.role,
+      parts: [
+        {
+          type: "text" as const,
+          text: typeof m.content === "string" ? m.content : "",
+        },
+      ],
+    }))
+    .filter((row) => messageToMarkdown(row).trim().length > 0);
+}
+
 export default function ChatPanel() {
   const [open, setOpen] = useState(false);
   const [token, setToken] = useState(() => readToken());
@@ -61,8 +81,13 @@ export default function ChatPanel() {
   }, [open, token]);
 
   const { sessionId, resetSession } = useSessionId("floating");
+  const sessionIdRef = useRef(sessionId);
+  sessionIdRef.current = sessionId;
+
   const [debug, setDebug] = useState(false);
   const [debugLines, setDebugLines] = useState<string[]>([]);
+  const [historyReady, setHistoryReady] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
 
   const headers: Record<string, string> = useMemo(() => {
     const t = token.trim();
@@ -75,6 +100,46 @@ export default function ChatPanel() {
   const [messages, setMessages] = useState<ChatRow[]>([]);
   const [status, setStatus] = useState<ChatStatus>("ready");
   const [error, setError] = useState<Error | null>(null);
+
+  const locked = !token.trim();
+
+  // 解锁后按 session_id 拉持久化历史（刷新可恢复）；竞态与切换 session 用 ref 丢弃过期响应
+  useEffect(() => {
+    if (locked) {
+      setHistoryReady(false);
+      return;
+    }
+
+    const ac = new AbortController();
+    const sidAtStart = sessionId;
+    setHistoryReady(false);
+    setHistoryError(null);
+
+    void (async () => {
+      try {
+        const data = await fetchChatHistory({
+          sessionId: sidAtStart,
+          headers,
+          signal: ac.signal,
+        });
+        if (ac.signal.aborted || sessionIdRef.current !== sidAtStart) return;
+        setMessages(mapHistoryToRows(data.messages));
+      } catch (e) {
+        if (ac.signal.aborted) return;
+        if (e instanceof DOMException && e.name === "AbortError") return;
+        if (sessionIdRef.current !== sidAtStart) return;
+        const msg = e instanceof Error ? e.message : String(e);
+        setHistoryError(msg);
+        setMessages([]);
+      } finally {
+        if (!ac.signal.aborted && sessionIdRef.current === sidAtStart) {
+          setHistoryReady(true);
+        }
+      }
+    })();
+
+    return () => ac.abort();
+  }, [locked, sessionId, headers]);
 
   const onDebugLog = useCallback((line: string) => {
     setDebugLines((prev) => {
@@ -136,7 +201,6 @@ export default function ChatPanel() {
     [debug, headers, onDebugLog, sessionId, uiToApiMessages],
   );
 
-  const locked = !token.trim();
   const isLoading = status === "streaming" || status === "submitted";
 
   return (
@@ -276,9 +340,21 @@ export default function ChatPanel() {
               {/* 消息列表 */}
               <div className="h-[420px] overflow-y-auto px-4 py-4">
                 <div className="space-y-5">
-                  {messages.length === 0 && (
+                  {!historyReady && (
+                    <p className="text-[12px] leading-relaxed text-slate-500">
+                      正在加载历史…
+                    </p>
+                  )}
+
+                  {historyReady && messages.length === 0 && (
                     <p className="text-[12px] leading-relaxed text-slate-500">
                       请输入问题，我会基于已入库的内容检索并回答。
+                    </p>
+                  )}
+
+                  {historyError && (
+                    <p className="text-[12px] leading-relaxed text-red-600/90">
+                      历史加载失败：{historyError}
                     </p>
                   )}
 
@@ -353,7 +429,7 @@ export default function ChatPanel() {
                 onSubmit={(e) => {
                   e.preventDefault();
                   const text = draft.trim();
-                  if (!text || isLoading) return;
+                  if (!text || isLoading || !historyReady) return;
                   setDraft("");
                   abortRef.current?.abort();
                   const controller = new AbortController();
@@ -399,7 +475,7 @@ export default function ChatPanel() {
                   </button>
                   <button
                     type="submit"
-                    disabled={isLoading || !draft.trim()}
+                    disabled={isLoading || !draft.trim() || !historyReady}
                     className="rounded-xl bg-[#2c2c2c] px-4 py-2 text-sm text-[#f9f9f7] disabled:opacity-40"
                   >
                     {isLoading ? "…" : "发送"}
