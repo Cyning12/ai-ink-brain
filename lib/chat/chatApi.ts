@@ -21,6 +21,86 @@ export type StreamChatResult = {
   elapsedMs: number;
 };
 
+/** 历史接口单条消息（与后端 JSON 对齐） */
+export type ChatHistoryRow = {
+  role: ChatRole;
+  content: string;
+  created_at?: string;
+};
+
+export type ChatHistoryResponse = {
+  ok: boolean;
+  session_id?: string;
+  messages?: ChatHistoryRow[];
+  error?: string;
+  error_type?: string;
+};
+
+export type FetchChatHistoryArgs = {
+  sessionId: string;
+  limit?: number;
+  signal?: AbortSignal;
+  headers: Record<string, string>;
+};
+
+function parseHistoryJson(text: string): ChatHistoryResponse {
+  try {
+    return JSON.parse(text) as ChatHistoryResponse;
+  } catch {
+    return { ok: false, error: text.slice(0, 500) || "响应非 JSON" };
+  }
+}
+
+/**
+ * 拉取某 session 的持久化消息，用于刷新后恢复 UI。
+ */
+export async function fetchChatHistory(
+  args: FetchChatHistoryArgs,
+): Promise<ChatHistoryResponse> {
+  const sessionId = args.sessionId.trim();
+  if (!sessionId) throw new Error("session_id 不能为空");
+
+  let limit = args.limit;
+  if (limit !== undefined) {
+    if (!Number.isFinite(limit) || limit < 1) limit = 1;
+    else if (limit > 200) limit = 200;
+    else limit = Math.floor(limit);
+  }
+
+  const sp = new URLSearchParams({ session_id: sessionId });
+  if (limit !== undefined) sp.set("limit", String(limit));
+
+  const res = await fetch(`/api/py/chat/history?${sp.toString()}`, {
+    method: "GET",
+    headers: { ...args.headers },
+    credentials: "include",
+    signal: args.signal,
+  });
+
+  const raw = await res.text().catch(() => "");
+  const data = parseHistoryJson(raw);
+
+  if (res.status === 401) {
+    throw new Error("未授权（401）：请配置/输入 Token 后重试");
+  }
+
+  if (!res.ok) {
+    const msg =
+      (typeof data.error === "string" && data.error) ||
+      raw.trim() ||
+      `${res.status} ${res.statusText}`;
+    throw new Error(msg);
+  }
+
+  if (!data.ok) {
+    const msg =
+      (typeof data.error === "string" && data.error) || "历史接口返回 ok=false";
+    throw new Error(msg);
+  }
+
+  return data;
+}
+
 function debugLog(
   enabled: boolean,
   cb: ((line: string) => void) | undefined,
