@@ -1,0 +1,30 @@
+# 依赖（Vercel 会重新安装；CLI 上传时可显著减小体积）
+node_modules
+.pnpm-store
+
+# Next 本地构建产物
+.next
+out
+
+# 环境文件（勿上传密钥）
+.env
+.env.*
+!.env.example
+
+# 编辑器与系统文件
+.DS_Store
+.vscode
+.idea
+*.sublime-project
+*.sublime-workspace
+
+# 测试与覆盖率产物
+coverage
+.nyc_output
+__tests__
+**/tests/**
+
+# 日志与临时文件
+*.log
+*.tmp
+.cache
