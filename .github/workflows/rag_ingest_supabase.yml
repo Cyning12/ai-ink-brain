@@ -6,6 +6,9 @@ on:
     # 每天凌晨 03:30（UTC）跑一次；可按需调整
     - cron: "30 3 * * *"
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 permissions:
   contents: read
 
@@ -21,7 +24,6 @@ jobs:
         uses: actions/checkout@v4
 
       # 方案：拉取后端仓库代码来复用同一套 Chunking/Embedding/Retrieval 逻辑（单一权威）
-      # 你需要把下面 repository 改成实际后端仓库地址，例如：yourname/ai-ink-brain-api-python
       - name: Checkout backend repo
         uses: actions/checkout@v4
         with:
@@ -43,7 +45,7 @@ jobs:
         working-directory: ai-ink-brain-api-python
         env:
           # Supabase
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           # SiliconFlow
           SILICONFLOW_API_KEY: ${{ secrets.SILICONFLOW_API_KEY }}
