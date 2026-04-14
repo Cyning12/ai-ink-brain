@@ -1,0 +1,62 @@
+name: RAG Ingest → Supabase
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    # 每天凌晨 03:30（UTC）跑一次；可按需调整
+    - cron: "30 3 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rag-ingest-supabase
+  cancel-in-progress: true
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout blog repo
+        uses: actions/checkout@v4
+
+      # 方案：拉取后端仓库代码来复用同一套 Chunking/Embedding/Retrieval 逻辑（单一权威）
+      # 你需要把下面 repository 改成实际后端仓库地址，例如：yourname/ai-ink-brain-api-python
+      - name: Checkout backend repo
+        uses: actions/checkout@v4
+        with:
+          repository: Cyning12/ai-ink-brain-api-python
+          path: ai-ink-brain-api-python
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install backend dependencies
+        working-directory: ai-ink-brain-api-python
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run ingest/sync (read blog content/)
+        working-directory: ai-ink-brain-api-python
+        env:
+          # Supabase
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # SiliconFlow
+          SILICONFLOW_API_KEY: ${{ secrets.SILICONFLOW_API_KEY }}
+          SILICONFLOW_BASE_URL: ${{ secrets.SILICONFLOW_BASE_URL }}
+          SILICONFLOW_EMBEDDING_MODEL: ${{ secrets.SILICONFLOW_EMBEDDING_MODEL }}
+          SILICONFLOW_EMBEDDING_DIMENSIONS: ${{ secrets.SILICONFLOW_EMBEDDING_DIMENSIONS }}
+          # 关键：指向“前端仓库”的 content 目录
+          CONTENT_ROOT: ${{ github.workspace }}/content
+          DEBUG_INGEST: "1"
+        run: |
+          python - <<'PY'
+          from api.ingest_pipeline import sync_content_to_vector
+          result = sync_content_to_vector()
+          print(result)
+          PY
+
