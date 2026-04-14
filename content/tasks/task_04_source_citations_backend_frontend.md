@@ -17,8 +17,15 @@ Task 04：来源引用（Source Citations）前后端对接任务
 ### 1) 流式输出保持不变
 响应仍为 `text/plain; charset=utf-8` 的 StreamingResponse，前端继续按“打字机/墨迹”方式渲染文本。
 
-### 2) sources 通过“流末尾分隔符 + JSON”附加
-后端会在流结束前追加一个分隔符与 JSON：
+### 2) sources 输出方式（Header 优先 + 流末尾兜底）
+后端会同时提供两种方式，前端按优先级解析：
+
+#### A. 优先：`x-sources` Header（推荐）
+- Header 名：`x-sources`
+- 值：对 JSON 做 **percent-encoding**（因为 Header 需要 ASCII），前端用 `decodeURIComponent()` 还原后再 `JSON.parse()`。
+
+#### B. 兜底：流末尾分隔符 + JSON（兼容）
+当代理/中间层丢弃自定义 header 或旧客户端不读 header 时，后端会在流末尾追加一个分隔符与 JSON：
 
 - 分隔符（固定字符串）：
 
@@ -33,8 +40,13 @@ Task 04：来源引用（Source Citations）前后端对接任务
   "sources": [
     {
       "id": 123,
-      "relativePath": "tasks/task_03_hybrid_search_backend_frontend_contract.md",
+      "content": "……摘要（200~400字符）……",
       "filename": "task_03_hybrid_search_backend_frontend_contract.md",
+      "score": 0.0321,
+      "path": "tasks/task_03_hybrid_search_backend_frontend_contract.md",
+      "url": null,
+
+      "relativePath": "tasks/task_03_hybrid_search_backend_frontend_contract.md",
       "slug": "task_03_hybrid_search_backend_frontend_contract",
       "original_link": null,
       "category": "tasks",
@@ -44,7 +56,7 @@ Task 04：来源引用（Source Citations）前后端对接任务
     }
   ],
   "retrieval": {
-    "top_k": 10,
+    "top_k": 5,
     "rrf_k": 60
   }
 }
@@ -57,13 +69,17 @@ Task 04：来源引用（Source Citations）前后端对接任务
 ## 前端解析与 UI 任务
 
 ### 1) 解析规则（必须）
-在接收流式文本后，对最终完整文本做一次切分：
+解析优先级：
+- **优先**从响应头 `x-sources` 解析 sources JSON
+- 若 header 不存在/解析失败，再从流末尾 `---RAG_SOURCES_JSON---` 解析
+
+流末尾解析方式：在接收流式文本后，对最终完整文本做一次切分：
 - 以 `\n---RAG_SOURCES_JSON---\n` 或 `---RAG_SOURCES_JSON---` 为标记
 - 标记之前：`answerText`
 - 标记之后：尝试 `JSON.parse()` 得到 `{ sources }`
 - JSON 解析失败：忽略 sources（避免影响聊天正常显示）
 
-### 2) UI：`<SourceCitation />`（必须）
+### 2) UI：`<SourceCitations />`（必须）
 在每条 AI 回复下方展示 sources（若存在）。
 
 视觉规范（水墨风）：
@@ -77,25 +93,13 @@ Task 04：来源引用（Source Citations）前后端对接任务
 - 若 `original_link` 存在：打开新窗口或弹层预览（由前端决定）
 - 否则基于 `relativePath` 做站内跳转或弹层展示 `snippet`
 
+悬浮预览：
+- hover 卡片显示该 chunk 的 `content/snippet`（不打断点击行为）
+
 ---
 
 ## 验收清单
 - **流式文本不受影响**：回答仍能逐字输出
 - **sources 可选**：有 sources 时显示卡片，无 sources 不显示也不报错
 - **点击可用**：至少能打开预览 snippet 或跳到文章页面
-
----
-
-## 开发任务完成情况（前端）
-- **状态**：已完成
-- **实现要点**：
-  - 流式过程中仅渲染回答正文；检测到分隔符 `---RAG_SOURCES_JSON---` 后停止把后续 JSON 输出到聊天文本中
-  - 流结束后解析 sources JSON（解析失败则忽略，不影响聊天）
-  - 在每条 AI 回复下方以水墨风卡片渲染 `<SourceCitation />`；点击：
-    - `original_link` 存在：新窗口打开
-    - 否则：弹层预览 `snippet`
-- **涉及文件**：
-  - `lib/chat/chatApi.ts`
-  - `components/ChatPanel.tsx`
-  - `components/SourceCitation.tsx`
 
