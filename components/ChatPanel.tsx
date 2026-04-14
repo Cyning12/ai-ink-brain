@@ -9,7 +9,7 @@ import rehypeKatex from "rehype-katex";
 import type { ChatHistoryRow, ChatMessage } from "@/lib/chat/chatApi";
 import { fetchChatHistory, streamChat } from "@/lib/chat/chatApi";
 import { useSessionId } from "@/lib/hooks/useSessionId";
-import { SourceCitation } from "@/components/SourceCitation";
+import { SourceCitations } from "@/components/SourceCitations";
 
 const LS_TOKEN_KEY = "blog_admin_token";
 
@@ -424,22 +424,28 @@ export default function ChatPanel() {
                           </div>
 
                           {!isUser && m.sources?.length ? (
-                            <SourceCitation
+                            <SourceCitations
                               sources={m.sources}
                               onOpenSnippet={(s) => {
                                 const title =
-                                  s.filename || s.relativePath || `source#${String(s.id)}`;
+                                  s.filename ||
+                                  s.path ||
+                                  s.relativePath ||
+                                  `source#${String(s.id)}`;
                                 const metaParts = [
                                   s.category ? `category=${s.category}` : "",
                                   s.slug ? `slug=${s.slug}` : "",
                                   typeof s.chunk_index === "number"
                                     ? `chunk=${s.chunk_index}`
                                     : "",
-                                  s.relativePath ? `path=${s.relativePath}` : "",
+                                  (s.path || s.relativePath)
+                                    ? `path=${String(s.path || s.relativePath)}`
+                                    : "",
                                 ].filter(Boolean);
                                 setSnippetTitle(title);
                                 setSnippetMeta(metaParts.join(" · "));
-                                setSnippetText((s.snippet || "").trim() || "（无摘要）");
+                                const txt = (s.content || s.snippet || "").trim();
+                                setSnippetText(txt || "（无摘要）");
                                 setSnippetOpen(true);
                               }}
                             />

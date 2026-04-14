@@ -7,14 +7,21 @@ export type ChatMessage = {
 
 export type SourceCitation = {
   id: number;
-  relativePath: string;
-  filename: string;
-  slug: string;
-  original_link: string | null;
-  category: string;
-  chunk_index: number;
-  snippet: string;
-  fused_score: number;
+  // Task04 规范字段（优先使用）
+  content?: string;
+  filename?: string;
+  score?: number;
+  url?: string | null;
+  path?: string;
+
+  // 兼容历史字段
+  relativePath?: string;
+  slug?: string;
+  original_link?: string | null;
+  category?: string;
+  chunk_index?: number;
+  snippet?: string;
+  fused_score?: number;
 };
 
 export type ChatRetrievalInfo = {
@@ -155,6 +162,21 @@ function safeParseSourcesJson(raw: string): {
   }
 }
 
+function parseSourcesFromHeader(value: string | null): {
+  sources?: SourceCitation[];
+  retrieval?: ChatRetrievalInfo;
+} {
+  const v = (value ?? "").trim();
+  if (!v) return {};
+  try {
+    const decoded = decodeURIComponent(v);
+    return safeParseSourcesJson(decoded);
+  } catch {
+    // 兼容：若后端未来改为直接 JSON header（ASCII），则尝试直接 parse
+    return safeParseSourcesJson(v);
+  }
+}
+
 export async function streamChat(args: StreamChatArgs): Promise<StreamChatResult> {
   const startedAt = performance.now();
   const sessionId = args.sessionId.trim();
@@ -197,6 +219,9 @@ export async function streamChat(args: StreamChatArgs): Promise<StreamChatResult
   }
 
   if (!res.body) throw new Error("响应无正文流");
+
+  // Task04：优先从 x-sources Header 读取（若存在），流末尾 marker 作为兜底/兼容
+  const headerParsed = parseSourcesFromHeader(res.headers.get("x-sources"));
 
   const reader = res.body.getReader();
   const decoder = new TextDecoder("utf-8");
@@ -288,8 +313,8 @@ export async function streamChat(args: StreamChatArgs): Promise<StreamChatResult
     bytes,
     elapsedMs,
     answerText,
-    sources: parsed.sources,
-    retrieval: parsed.retrieval,
+    sources: headerParsed.sources ?? parsed.sources,
+    retrieval: headerParsed.retrieval ?? parsed.retrieval,
   };
 }
 
