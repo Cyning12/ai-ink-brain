@@ -50,8 +50,6 @@ jobs:
           # SiliconFlow
           SILICONFLOW_API_KEY: ${{ secrets.SILICONFLOW_API_KEY }}
           SILICONFLOW_BASE_URL: ${{ secrets.SILICONFLOW_BASE_URL }}
-          SILICONFLOW_EMBEDDING_MODEL: ${{ secrets.SILICONFLOW_EMBEDDING_MODEL }}
-          SILICONFLOW_EMBEDDING_DIMENSIONS: ${{ secrets.SILICONFLOW_EMBEDDING_DIMENSIONS }}
           # 关键：指向“前端仓库”的 content 目录
           CONTENT_ROOT: ${{ github.workspace }}/content
           DEBUG_INGEST: "1"
