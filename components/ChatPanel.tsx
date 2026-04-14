@@ -9,11 +9,19 @@ import rehypeKatex from "rehype-katex";
 import type { ChatHistoryRow, ChatMessage } from "@/lib/chat/chatApi";
 import { fetchChatHistory, streamChat } from "@/lib/chat/chatApi";
 import { useSessionId } from "@/lib/hooks/useSessionId";
+import { SourceCitation } from "@/components/SourceCitation";
 
 const LS_TOKEN_KEY = "blog_admin_token";
 
 type TextPart = { type: "text"; text: string };
-type ChatRow = { id: string; role: "user" | "assistant"; parts: TextPart[] };
+type Source = NonNullable<Awaited<ReturnType<typeof streamChat>>["sources"]>[number];
+
+type ChatRow = {
+  id: string;
+  role: "user" | "assistant";
+  parts: TextPart[];
+  sources?: Source[];
+};
 
 type ChatStatus = "ready" | "submitted" | "streaming";
 
@@ -166,7 +174,7 @@ export default function ChatPanel() {
         setStatus("streaming");
         let acc = "";
         const apiMessages = uiToApiMessages(history);
-        await streamChat({
+        const result = await streamChat({
           sessionId,
           messages: apiMessages,
           headers,
@@ -184,6 +192,13 @@ export default function ChatPanel() {
             );
           },
         });
+        if (result.sources?.length) {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantId ? { ...m, sources: result.sources } : m,
+            ),
+          );
+        }
       } catch (e) {
         const err = e instanceof Error ? e : new Error(String(e));
         setError(err);
@@ -202,6 +217,11 @@ export default function ChatPanel() {
   );
 
   const isLoading = status === "streaming" || status === "submitted";
+
+  const [snippetOpen, setSnippetOpen] = useState(false);
+  const [snippetTitle, setSnippetTitle] = useState("");
+  const [snippetText, setSnippetText] = useState("");
+  const [snippetMeta, setSnippetMeta] = useState("");
 
   return (
     <div className="pointer-events-none fixed bottom-4 right-4 z-[60] flex items-end justify-end">
@@ -402,6 +422,28 @@ export default function ChatPanel() {
                               {content}
                             </ReactMarkdown>
                           </div>
+
+                          {!isUser && m.sources?.length ? (
+                            <SourceCitation
+                              sources={m.sources}
+                              onOpenSnippet={(s) => {
+                                const title =
+                                  s.filename || s.relativePath || `source#${String(s.id)}`;
+                                const metaParts = [
+                                  s.category ? `category=${s.category}` : "",
+                                  s.slug ? `slug=${s.slug}` : "",
+                                  typeof s.chunk_index === "number"
+                                    ? `chunk=${s.chunk_index}`
+                                    : "",
+                                  s.relativePath ? `path=${s.relativePath}` : "",
+                                ].filter(Boolean);
+                                setSnippetTitle(title);
+                                setSnippetMeta(metaParts.join(" · "));
+                                setSnippetText((s.snippet || "").trim() || "（无摘要）");
+                                setSnippetOpen(true);
+                              }}
+                            />
+                          ) : null}
                         </div>
                       </div>
                     );
@@ -423,6 +465,36 @@ export default function ChatPanel() {
                   )}
                 </div>
               </div>
+
+              {/* 摘要预览弹层（无 original_link 时使用） */}
+              {snippetOpen && (
+                <div className="pointer-events-auto fixed inset-0 z-[70] grid place-items-center bg-black/20 px-4">
+                  <div className="w-full max-w-[560px] rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7] p-4 shadow-xl">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="truncate font-serif text-sm text-[#2c2c2c]">
+                          {snippetTitle}
+                        </div>
+                        {snippetMeta && (
+                          <div className="mt-0.5 truncate text-[11px] text-slate-500">
+                            {snippetMeta}
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSnippetOpen(false)}
+                        className="shrink-0 rounded-full border border-[color:var(--color-border)] px-2.5 py-1 text-[11px] text-slate-600 hover:bg-white/60"
+                      >
+                        关闭
+                      </button>
+                    </div>
+                    <div className="mt-3 whitespace-pre-wrap text-[12px] leading-relaxed text-slate-700">
+                      {snippetText}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* 输入区 */}
               <form

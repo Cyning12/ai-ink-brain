@@ -5,6 +5,23 @@ export type ChatMessage = {
   content: string;
 };
 
+export type SourceCitation = {
+  id: number;
+  relativePath: string;
+  filename: string;
+  slug: string;
+  original_link: string | null;
+  category: string;
+  chunk_index: number;
+  snippet: string;
+  fused_score: number;
+};
+
+export type ChatRetrievalInfo = {
+  top_k?: number;
+  rrf_k?: number;
+};
+
 export type StreamChatArgs = {
   sessionId: string;
   messages: ChatMessage[];
@@ -19,6 +36,9 @@ export type StreamChatResult = {
   chunks: number;
   bytes: number;
   elapsedMs: number;
+  answerText: string;
+  sources?: SourceCitation[];
+  retrieval?: ChatRetrievalInfo;
 };
 
 /** 历史接口单条消息（与后端 JSON 对齐） */
@@ -111,6 +131,30 @@ function debugLog(
   else console.log(line);
 }
 
+const RAG_SOURCES_MARKER = "---RAG_SOURCES_JSON---";
+
+function safeParseSourcesJson(raw: string): {
+  sources?: SourceCitation[];
+  retrieval?: ChatRetrievalInfo;
+} {
+  try {
+    const parsed = JSON.parse(raw) as {
+      sources?: unknown;
+      retrieval?: unknown;
+    };
+    const sources = Array.isArray(parsed.sources)
+      ? (parsed.sources as SourceCitation[])
+      : undefined;
+    const retrieval =
+      parsed.retrieval && typeof parsed.retrieval === "object"
+        ? (parsed.retrieval as ChatRetrievalInfo)
+        : undefined;
+    return { sources, retrieval };
+  } catch {
+    return {};
+  }
+}
+
 export async function streamChat(args: StreamChatArgs): Promise<StreamChatResult> {
   const startedAt = performance.now();
   const sessionId = args.sessionId.trim();
@@ -160,6 +204,18 @@ export async function streamChat(args: StreamChatArgs): Promise<StreamChatResult
   let chunks = 0;
   let bytes = 0;
 
+  // 兼容后端在流末尾追加 sources JSON：保证“逐字输出”只展示回答文本，不展示分隔符/JSON。
+  let answerText = "";
+  let pending = "";
+  let markerFound = false;
+  let sourcesRaw = "";
+
+  const emitAnswer = (text: string) => {
+    if (!text) return;
+    answerText += text;
+    args.onToken(text);
+  };
+
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
@@ -167,15 +223,73 @@ export async function streamChat(args: StreamChatArgs): Promise<StreamChatResult
     chunks += 1;
     bytes += value.byteLength;
     const text = decoder.decode(value, { stream: true });
-    if (text) args.onToken(text);
+    if (!text) continue;
+
+    if (markerFound) {
+      sourcesRaw += text;
+      continue;
+    }
+
+    pending += text;
+
+    const idx = pending.indexOf(RAG_SOURCES_MARKER);
+    if (idx >= 0) {
+      const before = pending.slice(0, idx);
+      emitAnswer(before);
+      sourcesRaw += pending.slice(idx + RAG_SOURCES_MARKER.length);
+      pending = "";
+      markerFound = true;
+      continue;
+    }
+
+    // 保留末尾以便捕捉跨 chunk 的 marker
+    const keep = Math.max(0, RAG_SOURCES_MARKER.length - 1);
+    if (pending.length > keep) {
+      const out = pending.slice(0, pending.length - keep);
+      pending = pending.slice(pending.length - keep);
+      emitAnswer(out);
+    }
   }
 
   const tail = decoder.decode();
-  if (tail) args.onToken(tail);
+  if (tail) {
+    if (markerFound) {
+      sourcesRaw += tail;
+    } else {
+      pending += tail;
+    }
+  }
+
+  if (!markerFound) {
+    emitAnswer(pending);
+    pending = "";
+  } else if (pending) {
+    // 理论上不会进来，但保持健壮性：markerFound 时 pending 代表 marker 前残留
+    emitAnswer(pending);
+    pending = "";
+  }
 
   const elapsedMs = Math.max(0, Math.round(performance.now() - startedAt));
   debugLog(args.debug === true, args.onDebugLog, `[chat] chunks=${chunks} bytes=${bytes} elapsedMs=${elapsedMs}`);
 
-  return { chunks, bytes, elapsedMs };
+  const parsed = markerFound
+    ? safeParseSourcesJson(sourcesRaw.trimStart())
+    : {};
+  if (markerFound && args.debug === true) {
+    debugLog(
+      true,
+      args.onDebugLog,
+      `[chat] sources_json=${parsed.sources?.length ?? 0} marker=${RAG_SOURCES_MARKER}`,
+    );
+  }
+
+  return {
+    chunks,
+    bytes,
+    elapsedMs,
+    answerText,
+    sources: parsed.sources,
+    retrieval: parsed.retrieval,
+  };
 }
 
