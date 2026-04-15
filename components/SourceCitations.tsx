@@ -98,15 +98,7 @@ export function SourceCitations({ sources, onOpenSnippet }: Props) {
                 </div>
               </div>
 
-              {/* 悬浮预览（不打断点击行为） */}
-              {content ? (
-                <div className="pointer-events-none absolute left-0 top-full z-10 mt-2 hidden w-[min(78vw,420px)] rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7] p-3 shadow-lg group-hover:block">
-                  <div className="font-serif text-[11px] text-slate-700">{title}</div>
-                  <div className="mt-2 whitespace-pre-wrap text-[11px] leading-relaxed text-slate-600">
-                    {content}
-                  </div>
-                </div>
-              ) : null}
+              {/* 说明：悬浮预览会导致 hover 命中区域变化，从而产生“抖动/失焦循环”。统一使用点击弹层预览。 */}
             </button>
           );
         })}

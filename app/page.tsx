@@ -2,13 +2,13 @@ import Link from "next/link";
 
 const modules = [
   { id: "blog-log", title: "学习日志", href: "/blog", hint: "笔记与检索" },
-  { id: "projects", title: "Demo", href: "/projects", hint: "实验与原型" },
   {
     id: "blog-resources",
     title: "学习资源",
-    href: "/blog",
+    href: "/learning",
     hint: "content/learning",
   },
+  { id: "tasks", title: "任务", href: "/projects", hint: "content/tasks" },
 ];
 
 export default function Home() {

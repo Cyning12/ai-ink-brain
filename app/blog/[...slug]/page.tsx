@@ -19,8 +19,14 @@ function normalizeSlugParam(slug: string | string[] | undefined): string[] {
 
 export async function generateStaticParams() {
   return getAllPostSlugParts()
-    // 学习日志：diary；项目文档：demos；保留 legacy：content/*.mdx
-    .filter((parts) => parts[0] === "diary" || parts[0] === "demos" || parts.length === 1)
+    // 学习日志：diary；学习资源：learning；任务：tasks；保留 legacy：content/*.mdx
+    .filter(
+      (parts) =>
+        parts[0] === "diary" ||
+        parts[0] === "learning" ||
+        parts[0] === "tasks" ||
+        parts.length === 1,
+    )
     .map((slug) => ({ slug }));
 }
 
@@ -37,8 +43,16 @@ export async function generateMetadata({ params }: PageProps) {
 export default async function BlogPostPage({ params }: PageProps) {
   const slug = normalizeSlugParam((await params).slug);
   if (slug.length === 0) notFound();
-  // Blog 仅展示学习日志（diary）、项目文档（demos）以及早期无分类文章（legacy：content/*.mdx）
-  if (!(slug[0] === "diary" || slug[0] === "demos" || slug.length === 1)) notFound();
+  // Blog 仅展示学习日志（diary）、学习资源（learning）、任务（tasks）以及早期无分类文章（legacy：content/*.mdx）
+  if (
+    !(
+      slug[0] === "diary" ||
+      slug[0] === "learning" ||
+      slug[0] === "tasks" ||
+      slug.length === 1
+    )
+  )
+    notFound();
   const post = getPostBySlugParts(slug);
   if (!post) notFound();
 

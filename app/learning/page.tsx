@@ -3,27 +3,30 @@ import Link from "next/link";
 import { BackButton } from "@/app/_components/back-button";
 import { getAllPostsMeta } from "@/lib/content/mdx-posts";
 
-export default function ProjectsPage() {
-  const tasks = getAllPostsMeta().filter((p) => p.category === "tasks");
+export default function LearningPage() {
+  const resources = getAllPostsMeta().filter((p) => p.category === "learning");
 
   return (
     <main className="mx-auto w-full max-w-5xl px-6 py-16">
       <BackButton />
-      <h1 className="text-3xl font-semibold tracking-tight">Tasks</h1>
+      <h1 className="text-3xl font-semibold tracking-tight">学习资源</h1>
       <p className="mt-4 max-w-2xl text-muted-foreground">
-        默认展示 <code className="text-xs">content/tasks</code> 下的{" "}
-        <code className="text-xs">.md/.mdx</code>（代码可用 Markdown 代码块格式化展示）。
+        默认展示 <code className="text-xs">content/learning</code> 下的{" "}
+        <code className="text-xs">.md/.mdx</code>。
       </p>
 
-      {tasks.length === 0 ? (
+      {resources.length === 0 ? (
         <div className="mt-10 rounded-2xl border border-border bg-card/40 px-5 py-6 text-sm text-muted-foreground">
-          目前还没有任务文档。请在{" "}
-          <code className="text-xs">content/tasks</code> 下新增{" "}
-          <code className="text-xs">.md/.mdx</code> 文件。
+          目前还没有学习资源。请在{" "}
+          <code className="text-xs">content/learning</code> 下新增{" "}
+          <code className="text-xs">.md/.mdx</code> 文件，并确保 frontmatter 至少包含{" "}
+          <code className="text-xs">title</code>（可选{" "}
+          <code className="text-xs">date</code> /{" "}
+          <code className="text-xs">description</code>）。
         </div>
       ) : (
         <ul className="mt-10 space-y-4">
-          {tasks.map((p) => (
+          {resources.map((p) => (
             <li
               key={p.slug}
               className="rounded-2xl border border-border bg-card/40 px-5 py-4"
