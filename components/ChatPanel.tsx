@@ -25,11 +25,7 @@ type ChatRow = {
 
 type ChatStatus = "ready" | "submitted" | "streaming";
 
-type ChatPanelVariant = "floating" | "page";
-
 type ChatPanelProps = {
-  /** floating: 右下角弹层；page: 作为普通页面内容渲染 */
-  variant?: ChatPanelVariant;
   /**
    * session_id 作用域（决定 localStorage key）。默认保持为 floating，确保从旧实现迁移到独立页时能看到历史。
    */
@@ -87,13 +83,11 @@ function mapHistoryToRows(items: ChatHistoryRow[] | undefined): ChatRow[] {
 }
 
 export default function ChatPanel(props: ChatPanelProps) {
-  const variant: ChatPanelVariant = props.variant ?? "floating";
   const sessionScope = props.sessionScope ?? "floating";
 
   // 避免 hydration mismatch：服务端拿不到 localStorage，token/locked 首屏会与客户端不一致。
   const [mounted, setMounted] = useState(false);
 
-  const [open, setOpen] = useState(variant === "page");
   // 关键：首屏 token 固定为空，避免 SSR/CSR 因 localStorage 不一致导致 hydration mismatch
   const [token, setToken] = useState("");
   const [tokenInput, setTokenInput] = useState("");
@@ -107,10 +101,8 @@ export default function ChatPanel(props: ChatPanelProps) {
   }, []);
 
   useEffect(() => {
-    if (open && !token) {
-      tokenInputRef.current?.focus();
-    }
-  }, [open, token]);
+    if (!token) tokenInputRef.current?.focus();
+  }, [token]);
 
   const { sessionId, resetSession } = useSessionId(sessionScope);
   const sessionIdRef = useRef(sessionId);
@@ -247,78 +239,18 @@ export default function ChatPanel(props: ChatPanelProps) {
   const [snippetText, setSnippetText] = useState("");
   const [snippetMeta, setSnippetMeta] = useState("");
 
-  const frameClassName =
-    variant === "page"
-      ? "w-full overflow-hidden rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/95 shadow-lg backdrop-blur-sm"
-      : "pointer-events-auto ml-3 w-[min(92vw,420px)] overflow-hidden rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/95 shadow-lg backdrop-blur-sm";
-
-  // 说明：来源引用卡片的悬浮预览使用 absolute + top-full，父容器若 overflow-hidden 会被裁切。
-  const asideClassName =
-    variant === "page"
-      ? frameClassName.replace("overflow-hidden ", "")
-      : frameClassName;
-
   // 首屏输出稳定占位：避免 dev 环境 hydration mismatch（token 来自 localStorage）。
   if (!mounted) {
-    if (variant === "page") {
-      return (
-        <div className="w-full rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/95 px-4 py-6 text-sm text-slate-600">
-          正在加载对话…
-        </div>
-      );
-    }
-    return null;
+    return (
+      <div className="w-full rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/95 px-4 py-6 text-sm text-slate-600">
+        正在加载对话…
+      </div>
+    );
   }
 
   return (
-    <div
-      className={
-        variant === "page"
-          ? "w-full"
-          : "pointer-events-none fixed bottom-4 right-4 z-[60] flex items-end justify-end"
-      }
-    >
-      {variant === "floating" ? (
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="pointer-events-auto grid h-12 w-12 place-items-center rounded-full border border-[color:var(--color-border)] bg-[#f9f9f7]/95 shadow-sm backdrop-blur-sm transition-colors hover:bg-[color:var(--color-wash)]/70"
-          aria-label={open ? "关闭聊天" : "打开聊天"}
-          title={open ? "关闭" : "对话"}
-        >
-          {/* 墨水瓶/毛笔：极简 SVG */}
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="text-[#2c2c2c]"
-          >
-            <path
-              d="M9 3h6l1 6c.2 1.2-.3 2.4-1.2 3.1L12 14l-2.8-1.9C8.3 11.4 7.8 10.2 8 9l1-6Z"
-              stroke="currentColor"
-              strokeWidth="1.4"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M12 14v7c0 0 4-1 4-4 0-1.6-1.1-2.5-2-3"
-              stroke="currentColor"
-              strokeWidth="1.4"
-              strokeLinecap="round"
-            />
-            <path
-              d="M12 14v7c0 0-4-1-4-4 0-1.6 1.1-2.5 2-3"
-              stroke="currentColor"
-              strokeWidth="1.4"
-              strokeLinecap="round"
-            />
-          </svg>
-        </button>
-      ) : null}
-
-      {open && (
-        <aside className={asideClassName}>
+    <div className="w-full">
+      <aside className="w-full rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/95 shadow-lg backdrop-blur-sm">
           <div className="flex items-center justify-between border-b border-[color:var(--color-border)] px-4 py-3">
             <div className="min-w-0">
               <div className="truncate font-serif text-sm text-[#2c2c2c]">
@@ -362,15 +294,6 @@ export default function ChatPanel(props: ChatPanelProps) {
                   新会话
                 </button>
               )}
-              {variant === "floating" ? (
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  className="rounded-full border border-[color:var(--color-border)] px-2.5 py-1 text-[11px] text-slate-600 hover:bg-[color:var(--color-wash)]/70"
-                >
-                  关闭
-                </button>
-              ) : null}
             </div>
           </div>
 
@@ -441,7 +364,17 @@ export default function ChatPanel(props: ChatPanelProps) {
                       <input
                         type="checkbox"
                         checked={debug}
-                        onChange={(e) => setDebug(e.target.checked)}
+                        onChange={(e) => {
+                          const next = e.target.checked;
+                          setDebug(next);
+                          if (next) {
+                            setDebugLines((prev) => {
+                              // 让“勾选 debug”立刻有可见反馈
+                              const line = "[chat] debug enabled";
+                              return prev.includes(line) ? prev : [...prev, line];
+                            });
+                          }
+                        }}
                       />
                       debug
                     </label>
@@ -516,11 +449,11 @@ export default function ChatPanel(props: ChatPanelProps) {
                     </p>
                   )}
 
-                  {debug && debugLines.length > 0 && (
+                  {debug && (
                     <div className="rounded-xl border border-[color:var(--color-border)] bg-white/40 p-2">
                       <div className="mb-1 text-[10px] text-slate-500">debug logs</div>
                       <pre className="max-h-28 overflow-auto whitespace-pre-wrap break-words text-[10px] leading-relaxed text-slate-600">
-                        {debugLines.join("\n")}
+                        {debugLines.length > 0 ? debugLines.join("\n") : "（暂无日志）"}
                       </pre>
                     </div>
                   )}
@@ -617,8 +550,7 @@ export default function ChatPanel(props: ChatPanelProps) {
               </form>
             </>
           )}
-        </aside>
-      )}
+      </aside>
     </div>
   );
 }

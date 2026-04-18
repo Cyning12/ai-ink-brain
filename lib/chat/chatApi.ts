@@ -143,6 +143,7 @@ const RAG_SOURCES_MARKER = "---RAG_SOURCES_JSON---";
 function safeParseSourcesJson(raw: string): {
   sources?: SourceCitation[];
   retrieval?: ChatRetrievalInfo;
+  error?: string;
 } {
   try {
     const parsed = JSON.parse(raw) as {
@@ -157,23 +158,27 @@ function safeParseSourcesJson(raw: string): {
         ? (parsed.retrieval as ChatRetrievalInfo)
         : undefined;
     return { sources, retrieval };
-  } catch {
-    return {};
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { error: msg || "JSON.parse failed" };
   }
 }
 
 function parseSourcesFromHeader(value: string | null): {
   sources?: SourceCitation[];
   retrieval?: ChatRetrievalInfo;
+  error?: string;
 } {
   const v = (value ?? "").trim();
   if (!v) return {};
   try {
     const decoded = decodeURIComponent(v);
     return safeParseSourcesJson(decoded);
-  } catch {
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
     // 兼容：若后端未来改为直接 JSON header（ASCII），则尝试直接 parse
-    return safeParseSourcesJson(v);
+    const parsed = safeParseSourcesJson(v);
+    return parsed.error ? { error: msg || parsed.error } : parsed;
   }
 }
 
@@ -221,7 +226,10 @@ export async function streamChat(args: StreamChatArgs): Promise<StreamChatResult
   if (!res.body) throw new Error("响应无正文流");
 
   // Task04：优先从 x-sources Header 读取（若存在），流末尾 marker 作为兜底/兼容
-  const headerParsed = parseSourcesFromHeader(res.headers.get("x-sources"));
+  const xSourcesRaw = res.headers.get("x-sources");
+  const headerParsed = parseSourcesFromHeader(xSourcesRaw);
+  const xSourcesPresent = Boolean((xSourcesRaw ?? "").trim());
+  const xSourcesLen = xSourcesRaw ? xSourcesRaw.length : 0;
 
   const reader = res.body.getReader();
   const decoder = new TextDecoder("utf-8");
@@ -297,14 +305,40 @@ export async function streamChat(args: StreamChatArgs): Promise<StreamChatResult
   const elapsedMs = Math.max(0, Math.round(performance.now() - startedAt));
   debugLog(args.debug === true, args.onDebugLog, `[chat] chunks=${chunks} bytes=${bytes} elapsedMs=${elapsedMs}`);
 
-  const parsed = markerFound
-    ? safeParseSourcesJson(sourcesRaw.trimStart())
-    : {};
-  if (markerFound && args.debug === true) {
+  const tailParsed = markerFound ? safeParseSourcesJson(sourcesRaw.trimStart()) : {};
+
+  const headerSourcesCount = headerParsed.sources?.length ?? 0;
+  const tailSourcesCount = tailParsed.sources?.length ?? 0;
+
+  const sourcesUsed: "header" | "tail" | "none" =
+    headerParsed.sources?.length
+      ? "header"
+      : tailParsed.sources?.length
+        ? "tail"
+        : "none";
+
+  const parseError =
+    (headerParsed.error ? `header:${headerParsed.error}` : "") ||
+    (tailParsed.error ? `tail:${tailParsed.error}` : "") ||
+    "";
+
+  if (args.debug === true) {
+    const errorShort = parseError ? parseError.slice(0, 200) : "";
     debugLog(
       true,
       args.onDebugLog,
-      `[chat] sources_json=${parsed.sources?.length ?? 0} marker=${RAG_SOURCES_MARKER}`,
+      [
+        "[chat] sources_debug",
+        `x_sources_present=${String(xSourcesPresent)}`,
+        `x_sources_len=${String(xSourcesLen)}`,
+        `header_sources_count=${String(headerSourcesCount)}`,
+        `marker_found=${String(markerFound)}`,
+        `tail_sources_count=${String(tailSourcesCount)}`,
+        `sources_used=${sourcesUsed}`,
+        errorShort ? `sources_parse_error=${JSON.stringify(errorShort)}` : "",
+      ]
+        .filter(Boolean)
+        .join(" "),
     );
   }
 
@@ -313,8 +347,8 @@ export async function streamChat(args: StreamChatArgs): Promise<StreamChatResult
     bytes,
     elapsedMs,
     answerText,
-    sources: headerParsed.sources ?? parsed.sources,
-    retrieval: headerParsed.retrieval ?? parsed.retrieval,
+    sources: headerParsed.sources ?? tailParsed.sources,
+    retrieval: headerParsed.retrieval ?? tailParsed.retrieval,
   };
 }
 

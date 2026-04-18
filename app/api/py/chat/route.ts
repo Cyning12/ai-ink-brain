@@ -100,11 +100,14 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
+  const xSources = upstream.headers.get("x-sources");
+
   return new Response(upstream.body, {
     status: upstream.status,
     headers: {
       "Content-Type":
         upstream.headers.get("content-type") ?? "text/plain; charset=utf-8",
+      ...(xSources ? { "x-sources": xSources } : null),
     },
   });
 }
