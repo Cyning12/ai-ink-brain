@@ -8,6 +8,7 @@ const modules = [
     href: "/learning",
     hint: "content/learning",
   },
+  { id: "chat", title: "对话", href: "/chat", hint: "RAG Chat" },
   { id: "tasks", title: "任务", href: "/projects", hint: "content/tasks" },
 ];
 
