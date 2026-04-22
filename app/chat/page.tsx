@@ -12,7 +12,7 @@ export default function ChatPage() {
       </p>
 
       <div className="mt-10">
-        <ChatPanel variant="page" sessionScope="floating" />
+        <ChatPanel sessionScope="floating" />
       </div>
     </main>
   );

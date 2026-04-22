@@ -42,7 +42,7 @@ export function ChatPanel() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-6">
+    <div className="mx-auto w-full max-w-5xl space-y-6">
       <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card/60 px-4 py-3">
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
           <input
