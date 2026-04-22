@@ -102,11 +102,71 @@ function extractFinalAnswer(args: {
   return "";
 }
 
+type SseBlock = { event: string; data: string };
+
+function parseSseBlocks(chunkText: string): SseBlock[] {
+  // 这里只做“块级解析”；事件的组包（跨 chunk）由外层 buffer 处理
+  const blocks: SseBlock[] = [];
+  const parts = chunkText.split("\n\n").filter((p) => p.trim());
+  for (const part of parts) {
+    let eventName = "message";
+    const dataLines: string[] = [];
+    for (const rawLine of part.split("\n")) {
+      const line = rawLine.trimEnd();
+      if (!line) continue;
+      if (line.startsWith("event:")) {
+        eventName = line.slice("event:".length).trim() || "message";
+        continue;
+      }
+      if (line.startsWith("data:")) {
+        dataLines.push(line.slice("data:".length).trimStart());
+        continue;
+      }
+      // 忽略 id/retry 等
+    }
+    blocks.push({ event: eventName, data: dataLines.join("\n") });
+  }
+  return blocks;
+}
+
+function chainEventFromSse(args: {
+  runId: string;
+  raw: unknown;
+  fallbackStepId: string;
+}): ChainEvent | null {
+  if (!args.raw || typeof args.raw !== "object") return null;
+  const obj = args.raw as Record<string, unknown>;
+
+  const type = typeof obj.type === "string" ? obj.type : "";
+  if (!type) return null;
+
+  const ts = typeof obj.ts === "number" && Number.isFinite(obj.ts) ? obj.ts : Date.now();
+  const stepId =
+    typeof obj.step_id === "string" && obj.step_id
+      ? obj.step_id
+      : typeof obj.step === "string" && obj.step
+        ? obj.step
+        : args.fallbackStepId;
+  const payload =
+    obj.payload && typeof obj.payload === "object"
+      ? (obj.payload as Record<string, unknown>)
+      : {};
+
+  return {
+    type: type as ChainEvent["type"],
+    ts,
+    run_id: args.runId,
+    step_id: stepId,
+    payload,
+  };
+}
+
 export function UnifiedChatPageClient() {
   const [mounted, setMounted] = useState(false);
   const [token, setToken] = useState("");
   const [tokenInput, setTokenInput] = useState("");
   const tokenInputRef = useRef<HTMLInputElement | null>(null);
+  const streamAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -132,6 +192,7 @@ export function UnifiedChatPageClient() {
   const [errorText, setErrorText] = useState<string | null>(null);
   const [events, setEvents] = useState<ChainEvent[]>([]);
   const [finalAnswer, setFinalAnswer] = useState<string>("");
+  const [streamingText, setStreamingText] = useState<string>("");
 
   const messages = useMemo(() => extractMessagesFromEvents(events), [events]);
 
@@ -144,31 +205,113 @@ export function UnifiedChatPageClient() {
   }
 
   const send = async (q: string) => {
+    // 取消上一次 SSE
+    streamAbortRef.current?.abort();
+    streamAbortRef.current = null;
+
     setLoading(true);
     setErrorText(null);
     setFinalAnswer("");
+    setStreamingText("");
+
+    // 先把 user.message 放进 timeline，保证左栏/中栏立即有反馈
+    const runId = crypto.randomUUID();
+    const userEvent: ChainEvent = {
+      type: "user.message",
+      ts: Date.now(),
+      run_id: runId,
+      step_id: "user",
+      payload: { text: q },
+    };
+    setEvents([userEvent]);
+
     try {
-      const res = await fetch("/api/py/unified/chat", {
+      const ac = new AbortController();
+      streamAbortRef.current = ac;
+
+      const res = await fetch("/api/py/unified/chat/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...headers },
         credentials: "include",
+        signal: ac.signal,
         body: JSON.stringify({ session_id: sessionId, query: q, prefer }),
       });
-      const raw = await res.text().catch(() => "");
-      if (!res.ok) throw new Error(pickErrorMessage(raw, res.status, res.statusText));
-      const j = safeJson(raw);
-      if (!j || typeof j !== "object") throw new Error("响应不是合法 JSON");
-      const data = j as ChainChatResponse;
-      if (!data.ok || !Array.isArray(data.events)) {
-        throw new Error(typeof data.error === "string" ? data.error : "unified chat 返回 ok=false");
+      if (!res.ok) {
+        const raw = await res.text().catch(() => "");
+        throw new Error(pickErrorMessage(raw, res.status, res.statusText));
       }
-      setEvents(data.events);
-      setFinalAnswer(extractFinalAnswer({ answer: data.answer, events: data.events }));
+      if (!res.body) throw new Error("SSE 响应无 body（ReadableStream 不可用）");
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let buffer = "";
+
+      // 服务端可能在 done 里返回 run_id；先用本地 runId，后续如拿到再覆盖
+      let currentRunId = runId;
+      let donePayload: unknown = null;
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        // 按 SSE block 分割（\n\n），保留最后一个不完整块到 buffer
+        const idx = buffer.lastIndexOf("\n\n");
+        if (idx < 0) continue;
+        const ready = buffer.slice(0, idx);
+        buffer = buffer.slice(idx + 2);
+
+        const blocks = parseSseBlocks(ready);
+        for (const b of blocks) {
+          const j = safeJson(b.data);
+          if (b.event === "chain") {
+            const ev = chainEventFromSse({
+              runId: currentRunId,
+              raw: j,
+              fallbackStepId: "chain",
+            });
+            if (!ev) continue;
+            setEvents((prev) => [...prev, ev]);
+            continue;
+          }
+          if (b.event === "token") {
+            if (j && typeof j === "object") {
+              const obj = j as Record<string, unknown>;
+              const t = typeof obj.text === "string" ? obj.text : "";
+              if (t) {
+                setStreamingText((prev) => prev + t);
+                // v1：token 也作为“最终答案”实时显示
+                setFinalAnswer((prev) => (prev ? prev + t : t));
+              }
+            }
+            continue;
+          }
+          if (b.event === "done") {
+            donePayload = j;
+            if (j && typeof j === "object") {
+              const obj = j as Record<string, unknown>;
+              const rid = typeof obj.run_id === "string" ? obj.run_id : "";
+              if (rid.trim()) currentRunId = rid.trim();
+            }
+            continue;
+          }
+        }
+      }
+
+      // done 后收尾：从当前 events 里补一次最终答案（避免闭包拿不到最新 events）
+      setEvents((prev) => {
+        const inferred = extractFinalAnswer({ answer: undefined, events: prev });
+        if (inferred.trim()) setFinalAnswer((fa) => (fa.trim() ? fa : inferred));
+        // donePayload 仅用于调试/未来扩展，这里不落 event，避免污染时间线
+        void donePayload;
+        return prev;
+      });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       setErrorText(msg);
     } finally {
       setLoading(false);
+      streamAbortRef.current = null;
     }
   };
 
@@ -188,6 +331,14 @@ export function UnifiedChatPageClient() {
               <div className="text-[10px] text-slate-400">最终答案</div>
               <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">
                 {finalAnswer}
+              </div>
+            </div>
+          ) : null}
+          {loading && streamingText.trim() ? (
+            <div className="mb-4 rounded-2xl border border-[color:var(--color-border)] bg-white/60 px-3 py-2">
+              <div className="text-[10px] text-slate-400">assistant（streaming）</div>
+              <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">
+                {streamingText}
               </div>
             </div>
           ) : null}
@@ -315,9 +466,13 @@ export function UnifiedChatPageClient() {
                 <button
                   type="button"
                   onClick={() => {
+                    streamAbortRef.current?.abort();
+                    streamAbortRef.current = null;
                     resetSession();
                     setEvents([]);
                     setErrorText(null);
+                    setFinalAnswer("");
+                    setStreamingText("");
                   }}
                   className="rounded-xl border border-[color:var(--color-border)] bg-white/60 px-3 py-2 text-sm text-slate-700"
                 >

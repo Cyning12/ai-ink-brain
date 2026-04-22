@@ -38,6 +38,49 @@ function extractTextFromPayload(payload: Record<string, unknown>): string {
   return "";
 }
 
+function pickSourceTitle(s: unknown): string {
+  if (!s || typeof s !== "object") return "source";
+  const o = s as Record<string, unknown>;
+  const filename = typeof o.filename === "string" ? o.filename : "";
+  const path = typeof o.path === "string" ? o.path : "";
+  const relativePath = typeof o.relativePath === "string" ? o.relativePath : "";
+  const id = typeof o.id === "string" || typeof o.id === "number" ? String(o.id) : "";
+  return (filename || path || relativePath || (id ? `source#${id}` : "") || "source").trim();
+}
+
+function pickSourceContent(s: unknown): string {
+  if (!s || typeof s !== "object") return "";
+  const o = s as Record<string, unknown>;
+  const content = typeof o.content === "string" ? o.content : "";
+  const snippet = typeof o.snippet === "string" ? o.snippet : "";
+  return (content || snippet).trim();
+}
+
+async function copyToClipboard(text: string): Promise<boolean> {
+  const t = text.trim();
+  if (!t) return false;
+  try {
+    await navigator.clipboard.writeText(t);
+    return true;
+  } catch {
+    // 兜底：旧浏览器/权限失败时尝试 execCommand
+    try {
+      const el = document.createElement("textarea");
+      el.value = t;
+      el.setAttribute("readonly", "true");
+      el.style.position = "fixed";
+      el.style.top = "-9999px";
+      document.body.appendChild(el);
+      el.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(el);
+      return ok;
+    } catch {
+      return false;
+    }
+  }
+}
+
 function badgeTone(type: ChainEvent["type"]): string {
   if (type === "error") return "bg-red-500/10 text-red-700 border-red-500/20";
   if (type.startsWith("tool.")) return "bg-slate-500/10 text-slate-700 border-slate-500/20";
@@ -50,6 +93,10 @@ function badgeTone(type: ChainEvent["type"]): string {
 
 export function ChainEventCard({ event }: Props) {
   const [open, setOpen] = useState(false);
+  const [snippetOpen, setSnippetOpen] = useState(false);
+  const [snippetTitle, setSnippetTitle] = useState("");
+  const [snippetContent, setSnippetContent] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const title = useMemo(() => {
     const p = event.payload ?? {};
@@ -85,7 +132,23 @@ export function ChainEventCard({ event }: Props) {
         <div className="space-y-3">
           {sql ? (
             <div>
-              <div className="text-[10px] text-slate-500">sql</div>
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-[10px] text-slate-500">sql</div>
+                <button
+                  type="button"
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const ok = await copyToClipboard(sql);
+                    setCopied(ok);
+                    if (ok) window.setTimeout(() => setCopied(false), 1200);
+                  }}
+                  className="rounded-full border border-[color:var(--color-border)] bg-white/60 px-2 py-0.5 text-[10px] text-slate-600 hover:bg-white/80"
+                  title="复制 SQL"
+                >
+                  {copied ? "已复制" : "复制"}
+                </button>
+              </div>
               <pre className="mt-1 overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2 font-mono text-[11px] text-slate-700">
                 {sql}
               </pre>
@@ -103,7 +166,14 @@ export function ChainEventCard({ event }: Props) {
       return (
         <div className="space-y-2">
           <div className="text-[11px] text-slate-500">sources</div>
-          <SourceCitations sources={sources as any} />
+          <SourceCitations
+            sources={sources as any}
+            onOpenSnippet={(s) => {
+              setSnippetTitle(pickSourceTitle(s));
+              setSnippetContent(pickSourceContent(s));
+              setSnippetOpen(true);
+            }}
+          />
         </div>
       );
     }
@@ -146,11 +216,29 @@ export function ChainEventCard({ event }: Props) {
       );
     }
     if (event.type === "error") {
+      const stage =
+        typeof event.payload.stage === "string"
+          ? event.payload.stage
+          : typeof event.payload.step === "string"
+            ? event.payload.step
+            : typeof event.payload.step_id === "string"
+              ? event.payload.step_id
+              : event.step_id;
       const msg =
         typeof event.payload.message === "string"
           ? event.payload.message
           : safeStringify(event.payload);
-      return <div className="whitespace-pre-wrap text-sm text-red-700/90">{msg}</div>;
+      return (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-[11px] text-slate-600">
+            <span className="rounded-full border border-red-500/20 bg-red-500/10 px-2 py-0.5 font-mono text-red-700/90">
+              stage
+            </span>
+            <span className="font-mono text-red-700/90">{stage || "unknown"}</span>
+          </div>
+          <div className="whitespace-pre-wrap text-sm text-red-700/90">{msg}</div>
+        </div>
+      );
     }
     // tool.* and fallback
     return (
@@ -189,6 +277,43 @@ export function ChainEventCard({ event }: Props) {
       </button>
 
       {open ? <div className="mt-3">{renderBody()}</div> : null}
+
+      {snippetOpen ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setSnippetOpen(false)}
+        >
+          <div
+            className="w-full max-w-2xl rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7] p-4 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="truncate font-serif text-sm text-[#2c2c2c]">{snippetTitle || "摘要"}</div>
+                <div className="mt-1 text-[11px] text-slate-500">点击遮罩或右上角关闭</div>
+              </div>
+              <button
+                type="button"
+                className="rounded-full border border-[color:var(--color-border)] bg-white/60 px-2 py-1 text-[11px] text-slate-600 hover:bg-white/80"
+                onClick={() => setSnippetOpen(false)}
+              >
+                关闭
+              </button>
+            </div>
+            <div className="mt-3">
+              {snippetContent ? (
+                <pre className="max-h-[55vh] overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[color:var(--color-border)] bg-white/60 p-3 font-mono text-[11px] text-slate-700">
+                  {snippetContent}
+                </pre>
+              ) : (
+                <div className="text-[12px] text-slate-500">（该 sources 未提供 snippet/content）</div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
