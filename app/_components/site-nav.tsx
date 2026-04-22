@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PenTool, Wind } from "lucide-react";
 import SystemStatus from "@/components/SystemStatus";
+import { useAdminSession } from "@/lib/hooks/useAdminSession";
 
 type NavItem = {
   href: string;
@@ -15,11 +16,21 @@ const NAV: NavItem[] = [
   { href: "/learning", label: "Learning" },
   { href: "/projects", label: "Tasks" },
   { href: "/chat", label: "Chat" },
+  { href: "/text2sql", label: "Text2SQL" },
+  { href: "/chain-chat", label: "Chain" },
   { href: "/about", label: "About" },
 ];
 
 export function SiteNav() {
   const pathname = usePathname();
+  const { isAdmin } = useAdminSession();
+
+  const visibleNav = NAV.filter((item) => {
+    if (item.href === "/chat" || item.href === "/text2sql" || item.href === "/chain-chat") {
+      return isAdmin;
+    }
+    return true;
+  });
 
   return (
     <header className="sticky top-0 z-20 border-b border-[color:var(--color-border)] bg-[color:var(--color-background)]/70 backdrop-blur">
@@ -44,7 +55,7 @@ export function SiteNav() {
 
         <div className="flex items-center gap-2">
           <nav className="flex items-center gap-1">
-            {NAV.map((item) => {
+            {visibleNav.map((item) => {
               const active =
                 pathname === item.href || pathname?.startsWith(item.href + "/");
               return (
