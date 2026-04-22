@@ -156,7 +156,7 @@ export function ChainChatPageClient() {
 
   const headers: Record<string, string> = useMemo(() => {
     const t = token.trim();
-    return t ? { Authorization: `Bearer ${t}` } : {};
+    return t ? { Authorization: `Bearer ${t}` } : ({} as Record<string, string>);
   }, [token]);
 
   const { sessionId, resetSession } = useSessionId("chain-chat");
@@ -198,10 +198,11 @@ export function ChainChatPageClient() {
           const data = j as ChainChatResponse;
           if (data.ok && Array.isArray(data.events)) {
             setEvents(data.events);
-            if (typeof data.answer === "string" && data.answer.trim()) {
+            const answerText = typeof data.answer === "string" ? data.answer : "";
+            if (answerText.trim()) {
               setMessages((prev) => [
                 ...prev,
-                { id: crypto.randomUUID(), role: "assistant", text: data.answer },
+                { id: crypto.randomUUID(), role: "assistant", text: answerText },
               ]);
             }
             setLoading(false);

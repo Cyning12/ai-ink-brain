@@ -86,7 +86,7 @@ export function Text2SqlChatPanel() {
 
   const headers: Record<string, string> = useMemo(() => {
     const t = token.trim();
-    return t ? { Authorization: `Bearer ${t}` } : {};
+    return t ? { Authorization: `Bearer ${t}` } : ({} as Record<string, string>);
   }, [token]);
 
   const { sessionId, resetSession } = useSessionId("text2sql");
