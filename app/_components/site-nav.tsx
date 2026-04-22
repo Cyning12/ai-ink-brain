@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PenTool, Wind } from "lucide-react";
+import SystemStatus from "@/components/SystemStatus";
 
 type NavItem = {
   href: string;
@@ -11,7 +12,8 @@ type NavItem = {
 
 const NAV: NavItem[] = [
   { href: "/blog", label: "Blog" },
-  { href: "/projects", label: "Projects" },
+  { href: "/learning", label: "Learning" },
+  { href: "/projects", label: "Tasks" },
   { href: "/chat", label: "Chat" },
   { href: "/about", label: "About" },
 ];
@@ -40,26 +42,33 @@ export function SiteNav() {
           </span>
         </Link>
 
-        <nav className="flex items-center gap-1">
-          {NAV.map((item) => {
-            const active =
-              pathname === item.href || pathname?.startsWith(item.href + "/");
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={[
-                  "rounded-full px-3 py-1.5 text-sm transition-colors",
-                  active
-                    ? "bg-[color:var(--color-wash)] text-[color:var(--color-foreground)]"
-                    : "text-[color:var(--color-muted)] hover:text-[color:var(--color-foreground)] hover:bg-[color:var(--color-wash)]/70",
-                ].join(" ")}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+        <div className="flex items-center gap-2">
+          <nav className="flex items-center gap-1">
+            {NAV.map((item) => {
+              const active =
+                pathname === item.href || pathname?.startsWith(item.href + "/");
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={[
+                    "rounded-full px-3 py-1.5 text-sm transition-colors",
+                    active
+                      ? "bg-[color:var(--color-wash)] text-[color:var(--color-foreground)]"
+                      : "text-[color:var(--color-muted)] hover:text-[color:var(--color-foreground)] hover:bg-[color:var(--color-wash)]/70",
+                  ].join(" ")}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* 顶部右侧：Vercel 环境 + ADMIN MODE（避免被右下角悬浮层遮挡） */}
+          <div className="hidden items-center sm:flex">
+            <SystemStatus variant="nav" />
+          </div>
+        </div>
       </div>
     </header>
   );

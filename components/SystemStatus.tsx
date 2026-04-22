@@ -42,7 +42,8 @@ function envLabel(env: string) {
   return env;
 }
 
-export default function SystemStatus() {
+export default function SystemStatus(props: { variant?: "floating" | "nav" }) {
+  const variant = props.variant ?? "floating";
   const [status, setStatus] = useState<StatusPayload | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
@@ -204,8 +205,20 @@ export default function SystemStatus() {
         : "bg-slate-400/90";
 
   return (
-    <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2 text-[10px] font-mono text-slate-500">
-      <div className="pointer-events-auto flex flex-col items-end gap-2">
+    <div
+      className={
+        variant === "floating"
+          ? "pointer-events-none fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2 text-[10px] font-mono text-slate-500"
+          : "flex items-center gap-2 text-[10px] font-mono text-slate-500"
+      }
+    >
+      <div
+        className={
+          variant === "floating"
+            ? "pointer-events-auto flex flex-col items-end gap-2"
+            : "flex items-center gap-2"
+        }
+      >
         {/* 部署状态 */}
         <div className="flex items-center gap-2 rounded-full border border-[color:var(--color-border)] bg-[#f9f9f7]/90 px-2.5 py-1 shadow-sm backdrop-blur-sm">
           <span
@@ -327,9 +340,11 @@ export default function SystemStatus() {
         </div>
       </div>
 
-      <div className="pointer-events-none text-right opacity-50 transition-opacity hover:opacity-100">
-        Built with Next.js & SiliconFlow
-      </div>
+      {variant === "floating" ? (
+        <div className="pointer-events-none text-right opacity-50 transition-opacity hover:opacity-100">
+          Built with Next.js & SiliconFlow
+        </div>
+      ) : null}
     </div>
   );
 }

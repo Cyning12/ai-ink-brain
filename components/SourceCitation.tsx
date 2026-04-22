@@ -61,12 +61,6 @@ export function SourceCitation({ sources, onOpenSnippet }: Props) {
                   {s.original_link ? "↗" : "预览"}
                 </div>
               </div>
-
-              {typeof s.snippet === "string" && s.snippet.trim() ? (
-                <div className="mt-2 line-clamp-3 whitespace-pre-wrap text-[11px] leading-relaxed text-slate-600">
-                  {s.snippet.trim()}
-                </div>
-              ) : null}
             </button>
           );
         })}

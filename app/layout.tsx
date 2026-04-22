@@ -3,8 +3,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 import { SiteNav } from "@/app/_components/site-nav";
-import ChatPanel from "@/components/ChatPanel";
-import SystemStatus from "@/components/SystemStatus";
+// SystemStatus 已移至顶部导航栏（SiteNav），避免右下角遮挡
 
 export const metadata: Metadata = {
   title: "AI-Ink-Brain",
@@ -21,8 +20,6 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col bg-background text-foreground">
         <SiteNav />
         <div className="flex-1">{children}</div>
-        <SystemStatus />
-        <ChatPanel />
       </body>
     </html>
   );

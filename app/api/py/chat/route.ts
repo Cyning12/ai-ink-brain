@@ -42,9 +42,25 @@ export async function POST(request: Request): Promise<Response> {
       cause && typeof cause === "object"
         ? (cause as { code?: unknown; errno?: unknown; syscall?: unknown; hostname?: unknown })
         : null;
+    const causeCode = causeObj?.code ? String(causeObj.code) : "";
+    if (causeCode === "UND_ERR_HEADERS_OVERFLOW") {
+      return new Response(
+        [
+          "Python RAG 服务响应头过大（UND_ERR_HEADERS_OVERFLOW）。",
+          "这通常是 /api/py/chat 返回的 x-sources（来源引用）Header 过长导致的。",
+          `目标: ${url}`,
+          "",
+          "解决：后端应在 x-sources 超过上限时省略该 Header，仅使用流末尾 ---RAG_SOURCES_JSON--- 作为兜底传输 sources。",
+        ].join("\n"),
+        {
+          status: 502,
+          headers: { "Content-Type": "text/plain; charset=utf-8" },
+        },
+      );
+    }
     const hintParts = [
       err.message || "fetch failed",
-      causeObj?.code ? `code=${String(causeObj.code)}` : "",
+      causeCode ? `code=${causeCode}` : "",
       causeObj?.errno ? `errno=${String(causeObj.errno)}` : "",
       causeObj?.syscall ? `syscall=${String(causeObj.syscall)}` : "",
       causeObj?.hostname ? `hostname=${String(causeObj.hostname)}` : "",
@@ -84,11 +100,14 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
+  const xSources = upstream.headers.get("x-sources");
+
   return new Response(upstream.body, {
     status: upstream.status,
     headers: {
       "Content-Type":
         upstream.headers.get("content-type") ?? "text/plain; charset=utf-8",
+      ...(xSources ? { "x-sources": xSources } : null),
     },
   });
 }
