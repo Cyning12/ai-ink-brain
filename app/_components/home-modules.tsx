@@ -21,6 +21,7 @@ const ADMIN_MODULES: HomeModule[] = [
   { id: "chat", title: "对话", href: "/chat", hint: "RAG Chat" },
   { id: "text2sql", title: "Text2SQL", href: "/text2sql", hint: "查库" },
   { id: "chain-chat", title: "Chain Chat", href: "/chain-chat", hint: "工具调用时间线（v1）" },
+  { id: "unified-chat", title: "Unified Chat", href: "/unified-chat", hint: "RAG + Text2SQL + Timeline" },
 ];
 
 export function HomeModules() {

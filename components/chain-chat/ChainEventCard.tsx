@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 
 import type { ChainEvent } from "@/components/chain-chat/types";
 import { SqlResultTable } from "@/components/chain-chat/SqlResultTable";
+import { SourceCitations } from "@/components/SourceCitations";
 
 type Props = {
   event: ChainEvent;
@@ -23,10 +24,26 @@ function safeStringify(v: unknown): string {
   }
 }
 
+function extractTextFromPayload(payload: Record<string, unknown>): string {
+  const direct = typeof payload.text === "string" ? payload.text : "";
+  if (direct.trim()) return direct;
+  const answer = typeof payload.answer === "string" ? payload.answer : "";
+  if (answer.trim()) return answer;
+  const output =
+    payload.output && typeof payload.output === "object"
+      ? (payload.output as Record<string, unknown>)
+      : null;
+  const outAnswer = output && typeof output.answer === "string" ? output.answer : "";
+  if (outAnswer.trim()) return outAnswer;
+  return "";
+}
+
 function badgeTone(type: ChainEvent["type"]): string {
   if (type === "error") return "bg-red-500/10 text-red-700 border-red-500/20";
   if (type.startsWith("tool.")) return "bg-slate-500/10 text-slate-700 border-slate-500/20";
   if (type === "sql.result") return "bg-indigo-500/10 text-indigo-700 border-indigo-500/20";
+  if (type === "rag.sources") return "bg-teal-500/10 text-teal-800 border-teal-500/20";
+  if (type === "latency") return "bg-sky-500/10 text-sky-800 border-sky-500/20";
   if (type.startsWith("chart.")) return "bg-amber-500/10 text-amber-800 border-amber-500/20";
   return "bg-emerald-500/10 text-emerald-800 border-emerald-500/20";
 }
@@ -36,8 +53,11 @@ export function ChainEventCard({ event }: Props) {
 
   const title = useMemo(() => {
     const p = event.payload ?? {};
+    if (event.type === "user.message") return "user.message";
     if (event.type === "assistant.message") return "assistant.message";
     if (event.type === "sql.result") return "sql.result";
+    if (event.type === "rag.sources") return "rag.sources";
+    if (event.type === "latency") return "latency";
     if (event.type === "error") return "error";
     if (event.type.startsWith("tool.")) {
       const name = typeof p.tool === "string" ? p.tool : typeof p.name === "string" ? p.name : "tool";
@@ -47,8 +67,12 @@ export function ChainEventCard({ event }: Props) {
   }, [event]);
 
   const renderBody = () => {
+    if (event.type === "user.message") {
+      const t = extractTextFromPayload(event.payload);
+      return <div className="whitespace-pre-wrap text-sm text-slate-800">{t}</div>;
+    }
     if (event.type === "assistant.message") {
-      const t = typeof event.payload.text === "string" ? event.payload.text : "";
+      const t = extractTextFromPayload(event.payload);
       return <div className="whitespace-pre-wrap text-sm text-slate-800">{t}</div>;
     }
     if (event.type === "sql.result") {
@@ -68,6 +92,38 @@ export function ChainEventCard({ event }: Props) {
             </div>
           ) : null}
           <SqlResultTable columns={columns} rows={rows} maxRows={20} />
+        </div>
+      );
+    }
+    if (event.type === "rag.sources") {
+      const sources = Array.isArray(event.payload.sources)
+        ? (event.payload.sources as unknown[])
+        : [];
+      // SourceCitations 使用 lib/chat/chatApi 的 SourceCitation 结构；这里做最小假设：后端 payload 兼容该结构
+      return (
+        <div className="space-y-2">
+          <div className="text-[11px] text-slate-500">sources</div>
+          <SourceCitations sources={sources as any} />
+        </div>
+      );
+    }
+    if (event.type === "latency") {
+      const total =
+        typeof event.payload.total_ms === "number" ? event.payload.total_ms : null;
+      const stages =
+        event.payload.stages_ms && typeof event.payload.stages_ms === "object"
+          ? (event.payload.stages_ms as Record<string, unknown>)
+          : null;
+      return (
+        <div className="space-y-2 text-[11px] text-slate-700">
+          <div className="font-mono">
+            total_ms: {total == null ? "—" : String(Math.round(total))}
+          </div>
+          {stages ? (
+            <pre className="overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2 font-mono text-[10px] text-slate-700">
+              {safeStringify(stages)}
+            </pre>
+          ) : null}
         </div>
       );
     }
