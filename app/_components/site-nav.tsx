@@ -18,6 +18,7 @@ const NAV: NavItem[] = [
   { href: "/chat", label: "Chat" },
   { href: "/text2sql", label: "Text2SQL" },
   { href: "/chain-chat", label: "Chain" },
+  { href: "/unified-chat", label: "Unified" },
   { href: "/about", label: "About" },
 ];
 
@@ -26,7 +27,12 @@ export function SiteNav() {
   const { isAdmin } = useAdminSession();
 
   const visibleNav = NAV.filter((item) => {
-    if (item.href === "/chat" || item.href === "/text2sql" || item.href === "/chain-chat") {
+    if (
+      item.href === "/chat" ||
+      item.href === "/text2sql" ||
+      item.href === "/chain-chat" ||
+      item.href === "/unified-chat"
+    ) {
       return isAdmin;
     }
     return true;

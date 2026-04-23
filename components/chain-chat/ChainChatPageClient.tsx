@@ -43,6 +43,48 @@ function pickErrorMessage(raw: string, status: number, statusText: string): stri
   return t || `${status} ${statusText}`;
 }
 
+function extractTextFromPayload(payload: Record<string, unknown>): string {
+  const direct = typeof payload.text === "string" ? payload.text : "";
+  if (direct.trim()) return direct;
+  const answer = typeof payload.answer === "string" ? payload.answer : "";
+  if (answer.trim()) return answer;
+  const output =
+    payload.output && typeof payload.output === "object"
+      ? (payload.output as Record<string, unknown>)
+      : null;
+  const outAnswer = output && typeof output.answer === "string" ? output.answer : "";
+  if (outAnswer.trim()) return outAnswer;
+  return "";
+}
+
+function extractFinalAnswer(args: {
+  answer?: string;
+  events: ChainEvent[];
+}): string {
+  const direct = typeof args.answer === "string" ? args.answer : "";
+  if (direct.trim()) return direct.trim();
+
+  const lastAssistant = [...args.events]
+    .filter((e) => e.type === "assistant.message")
+    .sort((a, b) => (a.ts ?? 0) - (b.ts ?? 0))
+    .at(-1);
+  if (lastAssistant) {
+    const t = extractTextFromPayload(lastAssistant.payload);
+    if (t.trim()) return t.trim();
+  }
+
+  const lastToolEnd = [...args.events]
+    .filter((e) => e.type === "tool.call.end")
+    .sort((a, b) => (a.ts ?? 0) - (b.ts ?? 0))
+    .at(-1);
+  if (lastToolEnd) {
+    const t = extractTextFromPayload(lastToolEnd.payload);
+    if (t.trim()) return t.trim();
+  }
+
+  return "";
+}
+
 function nowMs(): number {
   return Date.now();
 }
@@ -166,6 +208,7 @@ export function ChainChatPageClient() {
   const [errorText, setErrorText] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatRow[]>([]);
   const [events, setEvents] = useState<ChainEvent[]>([]);
+  const [finalAnswer, setFinalAnswer] = useState<string>("");
 
   if (!mounted) {
     return (
@@ -178,6 +221,7 @@ export function ChainChatPageClient() {
   const send = async (q: string) => {
     setLoading(true);
     setErrorText(null);
+    setFinalAnswer("");
 
     const runId = buildRunId();
     const userMsg: ChatRow = { id: crypto.randomUUID(), role: "user", text: q };
@@ -198,13 +242,16 @@ export function ChainChatPageClient() {
           const data = j as ChainChatResponse;
           if (data.ok && Array.isArray(data.events)) {
             setEvents(data.events);
-            const answerText = typeof data.answer === "string" ? data.answer : "";
-            if (answerText.trim()) {
-              setMessages((prev) => [
-                ...prev,
-                { id: crypto.randomUUID(), role: "assistant", text: answerText },
-              ]);
-            }
+            const answerText = extractFinalAnswer({ answer: data.answer, events: data.events });
+            if (answerText.trim()) setFinalAnswer(answerText);
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: crypto.randomUUID(),
+                role: "assistant",
+                text: answerText.trim() ? answerText : "（无回答）",
+              },
+            ]);
             setLoading(false);
             return;
           }
@@ -238,6 +285,7 @@ export function ChainChatPageClient() {
 
       const mapped = mapText2SqlToEvents({ runId, query: q, response: obj });
       setEvents(mapped.events);
+      setFinalAnswer(mapped.answerText || "");
       setMessages((prev) => [
         ...prev,
         { id: crypto.randomUUID(), role: "assistant", text: mapped.answerText || "（无回答）" },
@@ -245,6 +293,7 @@ export function ChainChatPageClient() {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       setErrorText(msg);
+      setFinalAnswer("");
       setEvents([
         {
           type: "error",
@@ -270,6 +319,14 @@ export function ChainChatPageClient() {
           </div>
         </div>
         <div className="max-h-[60vh] overflow-auto px-4 py-4">
+          {finalAnswer.trim() ? (
+            <div className="mb-4 rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/90 px-3 py-2">
+              <div className="text-[10px] text-slate-400">最终答案</div>
+              <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">
+                {finalAnswer}
+              </div>
+            </div>
+          ) : null}
           {messages.length === 0 ? (
             <p className="text-[12px] leading-relaxed text-slate-500">
               左侧显示自然语言对话；中间显示 chain 事件时间线。
