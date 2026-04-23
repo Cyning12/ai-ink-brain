@@ -32,6 +32,14 @@ function safeJson(text: string): unknown {
   }
 }
 
+function safeStringify(v: unknown): string {
+  try {
+    return JSON.stringify(v, null, 2);
+  } catch {
+    return String(v);
+  }
+}
+
 function pickErrorMessage(raw: string, status: number, statusText: string): string {
   const t = raw.trim();
   const j = safeJson(raw);
@@ -161,6 +169,51 @@ function chainEventFromSse(args: {
   };
 }
 
+type RouterDecision = {
+  prefer?: string;
+  candidate_mode?: string;
+  final_mode?: string;
+  rule_hits?: string[];
+  evidence?: Record<string, unknown>;
+  fallback?: string | null;
+};
+
+function extractRouterDecision(events: ChainEvent[]): RouterDecision | null {
+  const last = [...events]
+    .filter((e) => e.type === "router.decision")
+    .sort((a, b) => (a.ts ?? 0) - (b.ts ?? 0))
+    .at(-1);
+  if (!last) return null;
+  const p = last.payload ?? {};
+  if (!p || typeof p !== "object") return null;
+  const obj = p as Record<string, unknown>;
+  return {
+    prefer: typeof obj.prefer === "string" ? obj.prefer : undefined,
+    candidate_mode: typeof obj.candidate_mode === "string" ? obj.candidate_mode : undefined,
+    final_mode: typeof obj.final_mode === "string" ? obj.final_mode : undefined,
+    rule_hits: Array.isArray(obj.rule_hits) ? (obj.rule_hits as string[]) : undefined,
+    evidence:
+      obj.evidence && typeof obj.evidence === "object"
+        ? (obj.evidence as Record<string, unknown>)
+        : undefined,
+    fallback:
+      typeof obj.fallback === "string"
+        ? obj.fallback
+        : obj.fallback === null
+          ? null
+          : undefined,
+  };
+}
+
+function modeTone(mode: string): string {
+  const m = mode.trim();
+  if (m === "text2sql") return "border-indigo-500/20 bg-indigo-500/10 text-indigo-800";
+  if (m === "rag") return "border-teal-500/20 bg-teal-500/10 text-teal-800";
+  if (m === "no_data") return "border-slate-500/20 bg-slate-500/10 text-slate-700";
+  if (m.startsWith("tool:")) return "border-amber-500/20 bg-amber-500/10 text-amber-800";
+  return "border-emerald-500/20 bg-emerald-500/10 text-emerald-800";
+}
+
 export function UnifiedChatPageClient() {
   const [mounted, setMounted] = useState(false);
   const [token, setToken] = useState("");
@@ -195,6 +248,7 @@ export function UnifiedChatPageClient() {
   const [streamingText, setStreamingText] = useState<string>("");
 
   const messages = useMemo(() => extractMessagesFromEvents(events), [events]);
+  const routerDecision = useMemo(() => extractRouterDecision(events), [events]);
 
   if (!mounted) {
     return (
@@ -429,6 +483,81 @@ export function UnifiedChatPageClient() {
                   <option value="text2sql">text2sql</option>
                 </select>
               </label>
+
+              <details className="rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/70 p-3">
+                <summary className="cursor-pointer select-none text-[12px] text-slate-700">
+                  路由决策（intent router）
+                </summary>
+                <div className="mt-3 space-y-2">
+                  {routerDecision?.final_mode ? (
+                    <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-700">
+                      <span className="text-slate-500">final_mode</span>
+                      <span
+                        className={[
+                          "rounded-full border px-2 py-0.5 font-mono",
+                          modeTone(routerDecision.final_mode),
+                        ].join(" ")}
+                      >
+                        {routerDecision.final_mode}
+                      </span>
+                      {routerDecision.candidate_mode ? (
+                        <>
+                          <span className="text-slate-500">candidate</span>
+                          <span className="rounded-full border border-[color:var(--color-border)] bg-white/60 px-2 py-0.5 font-mono text-slate-700">
+                            {routerDecision.candidate_mode}
+                          </span>
+                        </>
+                      ) : null}
+                      {routerDecision.prefer ? (
+                        <>
+                          <span className="text-slate-500">prefer</span>
+                          <span className="rounded-full border border-[color:var(--color-border)] bg-white/60 px-2 py-0.5 font-mono text-slate-700">
+                            {routerDecision.prefer}
+                          </span>
+                        </>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <div className="text-[11px] text-slate-500">
+                      （本轮 events 未发现 <span className="font-mono">router.decision</span>）
+                    </div>
+                  )}
+
+                  {routerDecision?.rule_hits?.length ? (
+                    <div className="space-y-1">
+                      <div className="text-[11px] text-slate-500">rule_hits</div>
+                      <div className="flex flex-wrap gap-2">
+                        {routerDecision.rule_hits.map((h) => (
+                          <span
+                            key={h}
+                            className="rounded-full border border-[color:var(--color-border)] bg-white/60 px-2 py-0.5 text-[11px] text-slate-700"
+                          >
+                            {h}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {routerDecision?.evidence ? (
+                    <div className="space-y-1">
+                      <div className="text-[11px] text-slate-500">evidence</div>
+                      <pre className="max-h-[22vh] overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2 font-mono text-[10px] text-slate-700">
+                        {safeStringify(routerDecision.evidence)}
+                      </pre>
+                    </div>
+                  ) : null}
+
+                  {typeof routerDecision?.fallback === "string" && routerDecision.fallback.trim() ? (
+                    <div className="space-y-1">
+                      <div className="text-[11px] text-slate-500">fallback</div>
+                      <div className="whitespace-pre-wrap text-[11px] text-slate-700">
+                        {routerDecision.fallback}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              </details>
 
               <div className="text-[11px] text-slate-500">推荐问法</div>
               <div className="flex flex-wrap gap-2">
