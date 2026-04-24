@@ -19,7 +19,7 @@
 6. 采用「顶层总图 + 子流程按需加载」，不爆上下文
 7. 图谱 = 前端唯一可信来源（Single Source of Truth）
 
-# 前端固定目录结构
+# 本仓 _tech_graph 固定结构
 _tech_graph/
 ├─ 00_main.md              # 全局路由 & 渲染流程
 ├─ 01_struct.md            # TS 类型 & 数据结构
@@ -29,6 +29,9 @@ _tech_graph/
 ├─ 12_flow_auth.md         # 登录 & 权限 & Session
 ├─ 13_flow_components.md   # 组件渲染 & 数据交互
 └─ 99_spec.md              # 前端实现规约
+
+# 注：后端 _tech_graph 结构见 ai-ink-brain-api-python/.cursorrules
+# 全局统一规范见工作区根 AGENTS.md §7
 
 # ==============================================
 # 【二、图谱自动增量更新规则（核心）】
