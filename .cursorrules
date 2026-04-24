@@ -1,41 +1,93 @@
 # Role: Senior AI Application Engineer (Next.js & AI Expert)
 
 # Project Context: AI-Ink-Brain (RAG-Driven Personal Blog)
-- **Frontend/Backend**: Next.js 15 (App Router), Tailwind CSS.
-- **AI Stack**: SiliconFlow API (DeepSeek/Claude), LangChain.js, Vercel AI SDK.
-- **Database**: Supabase (Postgres + pgvector) - Replacing local FAISS for cloud persistence.
-- **Visual Style**: Minimalist Ink/Watercolor style (Low saturation, significant negative space).
+- **Frontend**: Next.js 15 (App Router), TypeScript, Tailwind CSS.
+- **AI Stack**: SiliconFlow API, Vercel AI SDK, LangChain.js.
+- **Database**: Supabase (PostgreSQL + pgvector).
+- **Visual Style**: Minimalist Ink/Watercolor (Low saturation, large negative space).
 
-# RAG & Data Integrity Standards (Inherited from Python/FAISS Experience)
-1. **Metadata Persistence**: Every text chunk stored in Supabase MUST retain source metadata (filename, original_link, page_number, section_header). This is non-negotiable for Citations.
-2. **Vector Standards**: Use 'Cosine Similarity' for pgvector searches. Ensure embedding dimensions match the SiliconFlow model (e.g., 1024 or 1536).
-3. **Chunking Logic**: Apply strict logic to chunk size and overlap (default: 512/50) to prevent information loss at boundaries.
-4. **Hybrid Search**: When possible, combine pgvector similarity with Postgres Full-Text Search for higher precision.
+# ==============================================
+# 【一、_tech_graph 技术图谱强制规范（低幻觉）】
+# ==============================================
+1. 所有技术逻辑、架构、流程 必须基于 _tech_graph/ 下的 Mermaid 图谱
+2. 禁止依赖大段纯文本文档作为开发依据
+3. 前端独立维护自身 _tech_graph，不与后端混同
+4. 图谱格式：
+   - 全部为 .md 文件，内嵌 Mermaid 图表
+   - 数据结构统一使用 Struct / classDiagram，禁止贴原始 interface / JSON
+5. 版本迭代必须标记，支持历史追溯
+6. 采用「顶层总图 + 子流程按需加载」，不爆上下文
+7. 图谱 = 前端唯一可信来源（Single Source of Truth）
 
-# Python vs TypeScript（优先级）
-- **涉及 AI / 向量 / LLM 的逻辑**：优先放在 **`api/`（FastAPI）** — 例如 RAG 对话、SiliconFlow Embedding、Supabase `documents` 的 ingest/sync、流式补全。与模型、维度、分块策略相关的改动以 Python 为单一事实来源（见 `api/index.py`、`api/ingest_pipeline.py`、`api/rag_env.py`）。
-- **纯前端 ↔ Next 后端的交互**：用 **TypeScript** — 页面与组件、Cookie/Session 鉴权、将请求 **代理** 到 `PY_API_URL` 的 Route Handler（如 `app/api/py/chat`、`app/api/admin/*` 转发）、无模型调用的 JSON API。
-- 避免在 TS 中重复实现已在 Python 落地的 Embedding/全量 ingest；若需 DashScope 等第二厂商，可短期保留 TS 参考实现或扩展到 Python。
+# 前端固定目录结构
+_tech_graph/
+├─ 00_main.md              # 全局路由 & 渲染流程
+├─ 01_struct.md            # TS 类型 & 数据结构
+├─ 02_version.md           # 版本迭代时间线
+├─ 10_flow_route.md        # 页面跳转流程
+├─ 11_flow_api.md          # API 请求 & 代理流程
+├─ 12_flow_auth.md         # 登录 & 权限 & Session
+├─ 13_flow_components.md   # 组件渲染 & 数据交互
+└─ 99_spec.md              # 前端实现规约
 
-# Development & Architecture Rules
-1. **Next.js 15 Best Practices**: 
-   - Prioritize Server Components (RSC) for data fetching; heavy vector/RAG 写入与检索在 Python 服务执行，Next 侧以代理或 BFF 暴露同源路径。
-   - Use Server Actions for form submissions and triggering re-indexing.
-2. **Streaming & UX**: AI 对话须流式输出；当前经 Python `StreamingResponse` + Next 代理/前端解码实现平滑输出（与水墨风 UI 一致）。
-3. **Performance**: Since this is a personal blog, optimize for LCP. Lazy load heavy UI components.
-4. **Memory & I/O**: Even in Node.js, maintain efficiency. Use Streams for large file processing; close database connections or use pooling via Supabase.
+# ==============================================
+# 【二、图谱自动增量更新规则（核心）】
+# ==============================================
+1. 代码/页面/接口/逻辑变更 → 自动更新对应图谱
+2. 仅做增量修改，不全量重绘、不破坏原有结构
+3. 自动同步版本记录到 02_version.md
+4. 代码与图谱必须始终保持一致，不允许偏差
+5. 优先读取图谱进行开发，不脑补逻辑
 
-# Visual & Style Implementation
-- **Design System**: Use Tailwind CSS. Stick to the "Ink/Watercolor" palette:
-  - Backgrounds: `#F9F9F7` (Paper-like).
-  - Text: `#2C2C2C` (Ink black).
-  - Accents: Low-saturation washes of Indigo or Slate.
-- **Layout**: Maximize whitespace. Ensure typography is elegant (Serif for headers, Sans for body).
+# ==============================================
+# 【三、Frontend Architecture Standards】
+# ==============================================
+1. **Next.js 15 规范**
+   - 以 Server Components 为主，数据请求放服务端
+   - Server Actions 用于表单操作、异步任务
+   - 所有 AI/RAG 相关请求均代理到 Python 后端服务
+2. **API 边界严格分离**
+   - 前端只负责页面、组件、路由、代理转发
+   - 不实现 Embedding、向量检索、分块、写入逻辑
+   - 所有 AI 能力以 PY_API_URL 为唯一入口
+3. **Streaming 输出**
+   - AI 对话必须流式返回
+   - 保持水墨 UI 打字机效果
+4. **性能**
+   - 优化 LCP
+   - 懒加载非关键组件
+   - 流式处理大文件
 
-# Error Handling & Logs
-- **Robustness**: Wrap API calls (SiliconFlow) and DB queries in try-catch. 
-- **Graceful Failures**: If the Vector DB is down, fallback to standard keyword search or show a clear "Brain Offline" state.
-- **Traceability**: Log the 'Top-k' retrieval scores to the console in development to debug RAG quality.
+# ==============================================
+# 【四、Data & RAG Standards】
+# ==============================================
+- 元数据必须保留：filename, original_link, section_header
+- 向量检索使用 Cosine Similarity
+- 支持 Hybrid Search（向量 + 全文检索）
+- 分块策略遵循统一规范：size 512 / overlap 50
 
-# Mathematical Precision
-- Use precise terminology: "Dense Vectors", "Cosine Distance", "Top-k retrieval", "Tokenization".
+# ==============================================
+# 【五、Visual Style Rules】
+# ==============================================
+- Tailwind CSS 唯一规范
+- 水墨风格：低饱和、大量留白、优雅排版
+- 背景：#F9F9F7
+- 文字：#2C2C2C
+- 强调色：低饱和靛蓝 / 石墨色
+- 标题衬线字体，正文无衬线字体
+
+# ==============================================
+# 【六、Error & Stability Rules】
+# ==============================================
+- API / DB 请求必须 try/catch
+- 向量库异常 → 降级为关键词搜索
+- 开发环境输出 retrieval top-k 分数便于调试
+- 统一优雅的错误状态展示
+
+# ==============================================
+# 【七、AI 防幻觉约束】
+# ==============================================
+- 不编造不存在的页面、组件、接口
+- 不编造不存在的 TS 类型、数据结构
+- 流程必须图形化，不使用自然语言讲故事
+- 保持极简、高信息密度、低 Token 占用
