@@ -1,8 +1,8 @@
 # 前端：Unified Chat UI（v1）— 融合 RAG + Text2SQL + Chain Timeline
 
-状态：pending  
-依赖：后端 `POST /api/py/unified/chat`（返回 `events[]`）  
-设计：`ai-ink-brain-api-python/docs/UI/v1/UI-02-unified-chat-plan.md`
+> **状态**：pending  
+> **后端依赖**：`task_unified_chat_backend_v1.md`（`POST /api/py/unified/chat` 返回 `events[]`）  
+> **设计**：`ai-ink-brain-api-python/docs/UI/v1/UI-02-unified-chat-plan.md`
 
 ## 目标
 
