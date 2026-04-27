@@ -387,6 +387,9 @@ export function UnifiedChatPageClient() {
                   mode,
                 });
               }
+
+              // P7_NEG_TEST（必须回滚）：故意越界读取不存在字段，用于验证跨仓契约门禁能拦截
+              void obj.nonexistent_key;
             }
             continue;
           }
