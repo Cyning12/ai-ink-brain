@@ -388,8 +388,7 @@ export function UnifiedChatPageClient() {
                 });
               }
 
-              // P7_NEG_TEST（production 用例3）：故意越界读取不存在字段，用于验证跨仓契约门禁能拦截
-              void obj.nonexistent_key;
+              // P7_NEG_TEST（production 用例3）：已完成验证并移除越界读取
             }
             continue;
           }
