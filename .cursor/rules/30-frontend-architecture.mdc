@@ -1,0 +1,24 @@
+## Frontend Architecture Standards（Next.js 15）
+- 以 Server Components 为主，数据请求放服务端。
+- Server Actions 用于表单操作、异步任务。
+- 所有 AI/RAG 相关请求均代理到 Python 后端服务。
+
+## API 边界严格分离（强制）
+- 前端只负责页面、组件、路由、代理转发。
+- 不实现 Embedding、向量检索、分块、写入逻辑。
+- 所有 AI 能力以 `PY_API_URL` 为唯一入口。
+
+## Streaming 输出（强制）
+- AI 对话必须流式返回。
+- 保持水墨 UI 打字机效果。
+
+## 性能（强制关注）
+- 优化 LCP。
+- 懒加载非关键组件。
+- 流式处理大文件。
+
+## Data & RAG Standards（前端侧约束）
+- 元数据必须保留：`filename`、`original_link`、`section_header`。
+- 向量检索使用 Cosine Similarity（具体实现由后端负责）。
+- 支持 Hybrid Search（向量 + 全文检索，具体实现由后端负责）。
+- 分块策略遵循统一规范：`size 512` / `overlap 50`（具体实现由后端负责）。

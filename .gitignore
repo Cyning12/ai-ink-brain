@@ -108,4 +108,6 @@ pyrightconfig.json
 .pyre/
 
 
-docs/
+# 注意：docs/_tech_graph/ 是项目架构唯一可信来源，必须提交
+docs/*
+!docs/_tech_graph/

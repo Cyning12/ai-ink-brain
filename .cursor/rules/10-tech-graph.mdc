@@ -1,0 +1,36 @@
+## `_tech_graph/` 技术图谱强制规范（前端，低幻觉）
+- 所有技术逻辑、架构、流程必须基于 `_tech_graph/` 下的 Mermaid 图谱。
+- 禁止依赖大段纯文本文档作为开发依据。
+- 前端独立维护自身 `_tech_graph/`，不与后端混同。
+
+## 图谱格式与 flowchart 拓扑协议
+- 图谱文件：全部为 `.md`，内嵌 Mermaid 图表。
+- 数据结构：统一使用 Struct / `classDiagram`，禁止贴原始 interface / JSON。
+- flowchart 遵循拓扑协议（见工作区根 `Projects/AGENTS.md` §7.2 或本仓 `docs/_tech_graph/99_mermaid_protocol.md`）：
+  - 边标记：`->` 同步、`~>` 异步（Promise/await）、`?>` 条件、`[ok]` / `[err]` 状态、`::xxx` 元关系
+  - 禁止裸边（无边标记的 `-->`）
+  - 锚点用 `// → path#Ln` 独立注释行
+
+## 本仓 `_tech_graph` 固定结构（双轨制）
+```text
+docs/_tech_graph/
+├─ 00_main.md              # 全局路由 & 渲染流程（人类友好版）
+├─ 00_main.ai.md           # 全局路由 & 渲染流程（AI 协议版）
+├─ 01_struct.md            # TS 类型 & 数据结构
+├─ 02_version.md           # 版本迭代时间线
+├─ 10_flow_route.md        # 页面跳转流程（人类友好版）
+├─ 10_flow_route.ai.md     # 页面跳转流程（AI 协议版）
+├─ 11_flow_api.md          # API 请求 & 代理流程（人类友好版）
+├─ 11_flow_api.ai.md       # API 请求 & 代理流程（AI 协议版）
+├─ 12_flow_auth.md         # 登录 & 权限 & Session（人类友好版）
+├─ 12_flow_auth.ai.md      # 登录 & 权限 & Session（AI 协议版）
+├─ 13_flow_components.md   # 组件渲染 & 数据交互（人类友好版）
+├─ 13_flow_components.ai.md # 组件渲染 & 数据交互（AI 协议版）
+├─ 99_spec.md              # 前端实现规约
+└─ 99_mermaid_protocol.md  # Mermaid 拓扑协议（引用后端仓规范）
+```
+
+## 双轨说明（全局标准）
+- `.md`：人类维护版（简洁、裸边可用、锚点写在节点标签内）。
+- `.ai.md`：AI 协议版（结构化标记、零裸边、锚点分离、异步/错误显式标记）。
+- 两者语义等价；flowchart 必须同时维护。
