@@ -246,6 +246,20 @@ export function UnifiedChatPageClient() {
   const [events, setEvents] = useState<ChainEvent[]>([]);
   const [finalAnswer, setFinalAnswer] = useState<string>("");
   const [streamingText, setStreamingText] = useState<string>("");
+  const [activeRequestId, setActiveRequestId] = useState<string>("");
+  const [lastDone, setLastDone] = useState<{
+    ok: boolean;
+    mode: string;
+    run_id: string;
+    session_id: string;
+    request_id: string;
+  } | null>(null);
+
+  const debugEnabled = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    const sp = new URLSearchParams(window.location.search);
+    return sp.get("debug") === "1" || sp.get("debug") === "true";
+  }, []);
 
   const messages = useMemo(() => extractMessagesFromEvents(events), [events]);
   const routerDecision = useMemo(() => extractRouterDecision(events), [events]);
@@ -267,6 +281,8 @@ export function UnifiedChatPageClient() {
     setErrorText(null);
     setFinalAnswer("");
     setStreamingText("");
+    setActiveRequestId("");
+    setLastDone(null);
 
     // 先把 user.message 放进 timeline，保证左栏/中栏立即有反馈
     const runId = crypto.randomUUID();
@@ -346,6 +362,31 @@ export function UnifiedChatPageClient() {
               const obj = j as Record<string, unknown>;
               const rid = typeof obj.run_id === "string" ? obj.run_id : "";
               if (rid.trim()) currentRunId = rid.trim();
+
+              // request_id：跨端链路追踪 id（v1：与 run_id 等价；仅记录/展示，不参与主流程判断）
+              const requestId = typeof obj.request_id === "string" ? obj.request_id : "";
+              if (requestId.trim()) setActiveRequestId(requestId.trim());
+
+              const ok = typeof obj.ok === "boolean" ? obj.ok : false;
+              const mode = typeof obj.mode === "string" ? obj.mode : "";
+              const session = typeof obj.session_id === "string" ? obj.session_id : "";
+              setLastDone({
+                ok,
+                mode,
+                run_id: rid.trim(),
+                session_id: session,
+                request_id: requestId.trim(),
+              });
+
+              if (debugEnabled) {
+                console.debug("[UnifiedChat SSE done]", {
+                  request_id: requestId.trim(),
+                  run_id: rid.trim(),
+                  session_id: session,
+                  ok,
+                  mode,
+                });
+              }
             }
             continue;
           }
@@ -559,6 +600,25 @@ export function UnifiedChatPageClient() {
                 </div>
               </details>
 
+              {debugEnabled ? (
+                <details className="rounded-2xl border border-[color:var(--color-border)] bg-white/60 p-3">
+                  <summary className="cursor-pointer select-none text-[12px] text-slate-700">
+                    Debug（SSE done）
+                  </summary>
+                  <div className="mt-3 space-y-2 text-[11px] text-slate-700">
+                    <div>
+                      request_id:{" "}
+                      <span className="font-mono">{activeRequestId || "（等待 done）"}</span>
+                    </div>
+                    {lastDone ? (
+                      <pre className="max-h-[18vh] overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[color:var(--color-border)] bg-[#f9f9f7]/70 p-2 font-mono text-[10px] text-slate-700">
+                        {safeStringify(lastDone)}
+                      </pre>
+                    ) : null}
+                  </div>
+                </details>
+              ) : null}
+
               <div className="text-[11px] text-slate-500">推荐问法</div>
               <div className="flex flex-wrap gap-2">
                 {[
@@ -623,4 +683,3 @@ export function UnifiedChatPageClient() {
     </div>
   );
 }
-

@@ -74,6 +74,7 @@ flowchart LR
 
     %% === Unified SSE ===
     UNIFIED --"fetch POST + ReadableStream"--> PY_UNIFIED_SSE --"->"--> REQ --"~>"--> P_UNI_SSE
+    %% SSE done.data stable keys（跨仓契约）：ok, mode, run_id, session_id, request_id（v1：request_id == run_id）
 
     %% === Sources 传输 ===
     P_CHAT --"::yields"--> XS[[x-sources header]]

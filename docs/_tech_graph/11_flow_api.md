@@ -53,6 +53,7 @@ flowchart LR
 
   %% Unified SSE (preferred)
   UNIFIED -->|fetch POST + ReadableStream| PY_UNIFIED_SSE --> REQ --> P_UNI_SSE
+  %% SSE done.data stable keys（cross-repo contract）：ok, mode, run_id, session_id, request_id（v1：request_id == run_id）
 
   %% sources transport（RAG）
   P_CHAT --> XS["x-sources header (optional)\n+ stream tail marker ---RAG_SOURCES_JSON---\nlib/chat/chatApi.ts parses both"]:::s
