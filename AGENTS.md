@@ -8,7 +8,7 @@
 ## 必读（按顺序）
 
 1. **`docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md`**：环境变量、目录职责、API 契约摘要
-2. **`.cursorrules`**：Next.js 规范、视觉风格、Streaming、API 边界分离
+2. **规则文件**（`.cursor/rules/*.mdc`）：Next.js 规范、视觉风格、Streaming、API 边界分离
 3. **`docs/_tech_graph/`**：技术图谱（架构唯一可信来源）
    - `00_main.md` — 路由 & 渲染流程（[AI 协议版](docs/_tech_graph/00_main.ai.md)）
    - `01_struct.md` — TS 类型 & 数据结构
