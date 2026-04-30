@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import type { ChainEvent } from "@/components/chain-chat/types";
 import { SqlResultTable } from "@/components/chain-chat/SqlResultTable";
 import { SourceCitations } from "@/components/SourceCitations";
+import type { SourceCitation } from "@/lib/chat/chatApi";
 
 type Props = {
   event: ChainEvent;
@@ -167,7 +168,7 @@ export function ChainEventCard({ event }: Props) {
         <div className="space-y-2">
           <div className="text-[11px] text-slate-500">sources</div>
           <SourceCitations
-            sources={sources as any}
+            sources={sources as SourceCitation[]}
             onOpenSnippet={(s) => {
               setSnippetTitle(pickSourceTitle(s));
               setSnippetContent(pickSourceContent(s));
@@ -194,6 +195,211 @@ export function ChainEventCard({ event }: Props) {
               {safeStringify(stages)}
             </pre>
           ) : null}
+        </div>
+      );
+    }
+    if (event.type === "router.evidence") {
+      const p = event.payload ?? {};
+      const candidateMode = typeof p.candidate_mode === "string" ? p.candidate_mode : "";
+      const finalMode = typeof p.final_mode === "string" ? p.final_mode : "";
+      const fallback =
+        typeof p.fallback === "string" ? p.fallback : p.fallback === null ? null : undefined;
+
+      const ddl = p.ddl && typeof p.ddl === "object" ? (p.ddl as Record<string, unknown>) : null;
+      const fts = p.fts && typeof p.fts === "object" ? (p.fts as Record<string, unknown>) : null;
+
+      const ddlHits = ddl && typeof ddl.hits === "number" ? ddl.hits : null;
+      const ddlTopScore = ddl && typeof ddl.top_score === "number" ? ddl.top_score : null;
+      const ddlTopk = ddl && typeof ddl.topk === "number" ? ddl.topk : null;
+      const ddlMinScore = ddl && typeof ddl.min_score === "number" ? ddl.min_score : null;
+
+      const ftsHits = fts && typeof fts.hits === "number" ? fts.hits : null;
+      const ftsTop1Score = fts && typeof fts.top1_score === "number" ? fts.top1_score : null;
+      const ftsTopk = fts && typeof fts.topk === "number" ? fts.topk : null;
+
+      const kv = (k: string, v: string) => (
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-[10px] text-slate-500">{k}</div>
+          <div className="font-mono text-[11px] text-slate-700">{v || "—"}</div>
+        </div>
+      );
+
+      const num = (v: number | null) => (v == null || !Number.isFinite(v) ? "—" : String(v));
+
+      return (
+        <div className="space-y-3">
+          <div className="grid gap-2 rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2">
+            {kv("candidate_mode", candidateMode)}
+            {kv("final_mode", finalMode)}
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-[10px] text-slate-500">fallback</div>
+              <div className="font-mono text-[11px] text-slate-700">
+                {typeof fallback === "string" ? (fallback.trim() ? fallback : "—") : fallback === null ? "null" : "—"}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-2 md:grid-cols-2">
+            <div className="rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2">
+              <div className="text-[10px] text-slate-500">DDL evidence</div>
+              <div className="mt-2 space-y-1">
+                {kv("hits", num(ddlHits))}
+                {kv("top_score", num(ddlTopScore))}
+                {kv("topk", num(ddlTopk))}
+                {kv("min_score", num(ddlMinScore))}
+              </div>
+            </div>
+            <div className="rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2">
+              <div className="text-[10px] text-slate-500">FTS evidence</div>
+              <div className="mt-2 space-y-1">
+                {kv("hits", num(ftsHits))}
+                {kv("top1_score", num(ftsTop1Score))}
+                {kv("topk", num(ftsTopk))}
+              </div>
+            </div>
+          </div>
+
+          <details className="rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2">
+            <summary className="cursor-pointer select-none text-[11px] text-slate-700">
+              raw payload
+            </summary>
+            <pre className="mt-2 overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[color:var(--color-border)] bg-[#f9f9f7]/60 p-2 font-mono text-[10px] text-slate-700">
+              {safeStringify(event.payload)}
+            </pre>
+          </details>
+        </div>
+      );
+    }
+    if (event.type === "router.evidence.details") {
+      const p = event.payload ?? {};
+      const candidateMode = typeof p.candidate_mode === "string" ? p.candidate_mode : "";
+      const finalMode = typeof p.final_mode === "string" ? p.final_mode : "";
+      const fallback =
+        typeof p.fallback === "string" ? p.fallback : p.fallback === null ? null : undefined;
+
+      const ddl = p.ddl && typeof p.ddl === "object" ? (p.ddl as Record<string, unknown>) : null;
+      const fts = p.fts && typeof p.fts === "object" ? (p.fts as Record<string, unknown>) : null;
+
+      const pickCandidates = (obj: Record<string, unknown> | null): unknown[] => {
+        if (!obj) return [];
+        const direct = obj.candidates;
+        if (Array.isArray(direct)) return direct as unknown[];
+        const hits = obj.hits_list;
+        if (Array.isArray(hits)) return hits as unknown[];
+        const matches = obj.matches;
+        if (Array.isArray(matches)) return matches as unknown[];
+        return [];
+      };
+
+      const ddlCandidates = pickCandidates(ddl);
+      const ftsCandidates = pickCandidates(fts);
+
+      const num = (v: unknown): string => (typeof v === "number" && Number.isFinite(v) ? String(v) : "—");
+      const text = (v: unknown): string => (typeof v === "string" && v.trim() ? v.trim() : "—");
+
+      return (
+        <div className="space-y-3">
+          <div className="rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2">
+            <div className="grid gap-1">
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-[10px] text-slate-500">candidate_mode</div>
+                <div className="font-mono text-[11px] text-slate-700">{text(candidateMode)}</div>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-[10px] text-slate-500">final_mode</div>
+                <div className="font-mono text-[11px] text-slate-700">{text(finalMode)}</div>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-[10px] text-slate-500">fallback</div>
+                <div className="font-mono text-[11px] text-slate-700">
+                  {typeof fallback === "string" ? (fallback.trim() ? fallback : "—") : fallback === null ? "null" : "—"}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-2 md:grid-cols-2">
+            <div className="rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2">
+              <div className="text-[10px] text-slate-500">DDL details</div>
+              {ddl ? (
+                <div className="mt-2 space-y-2">
+                  <div className="grid gap-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="text-[10px] text-slate-500">hits</div>
+                      <div className="font-mono text-[11px] text-slate-700">{num(ddl.hits)}</div>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="text-[10px] text-slate-500">top_score</div>
+                      <div className="font-mono text-[11px] text-slate-700">{num(ddl.top_score)}</div>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="text-[10px] text-slate-500">min_score</div>
+                      <div className="font-mono text-[11px] text-slate-700">{num(ddl.min_score)}</div>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="text-[10px] text-slate-500">topk</div>
+                      <div className="font-mono text-[11px] text-slate-700">{num(ddl.topk)}</div>
+                    </div>
+                  </div>
+                  {ddlCandidates.length ? (
+                    <details className="rounded-xl border border-[color:var(--color-border)] bg-[#f9f9f7]/60 p-2">
+                      <summary className="cursor-pointer select-none text-[11px] text-slate-700">
+                        candidates ({ddlCandidates.length})
+                      </summary>
+                      <pre className="mt-2 max-h-[26vh] overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2 font-mono text-[10px] text-slate-700">
+                        {safeStringify(ddlCandidates)}
+                      </pre>
+                    </details>
+                  ) : null}
+                </div>
+              ) : (
+                <div className="mt-2 text-[11px] text-slate-500">（无 DDL details）</div>
+              )}
+            </div>
+
+            <div className="rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2">
+              <div className="text-[10px] text-slate-500">FTS details</div>
+              {fts ? (
+                <div className="mt-2 space-y-2">
+                  <div className="grid gap-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="text-[10px] text-slate-500">hits</div>
+                      <div className="font-mono text-[11px] text-slate-700">{num(fts.hits)}</div>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="text-[10px] text-slate-500">top1_score</div>
+                      <div className="font-mono text-[11px] text-slate-700">{num(fts.top1_score)}</div>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="text-[10px] text-slate-500">topk</div>
+                      <div className="font-mono text-[11px] text-slate-700">{num(fts.topk)}</div>
+                    </div>
+                  </div>
+                  {ftsCandidates.length ? (
+                    <details className="rounded-xl border border-[color:var(--color-border)] bg-[#f9f9f7]/60 p-2">
+                      <summary className="cursor-pointer select-none text-[11px] text-slate-700">
+                        candidates ({ftsCandidates.length})
+                      </summary>
+                      <pre className="mt-2 max-h-[26vh] overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2 font-mono text-[10px] text-slate-700">
+                        {safeStringify(ftsCandidates)}
+                      </pre>
+                    </details>
+                  ) : null}
+                </div>
+              ) : (
+                <div className="mt-2 text-[11px] text-slate-500">（无 FTS details）</div>
+              )}
+            </div>
+          </div>
+
+          <details className="rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2">
+            <summary className="cursor-pointer select-none text-[11px] text-slate-700">
+              raw payload
+            </summary>
+            <pre className="mt-2 max-h-[30vh] overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[color:var(--color-border)] bg-[#f9f9f7]/60 p-2 font-mono text-[10px] text-slate-700">
+              {safeStringify(event.payload)}
+            </pre>
+          </details>
         </div>
       );
     }

@@ -2,6 +2,8 @@ export type ChainEventType =
   | "user.message"
   | "assistant.message"
   | "router.decision"
+  | "router.evidence"
+  | "router.evidence.details"
   | "tool.call.start"
   | "tool.call.end"
   | "sql.result"

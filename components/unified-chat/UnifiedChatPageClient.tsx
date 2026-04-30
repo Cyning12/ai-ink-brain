@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useSessionId } from "@/lib/hooks/useSessionId";
-import type { ChainChatResponse, ChainEvent } from "@/components/chain-chat/types";
+import type { ChainEvent } from "@/components/chain-chat/types";
 import { ChainTimeline } from "@/components/chain-chat/ChainTimeline";
 
 const LS_TOKEN_KEY = "blog_admin_token";
@@ -205,6 +205,39 @@ function extractRouterDecision(events: ChainEvent[]): RouterDecision | null {
   };
 }
 
+type RouterEvidence = {
+  candidate_mode?: string;
+  final_mode?: string;
+  fallback?: string | null;
+  ddl?: Record<string, unknown>;
+  fts?: Record<string, unknown>;
+  raw: Record<string, unknown>;
+};
+
+function extractRouterEvidence(events: ChainEvent[]): RouterEvidence | null {
+  const last = [...events]
+    .filter((e) => e.type === "router.evidence")
+    .sort((a, b) => (a.ts ?? 0) - (b.ts ?? 0))
+    .at(-1);
+  if (!last) return null;
+  const p = last.payload ?? {};
+  if (!p || typeof p !== "object") return null;
+  const obj = p as Record<string, unknown>;
+  return {
+    candidate_mode: typeof obj.candidate_mode === "string" ? obj.candidate_mode : undefined,
+    final_mode: typeof obj.final_mode === "string" ? obj.final_mode : undefined,
+    fallback:
+      typeof obj.fallback === "string"
+        ? obj.fallback
+        : obj.fallback === null
+          ? null
+          : undefined,
+    ddl: obj.ddl && typeof obj.ddl === "object" ? (obj.ddl as Record<string, unknown>) : undefined,
+    fts: obj.fts && typeof obj.fts === "object" ? (obj.fts as Record<string, unknown>) : undefined,
+    raw: obj,
+  };
+}
+
 function modeTone(mode: string): string {
   const m = mode.trim();
   if (m === "text2sql") return "border-indigo-500/20 bg-indigo-500/10 text-indigo-800";
@@ -220,6 +253,7 @@ export function UnifiedChatPageClient() {
   const [tokenInput, setTokenInput] = useState("");
   const tokenInputRef = useRef<HTMLInputElement | null>(null);
   const streamAbortRef = useRef<AbortController | null>(null);
+  const lastQueryRef = useRef<string>("");
 
   useEffect(() => {
     setMounted(true);
@@ -240,6 +274,7 @@ export function UnifiedChatPageClient() {
   const { sessionId, resetSession } = useSessionId("unified-chat");
 
   const [prefer, setPrefer] = useState<PreferMode>("auto");
+  const [debugRouter, setDebugRouter] = useState(false);
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
@@ -261,8 +296,19 @@ export function UnifiedChatPageClient() {
     return sp.get("debug") === "1" || sp.get("debug") === "true";
   }, []);
 
+  // 关闭 Debug 时清理本轮 debug 节点，避免误读旧数据
+  useEffect(() => {
+    if (debugRouter) return;
+    setEvents((prev) => prev.filter((e) => e.type !== "router.evidence.details"));
+  }, [debugRouter]);
+
   const messages = useMemo(() => extractMessagesFromEvents(events), [events]);
   const routerDecision = useMemo(() => extractRouterDecision(events), [events]);
+  const routerEvidence = useMemo(() => extractRouterEvidence(events), [events]);
+  const timelineEvents = useMemo(() => {
+    if (debugRouter) return events;
+    return events.filter((e) => e.type !== "router.evidence.details");
+  }, [debugRouter, events]);
 
   if (!mounted) {
     return (
@@ -273,6 +319,7 @@ export function UnifiedChatPageClient() {
   }
 
   const send = async (q: string) => {
+    lastQueryRef.current = q;
     // 取消上一次 SSE
     streamAbortRef.current?.abort();
     streamAbortRef.current = null;
@@ -304,7 +351,12 @@ export function UnifiedChatPageClient() {
         headers: { "Content-Type": "application/json", ...headers },
         credentials: "include",
         signal: ac.signal,
-        body: JSON.stringify({ session_id: sessionId, query: q, prefer }),
+        body: JSON.stringify({
+          session_id: sessionId,
+          query: q,
+          prefer,
+          debug_router: debugRouter,
+        }),
       });
       if (!res.ok) {
         const raw = await res.text().catch(() => "");
@@ -470,7 +522,7 @@ export function UnifiedChatPageClient() {
           </div>
         </div>
         <div className="max-h-[60vh] overflow-auto px-4 py-4">
-          <ChainTimeline events={events} />
+          <ChainTimeline events={timelineEvents} />
         </div>
       </section>
 
@@ -526,6 +578,40 @@ export function UnifiedChatPageClient() {
                   <option value="text2sql">text2sql</option>
                 </select>
               </label>
+
+              <div className="rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/70 p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-[12px] text-slate-700">Router Debug</div>
+                    <div className="mt-0.5 text-[11px] text-slate-500">
+                      开启后请求会透传 <span className="font-mono">debug_router: true</span>，并展示{" "}
+                      <span className="font-mono">router.evidence.details</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const next = !debugRouter;
+                      setDebugRouter(next);
+                      // 若当前在 SSE 流中，立刻重连以确保后端按新开关吐事件
+                      if (loading && lastQueryRef.current.trim()) {
+                        streamAbortRef.current?.abort();
+                        streamAbortRef.current = null;
+                        await send(lastQueryRef.current.trim());
+                      }
+                    }}
+                    className={[
+                      "shrink-0 rounded-full border px-3 py-1 text-[11px]",
+                      debugRouter
+                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-800"
+                        : "border-[color:var(--color-border)] bg-white/60 text-slate-700",
+                    ].join(" ")}
+                    title={debugRouter ? "点击关闭（会清理当前会话的 debug 节点）" : "点击开启（必要时会重连 SSE）"}
+                  >
+                    {debugRouter ? "ON" : "OFF"}
+                  </button>
+                </div>
+              </div>
 
               <details className="rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/70 p-3">
                 <summary className="cursor-pointer select-none text-[12px] text-slate-700">
@@ -599,6 +685,21 @@ export function UnifiedChatPageClient() {
                       </div>
                     </div>
                   ) : null}
+
+                  {routerEvidence?.raw ? (
+                    <div className="space-y-1">
+                      <div className="text-[11px] text-slate-500">
+                        router.evidence（raw）
+                      </div>
+                      <pre className="max-h-[22vh] overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2 font-mono text-[10px] text-slate-700">
+                        {safeStringify(routerEvidence.raw)}
+                      </pre>
+                    </div>
+                  ) : (
+                    <div className="text-[11px] text-slate-500">
+                      （本轮 events 未发现 <span className="font-mono">router.evidence</span>）
+                    </div>
+                  )}
                 </div>
               </details>
 

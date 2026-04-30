@@ -10,6 +10,7 @@
 - `20-tech-graph-update.mdc`：图谱增量更新规则
 - `30-frontend-architecture.mdc`：Next.js 15 架构规范、API 边界、Streaming、性能与数据约束
 - `40-ui-stability.mdc`：视觉风格（水墨极简）与稳定性/错误展示、前端防幻觉约束
+- `50-agent-observability.mdc`：Agent 可观测性与成本控制（执行报告、Loop 防护、模式选择）
 
 ## 维护约定
 - 新规则尽量落在对应主题 `.mdc`；避免跨文件重复。
