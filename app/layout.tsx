@@ -1,5 +1,7 @@
 import "./globals.css";
 
+import { Analytics } from "@vercel/analytics/react";
+
 import type { Metadata } from "next";
 
 import { SiteNav } from "@/app/_components/site-nav";
@@ -20,6 +22,7 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col bg-background text-foreground">
         <SiteNav />
         <div className="flex-1">{children}</div>
+        <Analytics />
       </body>
     </html>
   );
