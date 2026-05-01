@@ -19,14 +19,6 @@ function pickTitle(s: SourceItem): string {
   );
 }
 
-function pickContent(s: SourceItem): string {
-  const t =
-    (typeof s.content === "string" && s.content) ||
-    (typeof s.snippet === "string" && s.snippet) ||
-    "";
-  return t.trim();
-}
-
 function pickUrl(s: SourceItem): string | null {
   return (
     (typeof s.url === "string" && s.url) ||
@@ -54,7 +46,6 @@ export function SourceCitations({ sources, onOpenSnippet }: Props) {
       <div className="grid gap-2">
         {sources.map((s) => {
           const title = pickTitle(s);
-          const content = pickContent(s);
           const url = pickUrl(s);
           const score = pickScore(s);
 

@@ -16,5 +16,6 @@ timeline
   2026-04-23 : f2bbe5e feat(unified-chat): show router decision and add history corpus
   2026-04-27 : f28ae44 auto: components/unified-chat/UnifiedChatPageClient.tsx
   2026-04-30 : 183e011 auto: components/chain-chat/ChainEventCard.tsx
+  2026-05-01 : fab7dc5 auto: components/SourceCitations.tsx
 ```
 
