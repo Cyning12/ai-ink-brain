@@ -89,6 +89,8 @@ function badgeTone(type: ChainEvent["type"]): string {
   if (type === "rag.sources") return "bg-teal-500/10 text-teal-800 border-teal-500/20";
   if (type === "latency") return "bg-sky-500/10 text-sky-800 border-sky-500/20";
   if (type.startsWith("chart.")) return "bg-amber-500/10 text-amber-800 border-amber-500/20";
+  if (type === "agent.intent") return "bg-violet-500/10 text-violet-900 border-violet-500/25";
+  if (type.startsWith("agent.")) return "bg-fuchsia-500/10 text-fuchsia-900 border-fuchsia-500/20";
   return "bg-emerald-500/10 text-emerald-800 border-emerald-500/20";
 }
 
@@ -103,6 +105,10 @@ export function ChainEventCard({ event }: Props) {
     const p = event.payload ?? {};
     if (event.type === "user.message") return "user.message";
     if (event.type === "assistant.message") return "assistant.message";
+    if (event.type === "agent.intent") {
+      const name = typeof p.tool === "string" && p.tool.trim() ? p.tool : "intent";
+      return `agent.intent · ${name}`;
+    }
     if (event.type === "sql.result") return "sql.result";
     if (event.type === "rag.sources") return "rag.sources";
     if (event.type === "latency") return "latency";
@@ -175,6 +181,52 @@ export function ChainEventCard({ event }: Props) {
               setSnippetOpen(true);
             }}
           />
+        </div>
+      );
+    }
+    if (event.type === "agent.intent") {
+      const p = event.payload ?? {};
+      const tool = typeof p.tool === "string" ? p.tool : "—";
+      const mode = typeof p.mode === "string" ? p.mode : "—";
+      const conf = typeof p.confidence === "number" && Number.isFinite(p.confidence) ? p.confidence : null;
+      const cacheRaw = p.cache;
+      const cache = cacheRaw === "hit" || cacheRaw === "miss" ? cacheRaw : "—";
+      const hash = typeof p.cache_key_hash === "string" && p.cache_key_hash.trim() ? p.cache_key_hash : "—";
+      const lat = p.latency_ms;
+      const latStr = typeof lat === "number" && Number.isFinite(lat) ? `${Math.round(lat)} ms` : "—";
+      const kv = (k: string, v: string) => (
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-[10px] text-slate-500">{k}</div>
+          <div className="break-all font-mono text-[11px] text-slate-700">{v}</div>
+        </div>
+      );
+      return (
+        <div className="space-y-2 text-[11px] text-slate-700">
+          <div className="grid gap-1 rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2">
+            {kv("tool", tool)}
+            {kv("mode", mode)}
+            {kv("confidence", conf == null ? "—" : String(conf))}
+            {kv("cache", cache)}
+            {kv("cache_key_hash", hash)}
+            {kv("latency_ms", latStr)}
+          </div>
+          <details className="rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2">
+            <summary className="cursor-pointer select-none text-[11px] text-slate-700">reasoning / fallback</summary>
+            <div className="mt-2 space-y-1">
+              <div className="text-[10px] text-slate-500">reasoning</div>
+              <div className="whitespace-pre-wrap text-[11px] text-slate-700">
+                {typeof p.reasoning === "string" && p.reasoning.trim() ? p.reasoning : "—"}
+              </div>
+              <div className="text-[10px] text-slate-500">fallback</div>
+              <div className="font-mono text-[11px] text-slate-700">
+                {typeof p.fallback === "string"
+                  ? p.fallback || "—"
+                  : p.fallback === null
+                    ? "null"
+                    : "—"}
+              </div>
+            </div>
+          </details>
         </div>
       );
     }
