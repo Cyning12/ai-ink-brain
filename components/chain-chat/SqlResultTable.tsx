@@ -20,7 +20,10 @@ function toCell(v: unknown): string {
 }
 
 export function SqlResultTable({ columns, rows, maxRows = 20 }: Props) {
-  const safeRows = Array.isArray(rows) ? rows.slice(0, maxRows) : [];
+  const safeRows = useMemo(
+    () => (Array.isArray(rows) ? rows.slice(0, maxRows) : []),
+    [rows, maxRows],
+  );
   const cols = useMemo(() => {
     if (Array.isArray(columns) && columns.length) return columns;
     if (!safeRows.length) return [];

@@ -238,6 +238,40 @@ function extractRouterEvidence(events: ChainEvent[]): RouterEvidence | null {
   };
 }
 
+type AgentIntentObsRow = {
+  tool: string;
+  mode: string;
+  confidence: string;
+  cache: string;
+  cache_key_hash: string;
+  latency_ms: string;
+};
+
+function extractAgentIntentObs(events: ChainEvent[]): AgentIntentObsRow | null {
+  const last = [...events]
+    .filter((e) => e.type === "agent.intent")
+    .sort((a, b) => (a.ts ?? 0) - (b.ts ?? 0))
+    .at(-1);
+  if (!last) return null;
+  const p = last.payload;
+  if (!p || typeof p !== "object") return null;
+  const obj = p as Record<string, unknown>;
+  const tool = typeof obj.tool === "string" && obj.tool.trim() ? obj.tool : "—";
+  const mode = typeof obj.mode === "string" && obj.mode.trim() ? obj.mode : "—";
+  const conf =
+    typeof obj.confidence === "number" && Number.isFinite(obj.confidence)
+      ? String(obj.confidence)
+      : "—";
+  const cacheRaw = obj.cache;
+  const cache = cacheRaw === "hit" || cacheRaw === "miss" ? cacheRaw : "—";
+  const cache_key_hash =
+    typeof obj.cache_key_hash === "string" && obj.cache_key_hash.trim() ? obj.cache_key_hash : "—";
+  const lat = obj.latency_ms;
+  const latency_ms =
+    typeof lat === "number" && Number.isFinite(lat) ? `${Math.round(lat)} ms` : "—";
+  return { tool, mode, confidence: conf, cache, cache_key_hash, latency_ms };
+}
+
 function modeTone(mode: string): string {
   const m = mode.trim();
   if (m === "text2sql") return "border-indigo-500/20 bg-indigo-500/10 text-indigo-800";
@@ -299,15 +333,20 @@ export function UnifiedChatPageClient() {
   // 关闭 Debug 时清理本轮 debug 节点，避免误读旧数据
   useEffect(() => {
     if (debugRouter) return;
-    setEvents((prev) => prev.filter((e) => e.type !== "router.evidence.details"));
+    setEvents((prev) =>
+      prev.filter((e) => e.type !== "router.evidence.details" && e.type !== "agent.intent"),
+    );
   }, [debugRouter]);
 
   const messages = useMemo(() => extractMessagesFromEvents(events), [events]);
   const routerDecision = useMemo(() => extractRouterDecision(events), [events]);
   const routerEvidence = useMemo(() => extractRouterEvidence(events), [events]);
+  const agentIntentObs = useMemo(() => extractAgentIntentObs(events), [events]);
   const timelineEvents = useMemo(() => {
     if (debugRouter) return events;
-    return events.filter((e) => e.type !== "router.evidence.details");
+    return events.filter(
+      (e) => e.type !== "router.evidence.details" && e.type !== "agent.intent",
+    );
   }, [debugRouter, events]);
 
   if (!mounted) {
@@ -585,7 +624,8 @@ export function UnifiedChatPageClient() {
                     <div className="text-[12px] text-slate-700">Router Debug</div>
                     <div className="mt-0.5 text-[11px] text-slate-500">
                       开启后请求会透传 <span className="font-mono">debug_router: true</span>，并展示{" "}
-                      <span className="font-mono">router.evidence.details</span>
+                      <span className="font-mono">router.evidence.details</span> 与 Intent 缓存可观测字段（
+                      <span className="font-mono">agent.intent</span>）
                     </div>
                   </div>
                   <button
@@ -700,6 +740,48 @@ export function UnifiedChatPageClient() {
                       （本轮 events 未发现 <span className="font-mono">router.evidence</span>）
                     </div>
                   )}
+
+                  {debugRouter ? (
+                    <div className="mt-4 border-t border-[color:var(--color-border)] pt-3">
+                      <div className="text-[11px] font-medium text-slate-600">Intent（V2）</div>
+                      <p className="mt-1 text-[10px] leading-relaxed text-slate-500">
+                        同一 session 多轮对话时，<span className="font-mono">cache=miss</span>{" "}
+                        很常见：Intent 缓存键包含历史摘要，历史变化会导致复合键变化，不代表缓存失效。
+                      </p>
+                      {agentIntentObs ? (
+                        <dl className="mt-2 grid gap-1.5 text-[11px] text-slate-700">
+                          <div className="flex flex-wrap items-baseline justify-between gap-2">
+                            <dt className="text-slate-500">tool</dt>
+                            <dd className="font-mono">{agentIntentObs.tool}</dd>
+                          </div>
+                          <div className="flex flex-wrap items-baseline justify-between gap-2">
+                            <dt className="text-slate-500">mode</dt>
+                            <dd className="font-mono">{agentIntentObs.mode}</dd>
+                          </div>
+                          <div className="flex flex-wrap items-baseline justify-between gap-2">
+                            <dt className="text-slate-500">confidence</dt>
+                            <dd className="font-mono">{agentIntentObs.confidence}</dd>
+                          </div>
+                          <div className="flex flex-wrap items-baseline justify-between gap-2">
+                            <dt className="text-slate-500">cache</dt>
+                            <dd className="font-mono">{agentIntentObs.cache}</dd>
+                          </div>
+                          <div className="flex flex-wrap items-baseline justify-between gap-2">
+                            <dt className="text-slate-500">cache_key_hash</dt>
+                            <dd className="break-all font-mono">{agentIntentObs.cache_key_hash}</dd>
+                          </div>
+                          <div className="flex flex-wrap items-baseline justify-between gap-2">
+                            <dt className="text-slate-500">latency_ms</dt>
+                            <dd className="font-mono">{agentIntentObs.latency_ms}</dd>
+                          </div>
+                        </dl>
+                      ) : (
+                        <div className="mt-2 text-[11px] text-slate-500">
+                          （本轮 events 未发现 <span className="font-mono">agent.intent</span>，或 Agent 路径未启用）
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
                 </div>
               </details>
 
