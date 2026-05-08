@@ -16,6 +16,7 @@ export async function POST(request: Request): Promise<Response> {
   const body = await request.text();
   const auth = request.headers.get("authorization");
   const xBlog = request.headers.get("x-blog-admin-token");
+  const sseContract = request.headers.get("x-chatbi-sse-contract");
   const contentType = request.headers.get("content-type") ?? "application/json";
 
   const upstreamHeaders: Record<string, string> = {
@@ -24,6 +25,8 @@ export async function POST(request: Request): Promise<Response> {
   };
   if (auth) upstreamHeaders.Authorization = auth;
   if (xBlog) upstreamHeaders["x-blog-admin-token"] = xBlog;
+  // vNext：与 Python 协商增量 SSE 契约（须与客户端 `X-ChatBI-Sse-Contract` 一致）
+  if (sseContract?.trim()) upstreamHeaders["X-ChatBI-Sse-Contract"] = sseContract.trim();
 
   let upstream: Response;
   try {

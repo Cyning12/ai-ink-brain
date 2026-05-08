@@ -7,6 +7,9 @@ import type { ChainEvent } from "@/components/chain-chat/types";
 import { ChainTimeline } from "@/components/chain-chat/ChainTimeline";
 
 const LS_TOKEN_KEY = "blog_admin_token";
+/** Unified Chat 增量 SSE 契约版本（须与 BFF / Python 一致） */
+const SSE_CONTRACT_HEADER = "X-ChatBI-Sse-Contract";
+const SSE_CONTRACT_V2 = "2";
 
 type PreferMode = "auto" | "rag" | "text2sql";
 
@@ -38,6 +41,27 @@ function safeStringify(v: unknown): string {
   } catch {
     return String(v);
   }
+}
+
+/** 按 SSE append 顺序拼接 LLM 子步增量（v1 不做 step 聚合卡片） */
+function joinAgentLlmDeltaTexts(events: ChainEvent[]): string {
+  let out = "";
+  for (const e of events) {
+    if (e.type !== "agent.llm.delta") continue;
+    const t = typeof e.payload.text === "string" ? e.payload.text : "";
+    out += t;
+  }
+  return out;
+}
+
+function lastAgentLlmPhaseLabel(events: ChainEvent[]): string {
+  let phase = "";
+  for (const e of events) {
+    if (e.type !== "agent.llm.start") continue;
+    const p = typeof e.payload.phase === "string" ? e.payload.phase.trim() : "";
+    if (p) phase = p;
+  }
+  return phase;
 }
 
 function pickErrorMessage(raw: string, status: number, statusText: string): string {
@@ -148,6 +172,14 @@ function chainEventFromSse(args: {
   const type = typeof obj.type === "string" ? obj.type : "";
   if (!type) return null;
 
+  // vNext §5.4：delta 缺 text 则跳过该帧
+  if (type === "agent.llm.delta") {
+    const pl = obj.payload;
+    if (!pl || typeof pl !== "object") return null;
+    const rec = pl as Record<string, unknown>;
+    if (typeof rec.text !== "string") return null;
+  }
+
   const ts = typeof obj.ts === "number" && Number.isFinite(obj.ts) ? obj.ts : Date.now();
   const stepId =
     typeof obj.step_id === "string" && obj.step_id
@@ -166,7 +198,7 @@ function chainEventFromSse(args: {
     run_id: args.runId,
     step_id: stepId,
     payload,
-  };
+  } as ChainEvent;
 }
 
 type RouterDecision = {
@@ -288,11 +320,30 @@ export function UnifiedChatPageClient() {
   const tokenInputRef = useRef<HTMLInputElement | null>(null);
   const streamAbortRef = useRef<AbortController | null>(null);
   const lastQueryRef = useRef<string>("");
+  /** vNext §5.4：坏帧计数，默认不对用户展示 */
+  const parseErrorCountRef = useRef(0);
+
+  const [prefer, setPrefer] = useState<PreferMode>("auto");
+  const [debugRouter, setDebugRouter] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorText, setErrorText] = useState<string | null>(null);
+  const [events, setEvents] = useState<ChainEvent[]>([]);
+  const [finalAnswer, setFinalAnswer] = useState<string>("");
+  /** 右栏展示用：rAF 合并后的 LLM delta 拼接 */
+  const [llmStreamDisplay, setLlmStreamDisplay] = useState("");
 
   useEffect(() => {
     setMounted(true);
     setToken(readToken());
   }, []);
+
+  // 高频 agent.llm.delta：按帧合并 setState（vNext §6）
+  useEffect(() => {
+    const joined = joinAgentLlmDeltaTexts(events);
+    const id = requestAnimationFrame(() => setLlmStreamDisplay(joined));
+    return () => cancelAnimationFrame(id);
+  }, [events]);
 
   useEffect(() => {
     if (mounted && !token) tokenInputRef.current?.focus();
@@ -306,15 +357,6 @@ export function UnifiedChatPageClient() {
   }, [token]);
 
   const { sessionId, resetSession } = useSessionId("unified-chat");
-
-  const [prefer, setPrefer] = useState<PreferMode>("auto");
-  const [debugRouter, setDebugRouter] = useState(false);
-  const [draft, setDraft] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [errorText, setErrorText] = useState<string | null>(null);
-  const [events, setEvents] = useState<ChainEvent[]>([]);
-  const [finalAnswer, setFinalAnswer] = useState<string>("");
-  const [streamingText, setStreamingText] = useState<string>("");
   const [activeRequestId, setActiveRequestId] = useState<string>("");
   const [lastDone, setLastDone] = useState<{
     ok: boolean;
@@ -342,6 +384,7 @@ export function UnifiedChatPageClient() {
   const routerDecision = useMemo(() => extractRouterDecision(events), [events]);
   const routerEvidence = useMemo(() => extractRouterEvidence(events), [events]);
   const agentIntentObs = useMemo(() => extractAgentIntentObs(events), [events]);
+  const llmPhaseLabel = useMemo(() => lastAgentLlmPhaseLabel(events), [events]);
   const timelineEvents = useMemo(() => {
     if (debugRouter) return events;
     return events.filter(
@@ -366,7 +409,8 @@ export function UnifiedChatPageClient() {
     setLoading(true);
     setErrorText(null);
     setFinalAnswer("");
-    setStreamingText("");
+    setLlmStreamDisplay("");
+    parseErrorCountRef.current = 0;
     setActiveRequestId("");
     setLastDone(null);
 
@@ -387,7 +431,11 @@ export function UnifiedChatPageClient() {
 
       const res = await fetch("/api/py/unified/chat/stream", {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...headers },
+        headers: {
+          "Content-Type": "application/json",
+          [SSE_CONTRACT_HEADER]: SSE_CONTRACT_V2,
+          ...headers,
+        },
         credentials: "include",
         signal: ac.signal,
         body: JSON.stringify({
@@ -426,25 +474,26 @@ export function UnifiedChatPageClient() {
         for (const b of blocks) {
           const j = safeJson(b.data);
           if (b.event === "chain") {
+            if (j == null) {
+              parseErrorCountRef.current += 1;
+              console.debug("[UnifiedChat SSE] chain JSON 跳过", parseErrorCountRef.current);
+              continue;
+            }
             const ev = chainEventFromSse({
               runId: currentRunId,
               raw: j,
               fallbackStepId: "chain",
             });
-            if (!ev) continue;
+            if (!ev) {
+              parseErrorCountRef.current += 1;
+              console.debug("[UnifiedChat SSE] chain 帧跳过", parseErrorCountRef.current);
+              continue;
+            }
             setEvents((prev) => [...prev, ev]);
             continue;
           }
           if (b.event === "token") {
-            if (j && typeof j === "object") {
-              const obj = j as Record<string, unknown>;
-              const t = typeof obj.text === "string" ? obj.text : "";
-              if (t) {
-                setStreamingText((prev) => prev + t);
-                // v1：token 也作为“最终答案”实时显示
-                setFinalAnswer((prev) => (prev ? prev + t : t));
-              }
-            }
+            // vNext：Unified 增量路径不以顶层 token 作为子步 LLM；最终答案见 assistant.message
             continue;
           }
           if (b.event === "done") {
@@ -503,155 +552,175 @@ export function UnifiedChatPageClient() {
     }
   };
 
+  const llmStreamSection = (
+    <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
+      <div className="border-b border-[color:var(--color-border)] px-4 py-3">
+        <div className="font-serif text-sm text-[#2c2c2c]">LLM 增量</div>
+        <div className="mt-0.5 text-[11px] text-slate-500">
+          当前阶段{" "}
+          <span className="font-mono text-slate-700">
+            {llmPhaseLabel || "—"}
+          </span>
+          · 拼接 <span className="font-mono">agent.llm.delta</span>
+        </div>
+      </div>
+      <div className="max-h-[60vh] min-h-[120px] overflow-auto px-4 py-4">
+        {llmStreamDisplay.trim() ? (
+          <div className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-slate-800">
+            {llmStreamDisplay}
+          </div>
+        ) : (
+          <p className="text-[12px] leading-relaxed text-slate-500">
+            {loading
+              ? "等待后端下发 agent.llm.*（契约 2 路径不使用顶层 token 作子步）。"
+              : "发送问题后，此处实时拼接 LLM 子步 delta。"}
+          </p>
+        )}
+      </div>
+    </section>
+  );
+
+  const timelineSection = (
+    <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
+      <div className="border-b border-[color:var(--color-border)] px-4 py-3">
+        <div className="font-serif text-sm text-[#2c2c2c]">Timeline</div>
+        <div className="mt-0.5 text-[11px] text-slate-500">
+          vNext：SSE 到达序（含 agent.llm.*）；展开查看详情
+        </div>
+      </div>
+      <div className="max-h-[60vh] overflow-auto px-4 py-4">
+        <ChainTimeline events={timelineEvents} sortByTs={false} />
+      </div>
+    </section>
+  );
+
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr,1.4fr,0.9fr]">
-      {/* 左栏：消息 */}
-      <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
-        <div className="border-b border-[color:var(--color-border)] px-4 py-3">
-          <div className="font-serif text-sm text-[#2c2c2c]">消息</div>
-          <div className="mt-0.5 text-[11px] text-slate-500">
-            session_id: <span className="font-mono">{sessionId}</span>
+    <div className="space-y-4">
+      {locked ? (
+        <section className="mx-auto max-w-lg rounded-2xl border border-[color:var(--color-border)] bg-white/40 p-4">
+          <div className="space-y-2">
+            <p className="text-sm leading-relaxed text-slate-700">此功能仅博主可用，请输入密钥解锁。</p>
+            <label className="block text-[11px] text-slate-500">
+              Token（NEXT_PUBLIC_ADMIN_SECRET）
+              <input
+                ref={tokenInputRef}
+                type="password"
+                value={tokenInput}
+                onChange={(e) => setTokenInput(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-[color:var(--color-border)] bg-white/70 px-3 py-2 text-sm text-[#2c2c2c] outline-none focus:border-slate-400"
+                placeholder="输入后本地存储"
+                autoComplete="off"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => {
+                const t = tokenInput.trim();
+                writeToken(t);
+                setToken(t);
+              }}
+              className="w-full rounded-xl bg-[#2c2c2c] px-3 py-2 text-sm text-[#f9f9f7] hover:opacity-90"
+            >
+              解锁
+            </button>
           </div>
-        </div>
-        <div className="max-h-[60vh] overflow-auto px-4 py-4">
-          {finalAnswer.trim() ? (
-            <div className="mb-4 rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/90 px-3 py-2">
-              <div className="text-[10px] text-slate-400">最终答案</div>
-              <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">
-                {finalAnswer}
+        </section>
+      ) : (
+        <>
+          <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40 px-4 py-3">
+            <div className="flex flex-wrap items-end gap-4">
+              <div className="min-w-0 text-[11px] text-slate-500">
+                session_id: <span className="font-mono text-slate-700">{sessionId}</span>
               </div>
-            </div>
-          ) : null}
-          {loading && streamingText.trim() ? (
-            <div className="mb-4 rounded-2xl border border-[color:var(--color-border)] bg-white/60 px-3 py-2">
-              <div className="text-[10px] text-slate-400">assistant（streaming）</div>
-              <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">
-                {streamingText}
-              </div>
-            </div>
-          ) : null}
-          {messages.length === 0 ? (
-            <p className="text-[12px] leading-relaxed text-slate-500">
-              发送一次问题后，这里会显示从 events 提取的 user/assistant 消息。
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {messages.map((m) => (
-                <div
-                  key={m.id}
-                  className="rounded-xl border border-[color:var(--color-border)] bg-[#f9f9f7]/80 px-3 py-2"
-                >
-                  <div className="text-[10px] text-slate-400">{m.role}</div>
-                  <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">
-                    {m.text}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* 中栏：Timeline */}
-      <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
-        <div className="border-b border-[color:var(--color-border)] px-4 py-3">
-          <div className="font-serif text-sm text-[#2c2c2c]">Timeline</div>
-          <div className="mt-0.5 text-[11px] text-slate-500">
-            v1：按 ts 排序，展开查看详情（sql.result / rag.sources / latency / error）
-          </div>
-        </div>
-        <div className="max-h-[60vh] overflow-auto px-4 py-4">
-          <ChainTimeline events={timelineEvents} />
-        </div>
-      </section>
-
-      {/* 右栏：模式切换/推荐 */}
-      <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
-        <div className="border-b border-[color:var(--color-border)] px-4 py-3">
-          <div className="font-serif text-sm text-[#2c2c2c]">控制台</div>
-          <div className="mt-0.5 text-[11px] text-slate-500">
-            prefer（auto/rag/text2sql）+ 推荐问法
-          </div>
-        </div>
-        <div className="space-y-3 px-4 py-4">
-          {locked ? (
-            <div className="space-y-2">
-              <p className="text-sm leading-relaxed text-slate-700">
-                此功能仅博主可用，请输入密钥解锁。
-              </p>
-              <label className="block text-[11px] text-slate-500">
-                Token（NEXT_PUBLIC_ADMIN_SECRET）
-                <input
-                  ref={tokenInputRef}
-                  type="password"
-                  value={tokenInput}
-                  onChange={(e) => setTokenInput(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-[color:var(--color-border)] bg-white/70 px-3 py-2 text-sm text-[#2c2c2c] outline-none focus:border-slate-400"
-                  placeholder="输入后本地存储"
-                  autoComplete="off"
-                />
-              </label>
-              <button
-                type="button"
-                onClick={() => {
-                  const t = tokenInput.trim();
-                  writeToken(t);
-                  setToken(t);
-                }}
-                className="w-full rounded-xl bg-[#2c2c2c] px-3 py-2 text-sm text-[#f9f9f7] hover:opacity-90"
-              >
-                解锁
-              </button>
-            </div>
-          ) : (
-            <>
               <label className="block text-[11px] text-slate-500">
                 prefer
                 <select
                   value={prefer}
                   onChange={(e) => setPrefer(e.target.value as PreferMode)}
-                  className="mt-1 w-full rounded-xl border border-[color:var(--color-border)] bg-white/70 px-3 py-2 text-sm text-[#2c2c2c] outline-none focus:border-slate-400"
+                  className="mt-1 min-w-[140px] rounded-xl border border-[color:var(--color-border)] bg-white/70 px-3 py-2 text-sm text-[#2c2c2c] outline-none focus:border-slate-400"
                 >
                   <option value="auto">auto</option>
                   <option value="rag">rag</option>
                   <option value="text2sql">text2sql</option>
                 </select>
               </label>
+            </div>
+          </section>
 
-              <div className="rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/70 p-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="text-[12px] text-slate-700">Router Debug</div>
-                    <div className="mt-0.5 text-[11px] text-slate-500">
-                      开启后请求会透传 <span className="font-mono">debug_router: true</span>，并展示{" "}
-                      <span className="font-mono">router.evidence.details</span> 与 Intent 缓存可观测字段（
-                      <span className="font-mono">agent.intent</span>）
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      const next = !debugRouter;
-                      setDebugRouter(next);
-                      // 若当前在 SSE 流中，立刻重连以确保后端按新开关吐事件
-                      if (loading && lastQueryRef.current.trim()) {
-                        streamAbortRef.current?.abort();
-                        streamAbortRef.current = null;
-                        await send(lastQueryRef.current.trim());
-                      }
-                    }}
-                    className={[
-                      "shrink-0 rounded-full border px-3 py-1 text-[11px]",
-                      debugRouter
-                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-800"
-                        : "border-[color:var(--color-border)] bg-white/60 text-slate-700",
-                    ].join(" ")}
-                    title={debugRouter ? "点击关闭（会清理当前会话的 debug 节点）" : "点击开启（必要时会重连 SSE）"}
-                  >
-                    {debugRouter ? "ON" : "OFF"}
-                  </button>
-                </div>
+          {/* Timeline（左）| LLM 增量（右）：固定左右双栏（不再用勾选/LS 切换，避免误为上下） */}
+          <div className="grid min-h-0 grid-cols-2 gap-4 [&>section]:min-w-0">
+            {timelineSection}
+            {llmStreamSection}
+          </div>
+
+          <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
+            <div className="border-b border-[color:var(--color-border)] px-4 py-3">
+              <div className="font-serif text-sm text-[#2c2c2c]">消息</div>
+              <div className="mt-0.5 text-[11px] text-slate-500">
+                最终答案以 <span className="font-mono">assistant.message</span> 为准（vNext §8.4）
               </div>
+            </div>
+            <div className="max-h-[50vh] overflow-auto px-4 py-4">
+              {finalAnswer.trim() ? (
+                <div className="mb-4 rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/90 px-3 py-2">
+                  <div className="text-[10px] text-slate-400">最终答案</div>
+                  <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{finalAnswer}</div>
+                </div>
+              ) : null}
+              {messages.length === 0 ? (
+                <p className="text-[12px] leading-relaxed text-slate-500">
+                  发送一次问题后，这里会显示从 events 提取的 user/assistant 消息。
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {messages.map((m) => (
+                    <div
+                      key={m.id}
+                      className="rounded-xl border border-[color:var(--color-border)] bg-[#f9f9f7]/80 px-3 py-2"
+                    >
+                      <div className="text-[10px] text-slate-400">{m.role}</div>
+                      <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{m.text}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+
+          <section className="space-y-3 rounded-2xl border border-[color:var(--color-border)] bg-white/40 px-4 py-4">
+            <div className="rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/70 p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-[12px] text-slate-700">Router Debug</div>
+                  <div className="mt-0.5 text-[11px] text-slate-500">
+                    开启后请求会透传 <span className="font-mono">debug_router: true</span>，并展示{" "}
+                    <span className="font-mono">router.evidence.details</span> 与 Intent 缓存可观测字段（
+                    <span className="font-mono">agent.intent</span>）
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const next = !debugRouter;
+                    setDebugRouter(next);
+                    if (loading && lastQueryRef.current.trim()) {
+                      streamAbortRef.current?.abort();
+                      streamAbortRef.current = null;
+                      await send(lastQueryRef.current.trim());
+                    }
+                  }}
+                  className={[
+                    "shrink-0 rounded-full border px-3 py-1 text-[11px]",
+                    debugRouter
+                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-800"
+                      : "border-[color:var(--color-border)] bg-white/60 text-slate-700",
+                  ].join(" ")}
+                  title={debugRouter ? "点击关闭（会清理当前会话的 debug 节点）" : "点击开启（必要时会重连 SSE）"}
+                >
+                  {debugRouter ? "ON" : "OFF"}
+                </button>
+              </div>
+            </div>
 
               <details className="rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/70 p-3">
                 <summary className="cursor-pointer select-none text-[12px] text-slate-700">
@@ -846,7 +915,7 @@ export function UnifiedChatPageClient() {
                     setEvents([]);
                     setErrorText(null);
                     setFinalAnswer("");
-                    setStreamingText("");
+                    setLlmStreamDisplay("");
                   }}
                   className="rounded-xl border border-[color:var(--color-border)] bg-white/60 px-3 py-2 text-sm text-slate-700"
                 >
@@ -861,10 +930,9 @@ export function UnifiedChatPageClient() {
                   {loading ? "…" : "发送"}
                 </button>
               </div>
-            </>
-          )}
-        </div>
-      </section>
+          </section>
+        </>
+      )}
     </div>
   );
 }
