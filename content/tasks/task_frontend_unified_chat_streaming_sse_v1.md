@@ -96,3 +96,7 @@ SSE 解析建议（实现细节）：
 - Case B（Text2SQL）：`prefer=text2sql`，问“统计 agent_info 表里有多少条数据”→ 出现 `sql.result`
 - Case C（Unauthorized）：不带 token 调用 stream → 401，前端显示错误
 
+## 后续（vNext）
+
+执行期增量 SSE、LLM delta、Timeline/双栏见：`content/tasks/task_chatbi_v2_incremental_sse_timeline_frontend_v1.md`（配对后端：`ai-ink-brain-api-python/docs/tasks/active/task_chatbi_v2_incremental_sse_backend_v1.md`）。
+
