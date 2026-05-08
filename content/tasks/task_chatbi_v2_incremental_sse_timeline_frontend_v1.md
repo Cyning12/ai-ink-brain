@@ -2,10 +2,19 @@
 
 **状态**：待排期  
 **范围**：仅 `ai-ink-brain`（Unified Chat、`components/unified-chat`、`components/chain-chat`；BFF）  
-**关联 SPEC（后端仓）**：`ai-ink-brain-api-python/docs/spec/v2-agent/SPEC-ChatBI-V2-Incremental-SSE-Timeline-vNext.md`（**§0、§5、§6、§7、§9**）  
+**关联 SPEC（后端仓）**：`ai-ink-brain-api-python/docs/spec/v2-agent/SPEC-ChatBI-V2-Incremental-SSE-Timeline-vNext.md`（**§0、§5、§6、§6.1、§7、§9**）  
 **关联 Events（后端仓）**：`ai-ink-brain-api-python/docs/spec/v2-agent/SPEC-ChatBI-V2-Events.md` **§8**
 
 **配对后端任务**：`ai-ink-brain-api-python/docs/tasks/active/task_chatbi_v2_incremental_sse_backend_v1.md`
+
+---
+
+## 与 SPEC §6 差异（实现真值登记 · 2026-05-08）
+
+| 项 | SPEC **产品目标**（§3.2 / §6） | **当前 `UnifiedChatPageClient` 真值** |
+|----|----------------------------------|----------------------------------------|
+| 主区布局 | 默认 **左右双栏**；**可选单栏**：`?single_panel=1` + **`localStorage`** `ink-brain.chatbi.unified.singlePanel`（`"1"`/`"0"`） | **固定** `grid-cols-2`（左 Timeline、右 LLM 增量）；**未**读 query、**未**读写上述 LS；代码注释（约 **L650** 一带）写明不再用 LS/勾选切换。 |
+| 后续 | — | 若需与 SPEC 全文一致，单独 PR 接线 `single_panel` + LS 并删/收窄主 SPEC **§6.1** 与本节。 |
 
 ---
 
@@ -20,7 +29,7 @@
 
 ## 背景与目标
 
-后端 vNext 边执行边下发后，前端 **边收边渲染**。**LLM 子步**仅消费 **`chain.type` ∈ `agent.llm.*`**（见 Events **§8.1**，**不**解析 Unified 路径顶层 `token` 作子步增量）。**默认左右双栏**；**单栏**为可选降级。**布局开关不使用 `NEXT_PUBLIC_*`**。
+后端 vNext 边执行边下发后，前端 **边收边渲染**。**LLM 子步**仅消费 **`chain.type` ∈ `agent.llm.*`**（见 Events **§8.1**，**不**解析 Unified 路径顶层 `token` 作子步增量）。主区 **左 Timeline + 右 LLM 增量**（当前为 **固定双栏**，与 SPEC 可选单栏的差异见上表）。**布局开关不使用 `NEXT_PUBLIC_*`**。
 
 ---
 
@@ -31,8 +40,8 @@
 | 项 | 说明 |
 |----|------|
 | **版本头** | 对 **`/api/py/unified/chat/stream`** 请求设置 **`X-ChatBI-Sse-Contract: 2`**；BFF 透传。 |
-| **单栏降级** | **Query**：`?single_panel=1` 首屏强制单栏；**`localStorage`** 键 **`ink-brain.chatbi.unified.singlePanel`**，值 **`"1"`** / **`"0"`**（持久化偏好）。**默认双栏** = 无 query 且 localStorage 非 `"1"`。 |
-| **右栏** | 拼接 **`agent.llm.delta`** 的 `payload.text`（`part_index` 顺序）；标题来自 **`agent.llm.start`** / `phase`。 |
+| **主区双栏** | 左 **Timeline**（`ChainTimeline`，到达序）、右 **LLM 增量**（拼接 **`agent.llm.delta`** 的 `payload.text`）；标题来自 **`agent.llm.start`** / `phase`。 |
+| **`single_panel` + LS（SPEC 目标）** | **延后**：见 **「与 SPEC §6 差异」**；验收见下。 |
 | **坏帧** | JSON 坏帧：**跳过** + **`parse_error_count++`**；**默认不对用户展示计数**（`console.debug` 可开）；与 vNext **§5.4** 一致。 |
 | **未知 `chain.type`** | 策略 B：不崩、可忽略或折叠。 |
 | **性能** | 高频 delta **节流**渲染。 |
@@ -54,11 +63,11 @@
 
 ## 验收标准（可勾选）
 
-- [ ] 默认 **左 Timeline + 右流式**；`done` 解锁输入。  
-- [ ] **`X-ChatBI-Sse-Contract: 2`** 已发且 BFF 透传（Network 面板可证）。  
-- [ ] **`single_panel` + localStorage** 行为与 vNext **§6** 一致。  
-- [ ] 坏帧策略与 **§5.4** 一致；未知 type 不白屏。  
-- [ ] `pnpm` / `tsc` / 既有前端 CI 通过。
+- [x] **固定** **左 Timeline + 右流式**；`done` 解锁输入。  
+- [x] **`X-ChatBI-Sse-Contract: 2`** 已发且 BFF 透传（Network 面板可证）。  
+- [ ] **`?single_panel=1` + `localStorage` `ink-brain.chatbi.unified.singlePanel`** 与主 SPEC **§6** 产品目标一致（**当前未接线**，见 **§6.1** 与任务单差异表）。  
+- [x] 坏帧策略与 **§5.4** 一致；未知 type 不白屏。  
+- [x] `pnpm` / `tsc` / 既有前端 CI 通过。
 
 ---
 
@@ -66,11 +75,11 @@
 
 以下 **`______`** 在合并实现 PR 时填实；与澄清简报 **§8.8**、主 SPEC **§8.1** 一致：**不属**契约阻断项。
 
-- 主要修改文件：______  
-- 单栏 UI 入口（若除 `?single_panel=1` / `localStorage` 外另有 **设置页 / 菜单**）：入口路径与文案：______  
+- 主要修改文件：`components/unified-chat/UnifiedChatPageClient.tsx`、`components/chain-chat/*`、`app/api/py/unified/chat/stream/route.ts`（首版已动，回填可补行号/PR 链）  
+- **`single_panel` / LS** 若下版接线：入口（仅 URL / 仅 LS / 设置页）与文案：**______**  
 
 ---
 
 ## 给 Cursor
 
-验收、非范围、依赖、图谱、UnifiedChat、ChainTimeline、SSE、incremental、`agent.llm.delta`、`X-ChatBI-Sse-Contract: 2`、`single_panel`、`ink-brain.chatbi.unified.singlePanel`、vNext §8
+验收、非范围、依赖、图谱、UnifiedChat、ChainTimeline、SSE、incremental、`agent.llm.delta`、`X-ChatBI-Sse-Contract: 2`、`single_panel`、`ink-brain.chatbi.unified.singlePanel`、vNext §6.1、§8
