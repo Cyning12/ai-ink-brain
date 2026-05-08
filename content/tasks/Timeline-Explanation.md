@@ -439,6 +439,27 @@
 
 ---
 
+## 附 A：场景 ——「`2026-04-28.md` 写了什么」（RAG 单步成功，与 V1 `rag_rule` 对齐）
+
+> **与正文主场景的区别**：主文是 **双步**（SQL 失败 → RAG）；本附为 **单步即 `rag_search` 成功**，且依赖后端 **`intent_router` 的 `rag_rule_hits` + 证据门控**（见 `ai-ink-brain-api-python/docs/tasks/active/task_intent_router_backend_v1.md` §2026-05-08 回补）。
+
+**展示**：用户气泡 —— `2026-04-28.md写了什么`
+
+**事件顺序（逻辑 step，与 UI Timeline 对齐）**：
+
+1. `agent.llm.start` · `phase: intent`（若开启 LLM 意图）
+2. `agent.llm.end` · intent · ok（或超时后 V1 规则，仍以 `rag` 为收敛目标之一）
+3. `agent.intent` · **`tool: rag_search`，`mode: rag`**
+4. `router.decision` · **`final_mode: rag`**（`candidate` 与证据字段随部署可查）
+5. `agent.think` · 选中 `rag_search` / `mode rag`
+6. `tool.call.start` / `tool.call.end` · **`rag_search`**（检索命中则 `tool.call.end` 带摘要或 hits）
+7. `agent.llm.start` / `delta*` / `end` · **`phase: rag_generate`**
+8. `assistant.message` / `latency` / `done`（`mode` 与最终路由一致为 **`rag`**）
+
+**验收结论（2026-05-08）**：上述 Query 下 **`router.decision → rag`**，且 **`rag_search` + `rag_generate` 完整闭环**，与「先误判 text2sql / 过早 no_data」的旧路径脱钩；以联调抓包为准。
+
+---
+
 ## 附：更「长」时可插入的位置（备忘）
 
 | 事件 | 插入时机（概念） |
@@ -457,3 +478,4 @@
 | 日期 | 说明 |
 |------|------|
 | 2026-05-08 | 改为单场景「双步 SQL 失败 → RAG 成功」最长典型说明；每步下附释义；原粘贴示例归档为结构化文档 |
+| 2026-05-08 | 附 A：补充「按 MD 文件名问内容」RAG 单步场景与联调验收；对齐后端 `rag_rule_hits` 回补 |
