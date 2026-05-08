@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type { ChainEvent } from "@/components/chain-chat/types";
 import { SqlResultTable } from "@/components/chain-chat/SqlResultTable";
@@ -9,6 +9,9 @@ import type { SourceCitation } from "@/lib/chat/chatApi";
 
 type Props = {
   event: ChainEvent;
+  /** 父级「全部展开/收起」：与 batchExpandOpen 同时更新时同步子卡片展开态 */
+  batchExpandNonce?: number;
+  batchExpandOpen?: boolean;
 };
 
 function fmtTs(ms: number): string {
@@ -90,12 +93,18 @@ function badgeTone(type: ChainEvent["type"]): string {
   if (type === "latency") return "bg-sky-500/10 text-sky-800 border-sky-500/20";
   if (type.startsWith("chart.")) return "bg-amber-500/10 text-amber-800 border-amber-500/20";
   if (type === "agent.intent") return "bg-violet-500/10 text-violet-900 border-violet-500/25";
+  if (type.startsWith("agent.llm")) return "bg-cyan-500/10 text-cyan-900 border-cyan-500/25";
   if (type.startsWith("agent.")) return "bg-fuchsia-500/10 text-fuchsia-900 border-fuchsia-500/20";
   return "bg-emerald-500/10 text-emerald-800 border-emerald-500/20";
 }
 
-export function ChainEventCard({ event }: Props) {
+export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Props) {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (batchExpandNonce === undefined || batchExpandOpen === undefined) return;
+    setOpen(batchExpandOpen);
+  }, [batchExpandNonce, batchExpandOpen]);
   const [snippetOpen, setSnippetOpen] = useState(false);
   const [snippetTitle, setSnippetTitle] = useState("");
   const [snippetContent, setSnippetContent] = useState("");
@@ -108,6 +117,26 @@ export function ChainEventCard({ event }: Props) {
     if (event.type === "agent.intent") {
       const name = typeof p.tool === "string" && p.tool.trim() ? p.tool : "intent";
       return `agent.intent · ${name}`;
+    }
+    if (event.type === "agent.llm.start") {
+      const ph = typeof p.phase === "string" && p.phase.trim() ? p.phase : "llm";
+      return `agent.llm.start · ${ph}`;
+    }
+    if (event.type === "agent.llm.delta") {
+      const idx =
+        typeof p.part_index === "number" && Number.isFinite(p.part_index)
+          ? String(Math.round(p.part_index))
+          : "?";
+      return `agent.llm.delta · part ${idx}`;
+    }
+    if (event.type === "agent.llm.end") {
+      const ph = typeof p.phase === "string" && p.phase.trim() ? p.phase : "llm";
+      const ok = p.ok === false ? "fail" : "ok";
+      return `agent.llm.end · ${ph} · ${ok}`;
+    }
+    if (event.type === "agent.llm.truncated") {
+      const r = typeof p.reason === "string" && p.reason.trim() ? p.reason : "truncated";
+      return `agent.llm.truncated · ${r}`;
     }
     if (event.type === "sql.result") return "sql.result";
     if (event.type === "rag.sources") return "rag.sources";
@@ -181,6 +210,78 @@ export function ChainEventCard({ event }: Props) {
               setSnippetOpen(true);
             }}
           />
+        </div>
+      );
+    }
+    if (event.type === "agent.llm.start") {
+      const p = event.payload ?? {};
+      const phase = typeof p.phase === "string" ? p.phase : "—";
+      const sid = typeof p.step_id === "string" ? p.step_id : "—";
+      return (
+        <div className="space-y-1 text-[11px] text-slate-700">
+          <div>
+            <span className="text-slate-500">phase</span>{" "}
+            <span className="font-mono">{phase}</span>
+          </div>
+          <div>
+            <span className="text-slate-500">step_id</span>{" "}
+            <span className="break-all font-mono">{sid}</span>
+          </div>
+        </div>
+      );
+    }
+    if (event.type === "agent.llm.delta") {
+      const t = typeof event.payload.text === "string" ? event.payload.text : "";
+      return (
+        <div className="whitespace-pre-wrap font-mono text-[12px] text-slate-800">
+          {t || "（空）"}
+        </div>
+      );
+    }
+    if (event.type === "agent.llm.end") {
+      const p = event.payload ?? {};
+      const ok = p.ok === false ? false : true;
+      const sim = p.simulated_stream === true;
+      return (
+        <div className="space-y-2 text-[11px] text-slate-700">
+          <div className="flex flex-wrap gap-2">
+            <span
+              className={[
+                "rounded-full border px-2 py-0.5 font-mono",
+                ok ? "border-emerald-500/30 bg-emerald-500/10" : "border-red-500/30 bg-red-500/10",
+              ].join(" ")}
+            >
+              ok={String(ok)}
+            </span>
+            {sim ? (
+              <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-amber-900">
+                simulated_stream
+              </span>
+            ) : null}
+          </div>
+          <pre className="overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2 font-mono text-[10px] text-slate-700">
+            {safeStringify(event.payload)}
+          </pre>
+        </div>
+      );
+    }
+    if (event.type === "agent.llm.truncated") {
+      const p = event.payload ?? {};
+      const dropped =
+        typeof p.dropped_chars === "number" && Number.isFinite(p.dropped_chars)
+          ? String(Math.round(p.dropped_chars))
+          : "—";
+      const reason = typeof p.reason === "string" ? p.reason : "—";
+      return (
+        <div className="space-y-1 text-[11px] text-slate-700">
+          <div>
+            <span className="text-slate-500">dropped_chars</span>{" "}
+            <span className="font-mono">{dropped}</span>
+          </div>
+          <div>
+            <span className="text-slate-500">reason</span>{" "}
+            <span className="font-mono">{reason}</span>
+          </div>
         </div>
       );
     }

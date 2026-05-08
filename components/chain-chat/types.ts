@@ -17,6 +17,10 @@ export type ChainEventType =
   | "agent.step.start"
   | "agent.think"
   | "agent.intent"
+  | "agent.llm.start"
+  | "agent.llm.delta"
+  | "agent.llm.end"
+  | "agent.llm.truncated"
   | "agent.step.end"
   | "agent.final";
 

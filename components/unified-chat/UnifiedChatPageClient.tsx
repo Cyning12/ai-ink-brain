@@ -4,9 +4,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useSessionId } from "@/lib/hooks/useSessionId";
 import type { ChainEvent } from "@/components/chain-chat/types";
-import { ChainTimeline } from "@/components/chain-chat/ChainTimeline";
+import { ChainTimeline, chainTimelineExpandBtnClass } from "@/components/chain-chat/ChainTimeline";
 
 const LS_TOKEN_KEY = "blog_admin_token";
+/** Unified Chat 增量 SSE 契约版本（须与 BFF / Python 一致） */
+const SSE_CONTRACT_HEADER = "X-ChatBI-Sse-Contract";
+const SSE_CONTRACT_V2 = "2";
 
 type PreferMode = "auto" | "rag" | "text2sql";
 
@@ -38,6 +41,159 @@ function safeStringify(v: unknown): string {
   } catch {
     return String(v);
   }
+}
+
+/** 按 SSE append 顺序拼接 LLM 子步增量（v1 不做 step 聚合卡片） */
+/** 单段 LLM：仅拼接相邻 delta（由 start/end 界定，避免跨 phase 混拼） */
+function joinLlmDeltasInRange(events: ChainEvent[], startIdx: number, endIdx: number): string {
+  let out = "";
+  for (let i = startIdx; i <= endIdx; i += 1) {
+    const e = events[i];
+    if (!e || e.type !== "agent.llm.delta") continue;
+    const t = typeof e.payload.text === "string" ? e.payload.text : "";
+    out += t;
+  }
+  return out;
+}
+
+function phaseHintCn(phase: string): string {
+  const p = phase.trim().toLowerCase();
+  if (p === "intent") return "使用 LLM 意图识别";
+  if (p === "direct") return "直接生成";
+  if (p === "rag_generate") return "RAG 生成";
+  if (p === "text2sql_sql") return "Text2SQL SQL";
+  if (p === "text2sql_summary") return "Text2SQL 总结";
+  return phase || "LLM 子步";
+}
+
+/** 右栏「执行链路」：按 SSE 顺序抽取决策/子步，便于阅读（非全局 delta 混拼） */
+type ExecSection =
+  | { kind: "llm_block"; phase: string; body: string; ok: boolean }
+  | { kind: "router"; finalMode: string }
+  | { kind: "intent"; tool: string; mode: string }
+  | { kind: "think"; thought: string; tool: string; mode: string }
+  | { kind: "tool_start"; tool: string }
+  | { kind: "tool_end"; tool: string; snippet: string }
+  | { kind: "truncated"; reason: string; dropped: number }
+  | { kind: "error_line"; stage: string; message: string };
+
+function buildExecutionTraceSections(events: ChainEvent[]): ExecSection[] {
+  const out: ExecSection[] = [];
+  let i = 0;
+  while (i < events.length) {
+    const e = events[i];
+    if (!e) {
+      i += 1;
+      continue;
+    }
+    if (e.type === "user.message" || e.type === "meta") {
+      i += 1;
+      continue;
+    }
+    if (e.type === "agent.step.start" || e.type === "agent.step.end") {
+      i += 1;
+      continue;
+    }
+    if (e.type === "agent.llm.start") {
+      const phase = typeof e.payload.phase === "string" ? e.payload.phase.trim() : "";
+      let j = i + 1;
+      let endIdx = -1;
+      let ok = true;
+      while (j < events.length) {
+        const x = events[j];
+        if (x.type === "agent.llm.end") {
+          const o = x.payload.ok;
+          ok = typeof o === "boolean" ? o : true;
+          endIdx = j;
+          break;
+        }
+        if (x.type === "agent.llm.start") break;
+        j += 1;
+      }
+      if (endIdx < 0) {
+        out.push({ kind: "llm_block", phase: phase || "?", body: "", ok: false });
+        i += 1;
+        continue;
+      }
+      const body = joinLlmDeltasInRange(events, i + 1, endIdx - 1);
+      out.push({ kind: "llm_block", phase: phase || "?", body, ok });
+      i = endIdx + 1;
+      continue;
+    }
+    if (e.type === "agent.llm.delta" || e.type === "agent.llm.end") {
+      i += 1;
+      continue;
+    }
+    if (e.type === "agent.llm.truncated") {
+      const reason = typeof e.payload.reason === "string" ? e.payload.reason : "unknown";
+      const dr = e.payload.dropped_chars;
+      const dropped = typeof dr === "number" && Number.isFinite(dr) ? dr : 0;
+      out.push({ kind: "truncated", reason, dropped });
+      i += 1;
+      continue;
+    }
+    if (e.type === "router.decision") {
+      const fm =
+        typeof e.payload.final_mode === "string" && e.payload.final_mode.trim()
+          ? e.payload.final_mode.trim()
+          : "—";
+      out.push({ kind: "router", finalMode: fm });
+      i += 1;
+      continue;
+    }
+    if (e.type === "agent.intent") {
+      const tool = typeof e.payload.tool === "string" ? e.payload.tool : "—";
+      const mode = typeof e.payload.mode === "string" ? e.payload.mode : "—";
+      out.push({ kind: "intent", tool, mode });
+      i += 1;
+      continue;
+    }
+    if (e.type === "agent.think") {
+      const thought = typeof e.payload.thought === "string" ? e.payload.thought : "";
+      const tool = typeof e.payload.selected_tool === "string" ? e.payload.selected_tool : "";
+      const mode = typeof e.payload.mode === "string" ? e.payload.mode : "";
+      out.push({ kind: "think", thought, tool, mode });
+      i += 1;
+      continue;
+    }
+    if (e.type === "tool.call.start") {
+      const tool = typeof e.payload.tool === "string" ? e.payload.tool : "—";
+      out.push({ kind: "tool_start", tool });
+      i += 1;
+      continue;
+    }
+    if (e.type === "tool.call.end") {
+      const snippet = extractTextFromPayload(e.payload).slice(0, 200);
+      let toolName = "tool";
+      for (let k = i - 1; k >= 0; k -= 1) {
+        const ev = events[k];
+        if (!ev) break;
+        if (ev.type === "tool.call.start") {
+          const t = ev.payload.tool;
+          if (typeof t === "string" && t.trim()) toolName = t.trim();
+          break;
+        }
+      }
+      out.push({ kind: "tool_end", tool: toolName, snippet });
+      i += 1;
+      continue;
+    }
+    if (e.type === "error") {
+      const stage = typeof e.payload.stage === "string" ? e.payload.stage : "error";
+      const message = typeof e.payload.message === "string" ? e.payload.message : "";
+      out.push({ kind: "error_line", stage, message });
+      i += 1;
+      continue;
+    }
+    i += 1;
+  }
+  return out;
+}
+
+function extractUserQueryText(events: ChainEvent[]): string {
+  const u = events.find((x) => x.type === "user.message");
+  const t = u && typeof u.payload.text === "string" ? u.payload.text : "";
+  return t.trim();
 }
 
 function pickErrorMessage(raw: string, status: number, statusText: string): string {
@@ -148,6 +304,14 @@ function chainEventFromSse(args: {
   const type = typeof obj.type === "string" ? obj.type : "";
   if (!type) return null;
 
+  // vNext §5.4：delta 缺 text 则跳过该帧
+  if (type === "agent.llm.delta") {
+    const pl = obj.payload;
+    if (!pl || typeof pl !== "object") return null;
+    const rec = pl as Record<string, unknown>;
+    if (typeof rec.text !== "string") return null;
+  }
+
   const ts = typeof obj.ts === "number" && Number.isFinite(obj.ts) ? obj.ts : Date.now();
   const stepId =
     typeof obj.step_id === "string" && obj.step_id
@@ -166,7 +330,7 @@ function chainEventFromSse(args: {
     run_id: args.runId,
     step_id: stepId,
     payload,
-  };
+  } as ChainEvent;
 }
 
 type RouterDecision = {
@@ -288,6 +452,16 @@ export function UnifiedChatPageClient() {
   const tokenInputRef = useRef<HTMLInputElement | null>(null);
   const streamAbortRef = useRef<AbortController | null>(null);
   const lastQueryRef = useRef<string>("");
+  /** vNext §5.4：坏帧计数，默认不对用户展示 */
+  const parseErrorCountRef = useRef(0);
+
+  const [prefer, setPrefer] = useState<PreferMode>("auto");
+  const [debugRouter, setDebugRouter] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorText, setErrorText] = useState<string | null>(null);
+  const [events, setEvents] = useState<ChainEvent[]>([]);
+  const [finalAnswer, setFinalAnswer] = useState<string>("");
 
   useEffect(() => {
     setMounted(true);
@@ -306,15 +480,6 @@ export function UnifiedChatPageClient() {
   }, [token]);
 
   const { sessionId, resetSession } = useSessionId("unified-chat");
-
-  const [prefer, setPrefer] = useState<PreferMode>("auto");
-  const [debugRouter, setDebugRouter] = useState(false);
-  const [draft, setDraft] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [errorText, setErrorText] = useState<string | null>(null);
-  const [events, setEvents] = useState<ChainEvent[]>([]);
-  const [finalAnswer, setFinalAnswer] = useState<string>("");
-  const [streamingText, setStreamingText] = useState<string>("");
   const [activeRequestId, setActiveRequestId] = useState<string>("");
   const [lastDone, setLastDone] = useState<{
     ok: boolean;
@@ -323,6 +488,9 @@ export function UnifiedChatPageClient() {
     session_id: string;
     request_id: string;
   } | null>(null);
+  /** Timeline 卡片：标题栏「全部展开/收起」受控 */
+  const [timelineBatchNonce, setTimelineBatchNonce] = useState(0);
+  const [timelineBatchOpen, setTimelineBatchOpen] = useState(false);
 
   const debugEnabled = useMemo(() => {
     if (typeof window === "undefined") return false;
@@ -342,6 +510,8 @@ export function UnifiedChatPageClient() {
   const routerDecision = useMemo(() => extractRouterDecision(events), [events]);
   const routerEvidence = useMemo(() => extractRouterEvidence(events), [events]);
   const agentIntentObs = useMemo(() => extractAgentIntentObs(events), [events]);
+  const queryTextTrace = useMemo(() => extractUserQueryText(events), [events]);
+  const execSections = useMemo(() => buildExecutionTraceSections(events), [events]);
   const timelineEvents = useMemo(() => {
     if (debugRouter) return events;
     return events.filter(
@@ -366,7 +536,7 @@ export function UnifiedChatPageClient() {
     setLoading(true);
     setErrorText(null);
     setFinalAnswer("");
-    setStreamingText("");
+    parseErrorCountRef.current = 0;
     setActiveRequestId("");
     setLastDone(null);
 
@@ -380,6 +550,8 @@ export function UnifiedChatPageClient() {
       payload: { text: q },
     };
     setEvents([userEvent]);
+    setTimelineBatchOpen(false);
+    setTimelineBatchNonce((n) => n + 1);
 
     try {
       const ac = new AbortController();
@@ -387,7 +559,11 @@ export function UnifiedChatPageClient() {
 
       const res = await fetch("/api/py/unified/chat/stream", {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...headers },
+        headers: {
+          "Content-Type": "application/json",
+          [SSE_CONTRACT_HEADER]: SSE_CONTRACT_V2,
+          ...headers,
+        },
         credentials: "include",
         signal: ac.signal,
         body: JSON.stringify({
@@ -426,25 +602,26 @@ export function UnifiedChatPageClient() {
         for (const b of blocks) {
           const j = safeJson(b.data);
           if (b.event === "chain") {
+            if (j == null) {
+              parseErrorCountRef.current += 1;
+              console.debug("[UnifiedChat SSE] chain JSON 跳过", parseErrorCountRef.current);
+              continue;
+            }
             const ev = chainEventFromSse({
               runId: currentRunId,
               raw: j,
               fallbackStepId: "chain",
             });
-            if (!ev) continue;
+            if (!ev) {
+              parseErrorCountRef.current += 1;
+              console.debug("[UnifiedChat SSE] chain 帧跳过", parseErrorCountRef.current);
+              continue;
+            }
             setEvents((prev) => [...prev, ev]);
             continue;
           }
           if (b.event === "token") {
-            if (j && typeof j === "object") {
-              const obj = j as Record<string, unknown>;
-              const t = typeof obj.text === "string" ? obj.text : "";
-              if (t) {
-                setStreamingText((prev) => prev + t);
-                // v1：token 也作为“最终答案”实时显示
-                setFinalAnswer((prev) => (prev ? prev + t : t));
-              }
-            }
+            // vNext：Unified 增量路径不以顶层 token 作为子步 LLM；最终答案见 assistant.message
             continue;
           }
           if (b.event === "done") {
@@ -503,155 +680,277 @@ export function UnifiedChatPageClient() {
     }
   };
 
-  return (
-    <div className="grid gap-4 lg:grid-cols-[1fr,1.4fr,0.9fr]">
-      {/* 左栏：消息 */}
-      <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
-        <div className="border-b border-[color:var(--color-border)] px-4 py-3">
-          <div className="font-serif text-sm text-[#2c2c2c]">消息</div>
-          <div className="mt-0.5 text-[11px] text-slate-500">
-            session_id: <span className="font-mono">{sessionId}</span>
-          </div>
+  const executionLinkSection = (
+    <section className="flex min-h-[72vh] min-w-0 flex-col rounded-2xl border border-[color:var(--color-border)] bg-white/40">
+      <div className="border-b border-[color:var(--color-border)] px-4 py-3">
+        <div className="font-serif text-sm text-[#2c2c2c]">执行链路</div>
+        <div className="mt-0.5 text-[11px] text-slate-500">
+          按 SSE 顺序展示 Agent 子步与决策（每段 <span className="font-mono">agent.llm.*</span> 单独成块，不混拼）；明细见左侧 Timeline
         </div>
-        <div className="max-h-[60vh] overflow-auto px-4 py-4">
-          {finalAnswer.trim() ? (
-            <div className="mb-4 rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/90 px-3 py-2">
-              <div className="text-[10px] text-slate-400">最终答案</div>
-              <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">
-                {finalAnswer}
-              </div>
-            </div>
-          ) : null}
-          {loading && streamingText.trim() ? (
-            <div className="mb-4 rounded-2xl border border-[color:var(--color-border)] bg-white/60 px-3 py-2">
-              <div className="text-[10px] text-slate-400">assistant（streaming）</div>
-              <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">
-                {streamingText}
-              </div>
-            </div>
-          ) : null}
-          {messages.length === 0 ? (
-            <p className="text-[12px] leading-relaxed text-slate-500">
-              发送一次问题后，这里会显示从 events 提取的 user/assistant 消息。
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {messages.map((m) => (
-                <div
-                  key={m.id}
-                  className="rounded-xl border border-[color:var(--color-border)] bg-[#f9f9f7]/80 px-3 py-2"
-                >
-                  <div className="text-[10px] text-slate-400">{m.role}</div>
-                  <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">
-                    {m.text}
-                  </div>
+      </div>
+      <div className="min-h-0 flex-1 overflow-auto px-4 py-3">
+        {!queryTextTrace.trim() && execSections.length === 0 ? (
+          <p className="text-[12px] leading-relaxed text-slate-500">
+            {loading ? "等待事件流…" : "发送问题后，此处展示执行链路摘要。"}
+          </p>
+        ) : (
+          <div className="space-y-4 text-slate-800">
+            {queryTextTrace.trim() ? (
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                  Query
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+                <div className="mt-1 whitespace-pre-wrap text-sm text-slate-900">{queryTextTrace}</div>
+              </div>
+            ) : null}
+            {execSections.map((s, idx) => (
+              <div key={`${s.kind}-${idx}`} className="space-y-2">
+                <div className="text-[11px] font-semibold text-slate-600">step-{idx + 1}:</div>
+                {s.kind === "llm_block" ? (
+                  <div className="space-y-1 border-l-2 border-indigo-200 pl-2">
+                    <div className="font-mono text-[11px] text-indigo-900">
+                      agent.llm.start · {s.phase}（{phaseHintCn(s.phase)}）
+                    </div>
+                    <div className="whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
+                      {s.body.trim() ? s.body : "（无 delta 正文）"}
+                    </div>
+                    <div className="font-mono text-[11px] text-slate-500">
+                      agent.llm.end · {s.phase} · {s.ok ? "ok" : "fail"}
+                    </div>
+                  </div>
+                ) : null}
+                {s.kind === "router" ? (
+                  <div className="font-mono text-sm text-slate-900">
+                    router.decision →{" "}
+                    <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-emerald-900">
+                      {s.finalMode}
+                    </span>
+                  </div>
+                ) : null}
+                {s.kind === "intent" ? (
+                  <div className="font-mono text-[12px] text-slate-800">
+                    agent.intent · <span className="text-slate-900">{s.tool}</span>
+                    <span className="text-slate-500"> · mode {s.mode}</span>
+                  </div>
+                ) : null}
+                {s.kind === "think" ? (
+                  <div className="space-y-1 text-sm">
+                    <div className="font-mono text-[11px] text-slate-600">agent.think</div>
+                    <div className="whitespace-pre-wrap rounded border border-slate-200/80 bg-slate-50/80 px-2 py-1.5 text-slate-800">
+                      {s.thought || "—"}
+                    </div>
+                    <div className="text-[11px] text-slate-500">
+                      tool <span className="font-mono">{s.tool || "—"}</span> · mode{" "}
+                      <span className="font-mono">{s.mode || "—"}</span>
+                    </div>
+                  </div>
+                ) : null}
+                {s.kind === "tool_start" ? (
+                  <div className="font-mono text-[12px] text-amber-900">
+                    tool.call.start · {s.tool}
+                  </div>
+                ) : null}
+                {s.kind === "tool_end" ? (
+                  <div className="space-y-1">
+                    <div className="font-mono text-[12px] text-amber-900">tool.call.end · {s.tool}</div>
+                    {s.snippet.trim() ? (
+                      <div className="line-clamp-4 whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-slate-600">
+                        {s.snippet}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+                {s.kind === "truncated" ? (
+                  <div className="font-mono text-[11px] text-rose-800">
+                    agent.llm.truncated · dropped={s.dropped} · {s.reason}
+                  </div>
+                ) : null}
+                {s.kind === "error_line" ? (
+                  <div className="font-mono text-[11px] text-rose-800">
+                    error [{s.stage}] {s.message}
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
 
-      {/* 中栏：Timeline */}
-      <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
-        <div className="border-b border-[color:var(--color-border)] px-4 py-3">
+  const timelineSection = (
+    <section className="flex min-h-[72vh] min-w-0 flex-col rounded-2xl border border-[color:var(--color-border)] bg-white/40">
+      <div className="flex items-start justify-between gap-3 border-b border-[color:var(--color-border)] px-4 py-3">
+        <div className="min-w-0 flex-1">
           <div className="font-serif text-sm text-[#2c2c2c]">Timeline</div>
           <div className="mt-0.5 text-[11px] text-slate-500">
-            v1：按 ts 排序，展开查看详情（sql.result / rag.sources / latency / error）
+            vNext：SSE 到达序（含 agent.llm.*）；展开查看详情
           </div>
         </div>
-        <div className="max-h-[60vh] overflow-auto px-4 py-4">
-          <ChainTimeline events={timelineEvents} />
-        </div>
-      </section>
+        {timelineEvents.length > 0 ? (
+          <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
+            <button
+              type="button"
+              className={chainTimelineExpandBtnClass}
+              onClick={() => {
+                setTimelineBatchOpen(true);
+                setTimelineBatchNonce((n) => n + 1);
+              }}
+            >
+              全部展开
+            </button>
+            <button
+              type="button"
+              className={chainTimelineExpandBtnClass}
+              onClick={() => {
+                setTimelineBatchOpen(false);
+                setTimelineBatchNonce((n) => n + 1);
+              }}
+            >
+              全部收起
+            </button>
+          </div>
+        ) : null}
+      </div>
+      <div className="min-h-0 flex-1 overflow-auto px-4 py-4">
+        <ChainTimeline
+          events={timelineEvents}
+          sortByTs={false}
+          showExpandToolbar={false}
+          batchExpandNonce={timelineBatchNonce}
+          batchExpandOpen={timelineBatchOpen}
+        />
+      </div>
+    </section>
+  );
 
-      {/* 右栏：模式切换/推荐 */}
-      <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
-        <div className="border-b border-[color:var(--color-border)] px-4 py-3">
-          <div className="font-serif text-sm text-[#2c2c2c]">控制台</div>
-          <div className="mt-0.5 text-[11px] text-slate-500">
-            prefer（auto/rag/text2sql）+ 推荐问法
+  return (
+    <div className="space-y-4">
+      {locked ? (
+        <section className="mx-auto max-w-lg rounded-2xl border border-[color:var(--color-border)] bg-white/40 p-4">
+          <div className="space-y-2">
+            <p className="text-sm leading-relaxed text-slate-700">此功能仅博主可用，请输入密钥解锁。</p>
+            <label className="block text-[11px] text-slate-500">
+              Token（NEXT_PUBLIC_ADMIN_SECRET）
+              <input
+                ref={tokenInputRef}
+                type="password"
+                value={tokenInput}
+                onChange={(e) => setTokenInput(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-[color:var(--color-border)] bg-white/70 px-3 py-2 text-sm text-[#2c2c2c] outline-none focus:border-slate-400"
+                placeholder="输入后本地存储"
+                autoComplete="off"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => {
+                const t = tokenInput.trim();
+                writeToken(t);
+                setToken(t);
+              }}
+              className="w-full rounded-xl bg-[#2c2c2c] px-3 py-2 text-sm text-[#f9f9f7] hover:opacity-90"
+            >
+              解锁
+            </button>
           </div>
-        </div>
-        <div className="space-y-3 px-4 py-4">
-          {locked ? (
-            <div className="space-y-2">
-              <p className="text-sm leading-relaxed text-slate-700">
-                此功能仅博主可用，请输入密钥解锁。
-              </p>
-              <label className="block text-[11px] text-slate-500">
-                Token（NEXT_PUBLIC_ADMIN_SECRET）
-                <input
-                  ref={tokenInputRef}
-                  type="password"
-                  value={tokenInput}
-                  onChange={(e) => setTokenInput(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-[color:var(--color-border)] bg-white/70 px-3 py-2 text-sm text-[#2c2c2c] outline-none focus:border-slate-400"
-                  placeholder="输入后本地存储"
-                  autoComplete="off"
-                />
-              </label>
-              <button
-                type="button"
-                onClick={() => {
-                  const t = tokenInput.trim();
-                  writeToken(t);
-                  setToken(t);
-                }}
-                className="w-full rounded-xl bg-[#2c2c2c] px-3 py-2 text-sm text-[#f9f9f7] hover:opacity-90"
-              >
-                解锁
-              </button>
-            </div>
-          ) : (
-            <>
+        </section>
+      ) : (
+        <>
+          <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40 px-4 py-3">
+            <div className="flex flex-wrap items-end gap-4">
+              <div className="min-w-0 text-[11px] text-slate-500">
+                session_id: <span className="font-mono text-slate-700">{sessionId}</span>
+              </div>
               <label className="block text-[11px] text-slate-500">
                 prefer
                 <select
                   value={prefer}
                   onChange={(e) => setPrefer(e.target.value as PreferMode)}
-                  className="mt-1 w-full rounded-xl border border-[color:var(--color-border)] bg-white/70 px-3 py-2 text-sm text-[#2c2c2c] outline-none focus:border-slate-400"
+                  className="mt-1 min-w-[140px] rounded-xl border border-[color:var(--color-border)] bg-white/70 px-3 py-2 text-sm text-[#2c2c2c] outline-none focus:border-slate-400"
                 >
                   <option value="auto">auto</option>
                   <option value="rag">rag</option>
                   <option value="text2sql">text2sql</option>
                 </select>
               </label>
+            </div>
+          </section>
 
-              <div className="rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/70 p-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="text-[12px] text-slate-700">Router Debug</div>
-                    <div className="mt-0.5 text-[11px] text-slate-500">
-                      开启后请求会透传 <span className="font-mono">debug_router: true</span>，并展示{" "}
-                      <span className="font-mono">router.evidence.details</span> 与 Intent 缓存可观测字段（
-                      <span className="font-mono">agent.intent</span>）
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      const next = !debugRouter;
-                      setDebugRouter(next);
-                      // 若当前在 SSE 流中，立刻重连以确保后端按新开关吐事件
-                      if (loading && lastQueryRef.current.trim()) {
-                        streamAbortRef.current?.abort();
-                        streamAbortRef.current = null;
-                        await send(lastQueryRef.current.trim());
-                      }
-                    }}
-                    className={[
-                      "shrink-0 rounded-full border px-3 py-1 text-[11px]",
-                      debugRouter
-                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-800"
-                        : "border-[color:var(--color-border)] bg-white/60 text-slate-700",
-                    ].join(" ")}
-                    title={debugRouter ? "点击关闭（会清理当前会话的 debug 节点）" : "点击开启（必要时会重连 SSE）"}
-                  >
-                    {debugRouter ? "ON" : "OFF"}
-                  </button>
-                </div>
+          {/* Timeline（左）| 执行链路 + Timeline 输出（右）：固定左右双栏 */}
+          <div className="grid min-h-0 grid-cols-2 gap-4 [&>section]:min-w-0">
+            {timelineSection}
+            {executionLinkSection}
+          </div>
+
+          <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
+            <div className="border-b border-[color:var(--color-border)] px-4 py-3">
+              <div className="font-serif text-sm text-[#2c2c2c]">消息</div>
+              <div className="mt-0.5 text-[11px] text-slate-500">
+                最终答案以 <span className="font-mono">assistant.message</span> 为准（vNext §8.4）
               </div>
+            </div>
+            <div className="max-h-[50vh] overflow-auto px-4 py-4">
+              {finalAnswer.trim() ? (
+                <div className="mb-4 rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/90 px-3 py-2">
+                  <div className="text-[10px] text-slate-400">最终答案</div>
+                  <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{finalAnswer}</div>
+                </div>
+              ) : null}
+              {messages.length === 0 ? (
+                <p className="text-[12px] leading-relaxed text-slate-500">
+                  发送一次问题后，这里会显示从 events 提取的 user/assistant 消息。
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {messages.map((m) => (
+                    <div
+                      key={m.id}
+                      className="rounded-xl border border-[color:var(--color-border)] bg-[#f9f9f7]/80 px-3 py-2"
+                    >
+                      <div className="text-[10px] text-slate-400">{m.role}</div>
+                      <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{m.text}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+
+          <section className="space-y-3 rounded-2xl border border-[color:var(--color-border)] bg-white/40 px-4 py-4">
+            <div className="rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/70 p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-[12px] text-slate-700">Router Debug</div>
+                  <div className="mt-0.5 text-[11px] text-slate-500">
+                    开启后请求会透传 <span className="font-mono">debug_router: true</span>，并展示{" "}
+                    <span className="font-mono">router.evidence.details</span> 与 Intent 缓存可观测字段（
+                    <span className="font-mono">agent.intent</span>）
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const next = !debugRouter;
+                    setDebugRouter(next);
+                    if (loading && lastQueryRef.current.trim()) {
+                      streamAbortRef.current?.abort();
+                      streamAbortRef.current = null;
+                      await send(lastQueryRef.current.trim());
+                    }
+                  }}
+                  className={[
+                    "shrink-0 rounded-full border px-3 py-1 text-[11px]",
+                    debugRouter
+                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-800"
+                      : "border-[color:var(--color-border)] bg-white/60 text-slate-700",
+                  ].join(" ")}
+                  title={debugRouter ? "点击关闭（会清理当前会话的 debug 节点）" : "点击开启（必要时会重连 SSE）"}
+                >
+                  {debugRouter ? "ON" : "OFF"}
+                </button>
+              </div>
+            </div>
 
               <details className="rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/70 p-3">
                 <summary className="cursor-pointer select-none text-[12px] text-slate-700">
@@ -844,9 +1143,10 @@ export function UnifiedChatPageClient() {
                     streamAbortRef.current = null;
                     resetSession();
                     setEvents([]);
+                    setTimelineBatchOpen(false);
+                    setTimelineBatchNonce((n) => n + 1);
                     setErrorText(null);
                     setFinalAnswer("");
-                    setStreamingText("");
                   }}
                   className="rounded-xl border border-[color:var(--color-border)] bg-white/60 px-3 py-2 text-sm text-slate-700"
                 >
@@ -861,10 +1161,9 @@ export function UnifiedChatPageClient() {
                   {loading ? "…" : "发送"}
                 </button>
               </div>
-            </>
-          )}
-        </div>
-      </section>
+          </section>
+        </>
+      )}
     </div>
   );
 }

@@ -18,5 +18,6 @@ timeline
   2026-04-30 : 183e011 auto: components/chain-chat/ChainEventCard.tsx
   2026-05-01 : fab7dc5 auto: components/SourceCitations.tsx
   2026-05-07 : 9a02408 auto: components/chain-chat/ChainEventCard.tsx
+  2026-05-08 : b794de4 auto: app/api/py/unified/chat/stream/route.ts
 ```
 
