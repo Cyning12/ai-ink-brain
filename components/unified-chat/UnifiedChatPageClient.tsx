@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useSessionId } from "@/lib/hooks/useSessionId";
 import type { ChainEvent } from "@/components/chain-chat/types";
-import { ChainTimeline } from "@/components/chain-chat/ChainTimeline";
+import { ChainTimeline, chainTimelineExpandBtnClass } from "@/components/chain-chat/ChainTimeline";
 
 const LS_TOKEN_KEY = "blog_admin_token";
 /** Unified Chat 增量 SSE 契约版本（须与 BFF / Python 一致） */
@@ -44,24 +44,156 @@ function safeStringify(v: unknown): string {
 }
 
 /** 按 SSE append 顺序拼接 LLM 子步增量（v1 不做 step 聚合卡片） */
-function joinAgentLlmDeltaTexts(events: ChainEvent[]): string {
+/** 单段 LLM：仅拼接相邻 delta（由 start/end 界定，避免跨 phase 混拼） */
+function joinLlmDeltasInRange(events: ChainEvent[], startIdx: number, endIdx: number): string {
   let out = "";
-  for (const e of events) {
-    if (e.type !== "agent.llm.delta") continue;
+  for (let i = startIdx; i <= endIdx; i += 1) {
+    const e = events[i];
+    if (!e || e.type !== "agent.llm.delta") continue;
     const t = typeof e.payload.text === "string" ? e.payload.text : "";
     out += t;
   }
   return out;
 }
 
-function lastAgentLlmPhaseLabel(events: ChainEvent[]): string {
-  let phase = "";
-  for (const e of events) {
-    if (e.type !== "agent.llm.start") continue;
-    const p = typeof e.payload.phase === "string" ? e.payload.phase.trim() : "";
-    if (p) phase = p;
+function phaseHintCn(phase: string): string {
+  const p = phase.trim().toLowerCase();
+  if (p === "intent") return "使用 LLM 意图识别";
+  if (p === "direct") return "直接生成";
+  if (p === "rag_generate") return "RAG 生成";
+  if (p === "text2sql_sql") return "Text2SQL SQL";
+  if (p === "text2sql_summary") return "Text2SQL 总结";
+  return phase || "LLM 子步";
+}
+
+/** 右栏「执行链路」：按 SSE 顺序抽取决策/子步，便于阅读（非全局 delta 混拼） */
+type ExecSection =
+  | { kind: "llm_block"; phase: string; body: string; ok: boolean }
+  | { kind: "router"; finalMode: string }
+  | { kind: "intent"; tool: string; mode: string }
+  | { kind: "think"; thought: string; tool: string; mode: string }
+  | { kind: "tool_start"; tool: string }
+  | { kind: "tool_end"; tool: string; snippet: string }
+  | { kind: "truncated"; reason: string; dropped: number }
+  | { kind: "error_line"; stage: string; message: string };
+
+function buildExecutionTraceSections(events: ChainEvent[]): ExecSection[] {
+  const out: ExecSection[] = [];
+  let i = 0;
+  while (i < events.length) {
+    const e = events[i];
+    if (!e) {
+      i += 1;
+      continue;
+    }
+    if (e.type === "user.message" || e.type === "meta") {
+      i += 1;
+      continue;
+    }
+    if (e.type === "agent.step.start" || e.type === "agent.step.end") {
+      i += 1;
+      continue;
+    }
+    if (e.type === "agent.llm.start") {
+      const phase = typeof e.payload.phase === "string" ? e.payload.phase.trim() : "";
+      let j = i + 1;
+      let endIdx = -1;
+      let ok = true;
+      while (j < events.length) {
+        const x = events[j];
+        if (x.type === "agent.llm.end") {
+          const o = x.payload.ok;
+          ok = typeof o === "boolean" ? o : true;
+          endIdx = j;
+          break;
+        }
+        if (x.type === "agent.llm.start") break;
+        j += 1;
+      }
+      if (endIdx < 0) {
+        out.push({ kind: "llm_block", phase: phase || "?", body: "", ok: false });
+        i += 1;
+        continue;
+      }
+      const body = joinLlmDeltasInRange(events, i + 1, endIdx - 1);
+      out.push({ kind: "llm_block", phase: phase || "?", body, ok });
+      i = endIdx + 1;
+      continue;
+    }
+    if (e.type === "agent.llm.delta" || e.type === "agent.llm.end") {
+      i += 1;
+      continue;
+    }
+    if (e.type === "agent.llm.truncated") {
+      const reason = typeof e.payload.reason === "string" ? e.payload.reason : "unknown";
+      const dr = e.payload.dropped_chars;
+      const dropped = typeof dr === "number" && Number.isFinite(dr) ? dr : 0;
+      out.push({ kind: "truncated", reason, dropped });
+      i += 1;
+      continue;
+    }
+    if (e.type === "router.decision") {
+      const fm =
+        typeof e.payload.final_mode === "string" && e.payload.final_mode.trim()
+          ? e.payload.final_mode.trim()
+          : "—";
+      out.push({ kind: "router", finalMode: fm });
+      i += 1;
+      continue;
+    }
+    if (e.type === "agent.intent") {
+      const tool = typeof e.payload.tool === "string" ? e.payload.tool : "—";
+      const mode = typeof e.payload.mode === "string" ? e.payload.mode : "—";
+      out.push({ kind: "intent", tool, mode });
+      i += 1;
+      continue;
+    }
+    if (e.type === "agent.think") {
+      const thought = typeof e.payload.thought === "string" ? e.payload.thought : "";
+      const tool = typeof e.payload.selected_tool === "string" ? e.payload.selected_tool : "";
+      const mode = typeof e.payload.mode === "string" ? e.payload.mode : "";
+      out.push({ kind: "think", thought, tool, mode });
+      i += 1;
+      continue;
+    }
+    if (e.type === "tool.call.start") {
+      const tool = typeof e.payload.tool === "string" ? e.payload.tool : "—";
+      out.push({ kind: "tool_start", tool });
+      i += 1;
+      continue;
+    }
+    if (e.type === "tool.call.end") {
+      const snippet = extractTextFromPayload(e.payload).slice(0, 200);
+      let toolName = "tool";
+      for (let k = i - 1; k >= 0; k -= 1) {
+        const ev = events[k];
+        if (!ev) break;
+        if (ev.type === "tool.call.start") {
+          const t = ev.payload.tool;
+          if (typeof t === "string" && t.trim()) toolName = t.trim();
+          break;
+        }
+      }
+      out.push({ kind: "tool_end", tool: toolName, snippet });
+      i += 1;
+      continue;
+    }
+    if (e.type === "error") {
+      const stage = typeof e.payload.stage === "string" ? e.payload.stage : "error";
+      const message = typeof e.payload.message === "string" ? e.payload.message : "";
+      out.push({ kind: "error_line", stage, message });
+      i += 1;
+      continue;
+    }
+    i += 1;
   }
-  return phase;
+  return out;
+}
+
+function extractUserQueryText(events: ChainEvent[]): string {
+  const u = events.find((x) => x.type === "user.message");
+  const t = u && typeof u.payload.text === "string" ? u.payload.text : "";
+  return t.trim();
 }
 
 function pickErrorMessage(raw: string, status: number, statusText: string): string {
@@ -330,20 +462,11 @@ export function UnifiedChatPageClient() {
   const [errorText, setErrorText] = useState<string | null>(null);
   const [events, setEvents] = useState<ChainEvent[]>([]);
   const [finalAnswer, setFinalAnswer] = useState<string>("");
-  /** 右栏展示用：rAF 合并后的 LLM delta 拼接 */
-  const [llmStreamDisplay, setLlmStreamDisplay] = useState("");
 
   useEffect(() => {
     setMounted(true);
     setToken(readToken());
   }, []);
-
-  // 高频 agent.llm.delta：按帧合并 setState（vNext §6）
-  useEffect(() => {
-    const joined = joinAgentLlmDeltaTexts(events);
-    const id = requestAnimationFrame(() => setLlmStreamDisplay(joined));
-    return () => cancelAnimationFrame(id);
-  }, [events]);
 
   useEffect(() => {
     if (mounted && !token) tokenInputRef.current?.focus();
@@ -365,6 +488,9 @@ export function UnifiedChatPageClient() {
     session_id: string;
     request_id: string;
   } | null>(null);
+  /** Timeline 卡片：标题栏「全部展开/收起」受控 */
+  const [timelineBatchNonce, setTimelineBatchNonce] = useState(0);
+  const [timelineBatchOpen, setTimelineBatchOpen] = useState(false);
 
   const debugEnabled = useMemo(() => {
     if (typeof window === "undefined") return false;
@@ -384,7 +510,8 @@ export function UnifiedChatPageClient() {
   const routerDecision = useMemo(() => extractRouterDecision(events), [events]);
   const routerEvidence = useMemo(() => extractRouterEvidence(events), [events]);
   const agentIntentObs = useMemo(() => extractAgentIntentObs(events), [events]);
-  const llmPhaseLabel = useMemo(() => lastAgentLlmPhaseLabel(events), [events]);
+  const queryTextTrace = useMemo(() => extractUserQueryText(events), [events]);
+  const execSections = useMemo(() => buildExecutionTraceSections(events), [events]);
   const timelineEvents = useMemo(() => {
     if (debugRouter) return events;
     return events.filter(
@@ -409,7 +536,6 @@ export function UnifiedChatPageClient() {
     setLoading(true);
     setErrorText(null);
     setFinalAnswer("");
-    setLlmStreamDisplay("");
     parseErrorCountRef.current = 0;
     setActiveRequestId("");
     setLastDone(null);
@@ -424,6 +550,8 @@ export function UnifiedChatPageClient() {
       payload: { text: q },
     };
     setEvents([userEvent]);
+    setTimelineBatchOpen(false);
+    setTimelineBatchNonce((n) => n + 1);
 
     try {
       const ac = new AbortController();
@@ -552,44 +680,146 @@ export function UnifiedChatPageClient() {
     }
   };
 
-  const llmStreamSection = (
-    <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
+  const executionLinkSection = (
+    <section className="flex min-h-[72vh] min-w-0 flex-col rounded-2xl border border-[color:var(--color-border)] bg-white/40">
       <div className="border-b border-[color:var(--color-border)] px-4 py-3">
-        <div className="font-serif text-sm text-[#2c2c2c]">LLM 增量</div>
+        <div className="font-serif text-sm text-[#2c2c2c]">执行链路</div>
         <div className="mt-0.5 text-[11px] text-slate-500">
-          当前阶段{" "}
-          <span className="font-mono text-slate-700">
-            {llmPhaseLabel || "—"}
-          </span>
-          · 拼接 <span className="font-mono">agent.llm.delta</span>
+          按 SSE 顺序展示 Agent 子步与决策（每段 <span className="font-mono">agent.llm.*</span> 单独成块，不混拼）；明细见左侧 Timeline
         </div>
       </div>
-      <div className="max-h-[60vh] min-h-[120px] overflow-auto px-4 py-4">
-        {llmStreamDisplay.trim() ? (
-          <div className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-slate-800">
-            {llmStreamDisplay}
-          </div>
-        ) : (
+      <div className="min-h-0 flex-1 overflow-auto px-4 py-3">
+        {!queryTextTrace.trim() && execSections.length === 0 ? (
           <p className="text-[12px] leading-relaxed text-slate-500">
-            {loading
-              ? "等待后端下发 agent.llm.*（契约 2 路径不使用顶层 token 作子步）。"
-              : "发送问题后，此处实时拼接 LLM 子步 delta。"}
+            {loading ? "等待事件流…" : "发送问题后，此处展示执行链路摘要。"}
           </p>
+        ) : (
+          <div className="space-y-4 text-slate-800">
+            {queryTextTrace.trim() ? (
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                  Query
+                </div>
+                <div className="mt-1 whitespace-pre-wrap text-sm text-slate-900">{queryTextTrace}</div>
+              </div>
+            ) : null}
+            {execSections.map((s, idx) => (
+              <div key={`${s.kind}-${idx}`} className="space-y-2">
+                <div className="text-[11px] font-semibold text-slate-600">step-{idx + 1}:</div>
+                {s.kind === "llm_block" ? (
+                  <div className="space-y-1 border-l-2 border-indigo-200 pl-2">
+                    <div className="font-mono text-[11px] text-indigo-900">
+                      agent.llm.start · {s.phase}（{phaseHintCn(s.phase)}）
+                    </div>
+                    <div className="whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
+                      {s.body.trim() ? s.body : "（无 delta 正文）"}
+                    </div>
+                    <div className="font-mono text-[11px] text-slate-500">
+                      agent.llm.end · {s.phase} · {s.ok ? "ok" : "fail"}
+                    </div>
+                  </div>
+                ) : null}
+                {s.kind === "router" ? (
+                  <div className="font-mono text-sm text-slate-900">
+                    router.decision →{" "}
+                    <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-emerald-900">
+                      {s.finalMode}
+                    </span>
+                  </div>
+                ) : null}
+                {s.kind === "intent" ? (
+                  <div className="font-mono text-[12px] text-slate-800">
+                    agent.intent · <span className="text-slate-900">{s.tool}</span>
+                    <span className="text-slate-500"> · mode {s.mode}</span>
+                  </div>
+                ) : null}
+                {s.kind === "think" ? (
+                  <div className="space-y-1 text-sm">
+                    <div className="font-mono text-[11px] text-slate-600">agent.think</div>
+                    <div className="whitespace-pre-wrap rounded border border-slate-200/80 bg-slate-50/80 px-2 py-1.5 text-slate-800">
+                      {s.thought || "—"}
+                    </div>
+                    <div className="text-[11px] text-slate-500">
+                      tool <span className="font-mono">{s.tool || "—"}</span> · mode{" "}
+                      <span className="font-mono">{s.mode || "—"}</span>
+                    </div>
+                  </div>
+                ) : null}
+                {s.kind === "tool_start" ? (
+                  <div className="font-mono text-[12px] text-amber-900">
+                    tool.call.start · {s.tool}
+                  </div>
+                ) : null}
+                {s.kind === "tool_end" ? (
+                  <div className="space-y-1">
+                    <div className="font-mono text-[12px] text-amber-900">tool.call.end · {s.tool}</div>
+                    {s.snippet.trim() ? (
+                      <div className="line-clamp-4 whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-slate-600">
+                        {s.snippet}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+                {s.kind === "truncated" ? (
+                  <div className="font-mono text-[11px] text-rose-800">
+                    agent.llm.truncated · dropped={s.dropped} · {s.reason}
+                  </div>
+                ) : null}
+                {s.kind === "error_line" ? (
+                  <div className="font-mono text-[11px] text-rose-800">
+                    error [{s.stage}] {s.message}
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </section>
   );
 
   const timelineSection = (
-    <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
-      <div className="border-b border-[color:var(--color-border)] px-4 py-3">
-        <div className="font-serif text-sm text-[#2c2c2c]">Timeline</div>
-        <div className="mt-0.5 text-[11px] text-slate-500">
-          vNext：SSE 到达序（含 agent.llm.*）；展开查看详情
+    <section className="flex min-h-[72vh] min-w-0 flex-col rounded-2xl border border-[color:var(--color-border)] bg-white/40">
+      <div className="flex items-start justify-between gap-3 border-b border-[color:var(--color-border)] px-4 py-3">
+        <div className="min-w-0 flex-1">
+          <div className="font-serif text-sm text-[#2c2c2c]">Timeline</div>
+          <div className="mt-0.5 text-[11px] text-slate-500">
+            vNext：SSE 到达序（含 agent.llm.*）；展开查看详情
+          </div>
         </div>
+        {timelineEvents.length > 0 ? (
+          <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
+            <button
+              type="button"
+              className={chainTimelineExpandBtnClass}
+              onClick={() => {
+                setTimelineBatchOpen(true);
+                setTimelineBatchNonce((n) => n + 1);
+              }}
+            >
+              全部展开
+            </button>
+            <button
+              type="button"
+              className={chainTimelineExpandBtnClass}
+              onClick={() => {
+                setTimelineBatchOpen(false);
+                setTimelineBatchNonce((n) => n + 1);
+              }}
+            >
+              全部收起
+            </button>
+          </div>
+        ) : null}
       </div>
-      <div className="max-h-[60vh] overflow-auto px-4 py-4">
-        <ChainTimeline events={timelineEvents} sortByTs={false} />
+      <div className="min-h-0 flex-1 overflow-auto px-4 py-4">
+        <ChainTimeline
+          events={timelineEvents}
+          sortByTs={false}
+          showExpandToolbar={false}
+          batchExpandNonce={timelineBatchNonce}
+          batchExpandOpen={timelineBatchOpen}
+        />
       </div>
     </section>
   );
@@ -647,10 +877,10 @@ export function UnifiedChatPageClient() {
             </div>
           </section>
 
-          {/* Timeline（左）| LLM 增量（右）：固定左右双栏（不再用勾选/LS 切换，避免误为上下） */}
+          {/* Timeline（左）| 执行链路 + Timeline 输出（右）：固定左右双栏 */}
           <div className="grid min-h-0 grid-cols-2 gap-4 [&>section]:min-w-0">
             {timelineSection}
-            {llmStreamSection}
+            {executionLinkSection}
           </div>
 
           <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
@@ -913,9 +1143,10 @@ export function UnifiedChatPageClient() {
                     streamAbortRef.current = null;
                     resetSession();
                     setEvents([]);
+                    setTimelineBatchOpen(false);
+                    setTimelineBatchNonce((n) => n + 1);
                     setErrorText(null);
                     setFinalAnswer("");
-                    setLlmStreamDisplay("");
                   }}
                   className="rounded-xl border border-[color:var(--color-border)] bg-white/60 px-3 py-2 text-sm text-slate-700"
                 >

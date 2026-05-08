@@ -1,4 +1,4 @@
-# 前端：ChatBI V2 增量 SSE —— Timeline 实时感知与 LLM 流式栏（v1）
+# 前端：ChatBI V2 增量 SSE —— Timeline 实时感知与执行链路（v1）
 
 **状态**：待排期  
 **范围**：仅 `ai-ink-brain`（Unified Chat、`components/unified-chat`、`components/chain-chat`；BFF）  
@@ -13,7 +13,7 @@
 
 | 项 | SPEC **产品目标**（§3.2 / §6） | **当前 `UnifiedChatPageClient` 真值** |
 |----|----------------------------------|----------------------------------------|
-| 主区布局 | 默认 **左右双栏**；**可选单栏**：`?single_panel=1` + **`localStorage`** `ink-brain.chatbi.unified.singlePanel`（`"1"`/`"0"`） | **固定** `grid-cols-2`（左 Timeline、右 LLM 增量）；**未**读 query、**未**读写上述 LS；代码注释（约 **L650** 一带）写明不再用 LS/勾选切换。 |
+| 主区布局 | 默认 **左右双栏**；**可选单栏**：`?single_panel=1` + **`localStorage`** `ink-brain.chatbi.unified.singlePanel`（`"1"`/`"0"`） | **固定** `grid-cols-2`（左 **`ChainTimeline`**、右 **执行链路** 摘要区）；**未**读 query、**未**读写上述 LS；右栏 **不**嵌套第二份 Timeline；实现入口 **`buildExecutionTraceSections`**（与主 SPEC **§3.2** 一致）。 |
 | 后续 | — | 若需与 SPEC 全文一致，单独 PR 接线 `single_panel` + LS 并删/收窄主 SPEC **§6.1** 与本节。 |
 
 ---
@@ -29,7 +29,7 @@
 
 ## 背景与目标
 
-后端 vNext 边执行边下发后，前端 **边收边渲染**。**LLM 子步**仅消费 **`chain.type` ∈ `agent.llm.*`**（见 Events **§8.1**，**不**解析 Unified 路径顶层 `token` 作子步增量）。主区 **左 Timeline + 右 LLM 增量**（当前为 **固定双栏**，与 SPEC 可选单栏的差异见上表）。**布局开关不使用 `NEXT_PUBLIC_*`**。
+后端 vNext 边执行边下发后，前端 **边收边渲染**。**LLM 子步**仅消费 **`chain.type` ∈ `agent.llm.*`**（见 Events **§8.1**，**不**解析 Unified 路径顶层 `token` 作子步增量）。主区 **左 Timeline（全量 `chain`）+ 右执行链路（按 phase 的 Query + `step-*` 叙事，禁止跨 phase 混拼所有 delta）**；与 SPEC 可选单栏的差异见上表。**布局开关不使用 `NEXT_PUBLIC_*`**。
 
 ---
 
@@ -40,7 +40,7 @@
 | 项 | 说明 |
 |----|------|
 | **版本头** | 对 **`/api/py/unified/chat/stream`** 请求设置 **`X-ChatBI-Sse-Contract: 2`**；BFF 透传。 |
-| **主区双栏** | 左 **Timeline**（`ChainTimeline`，到达序）、右 **LLM 增量**（拼接 **`agent.llm.delta`** 的 `payload.text`）；标题来自 **`agent.llm.start`** / `phase`。 |
+| **主区双栏** | 左 **Timeline**（`ChainTimeline`，到达序）；右 **执行链路**（**非**第二份 Timeline）：**Query** + 按 SSE 顺序的 **`step-1` / `step-2` / …**；每段 **`agent.llm.start` … `agent.llm.delta*` … `agent.llm.end`** **仅在该 phase 内**拼接 `payload.text`；穿插 **`router.decision` / `agent.intent` / `agent.think` / `tool.call.*` / `error` / `agent.llm.truncated`** 等一行摘要；高频更新可用 **`requestAnimationFrame`** 合并渲染。 |
 | **`single_panel` + LS（SPEC 目标）** | **延后**：见 **「与 SPEC §6 差异」**；验收见下。 |
 | **坏帧** | JSON 坏帧：**跳过** + **`parse_error_count++`**；**默认不对用户展示计数**（`console.debug` 可开）；与 vNext **§5.4** 一致。 |
 | **未知 `chain.type`** | 策略 B：不崩、可忽略或折叠。 |
@@ -48,7 +48,7 @@
 
 ### 非范围 / v1 明确不做
 
-- **`step_id` 聚合**多 delta 为单卡片：**v1 不做**（右栏纯拼接即可；留 v2）。  
+- **`step_id` 聚合**多 delta 为单卡片：**v1 不做**（右栏已按 **start/end 分段** 可读展示即可；留 v2 聚合卡片）。  
 - **移动端专适**：**不验收**（与 vNext §3.2 一致）；将来若要做，产品建议 **单栏 + 抽屉**（仅备注，非本任务交付）。  
 - **布局**：**不使用** `NEXT_PUBLIC_*` 控制双栏/单栏（避免构建态分叉）。
 
@@ -63,7 +63,7 @@
 
 ## 验收标准（可勾选）
 
-- [x] **固定** **左 Timeline + 右流式**；`done` 解锁输入。  
+- [x] **固定** **左 Timeline + 右执行链路**；右栏 **不**重复左侧 Timeline；`done` 解锁输入。  
 - [x] **`X-ChatBI-Sse-Contract: 2`** 已发且 BFF 透传（Network 面板可证）。  
 - [ ] **`?single_panel=1` + `localStorage` `ink-brain.chatbi.unified.singlePanel`** 与主 SPEC **§6** 产品目标一致（**当前未接线**，见 **§6.1** 与任务单差异表）。  
 - [x] 坏帧策略与 **§5.4** 一致；未知 type 不白屏。  
@@ -82,4 +82,4 @@
 
 ## 给 Cursor
 
-验收、非范围、依赖、图谱、UnifiedChat、ChainTimeline、SSE、incremental、`agent.llm.delta`、`X-ChatBI-Sse-Contract: 2`、`single_panel`、`ink-brain.chatbi.unified.singlePanel`、vNext §6.1、§8
+验收、非范围、依赖、图谱、UnifiedChat、ChainTimeline、执行链路、`buildExecutionTraceSections`、SSE、incremental、`agent.llm.delta`、`X-ChatBI-Sse-Contract: 2`、`single_panel`、`ink-brain.chatbi.unified.singlePanel`、vNext §3.2、§6.1、§8

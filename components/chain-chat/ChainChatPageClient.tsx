@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useSessionId } from "@/lib/hooks/useSessionId";
 import type { ChainChatResponse, ChainEvent } from "@/components/chain-chat/types";
-import { ChainTimeline } from "@/components/chain-chat/ChainTimeline";
+import { ChainTimeline, chainTimelineExpandBtnClass } from "@/components/chain-chat/ChainTimeline";
 
 const LS_TOKEN_KEY = "blog_admin_token";
 
@@ -209,6 +209,8 @@ export function ChainChatPageClient() {
   const [messages, setMessages] = useState<ChatRow[]>([]);
   const [events, setEvents] = useState<ChainEvent[]>([]);
   const [finalAnswer, setFinalAnswer] = useState<string>("");
+  const [timelineBatchNonce, setTimelineBatchNonce] = useState(0);
+  const [timelineBatchOpen, setTimelineBatchOpen] = useState(false);
 
   if (!mounted) {
     return (
@@ -222,6 +224,8 @@ export function ChainChatPageClient() {
     setLoading(true);
     setErrorText(null);
     setFinalAnswer("");
+    setTimelineBatchOpen(false);
+    setTimelineBatchNonce((n) => n + 1);
 
     const runId = buildRunId();
     const userMsg: ChatRow = { id: crypto.randomUUID(), role: "user", text: q };
@@ -348,14 +352,45 @@ export function ChainChatPageClient() {
 
       {/* 中栏：Timeline */}
       <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
-        <div className="border-b border-[color:var(--color-border)] px-4 py-3">
-          <div className="font-serif text-sm text-[#2c2c2c]">Chain Timeline</div>
-          <div className="mt-0.5 text-[11px] text-slate-500">
-            v1：按时间顺序展示 message / tool / sql / error
+        <div className="flex items-start justify-between gap-3 border-b border-[color:var(--color-border)] px-4 py-3">
+          <div className="min-w-0 flex-1">
+            <div className="font-serif text-sm text-[#2c2c2c]">Chain Timeline</div>
+            <div className="mt-0.5 text-[11px] text-slate-500">
+              v1：按时间顺序展示 message / tool / sql / error
+            </div>
           </div>
+          {events.length > 0 ? (
+            <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
+              <button
+                type="button"
+                className={chainTimelineExpandBtnClass}
+                onClick={() => {
+                  setTimelineBatchOpen(true);
+                  setTimelineBatchNonce((n) => n + 1);
+                }}
+              >
+                全部展开
+              </button>
+              <button
+                type="button"
+                className={chainTimelineExpandBtnClass}
+                onClick={() => {
+                  setTimelineBatchOpen(false);
+                  setTimelineBatchNonce((n) => n + 1);
+                }}
+              >
+                全部收起
+              </button>
+            </div>
+          ) : null}
         </div>
         <div className="max-h-[60vh] overflow-auto px-4 py-4">
-          <ChainTimeline events={events} />
+          <ChainTimeline
+            events={events}
+            showExpandToolbar={false}
+            batchExpandNonce={timelineBatchNonce}
+            batchExpandOpen={timelineBatchOpen}
+          />
         </div>
       </section>
 
@@ -440,6 +475,8 @@ export function ChainChatPageClient() {
                       resetSession();
                       setMessages([]);
                       setEvents([]);
+                      setTimelineBatchOpen(false);
+                      setTimelineBatchNonce((n) => n + 1);
                       setErrorText(null);
                     }}
                     className="rounded-xl border border-[color:var(--color-border)] bg-white/60 px-3 py-2 text-sm text-slate-700"

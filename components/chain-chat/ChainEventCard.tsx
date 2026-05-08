@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type { ChainEvent } from "@/components/chain-chat/types";
 import { SqlResultTable } from "@/components/chain-chat/SqlResultTable";
@@ -9,6 +9,9 @@ import type { SourceCitation } from "@/lib/chat/chatApi";
 
 type Props = {
   event: ChainEvent;
+  /** 父级「全部展开/收起」：与 batchExpandOpen 同时更新时同步子卡片展开态 */
+  batchExpandNonce?: number;
+  batchExpandOpen?: boolean;
 };
 
 function fmtTs(ms: number): string {
@@ -95,8 +98,13 @@ function badgeTone(type: ChainEvent["type"]): string {
   return "bg-emerald-500/10 text-emerald-800 border-emerald-500/20";
 }
 
-export function ChainEventCard({ event }: Props) {
+export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Props) {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (batchExpandNonce === undefined || batchExpandOpen === undefined) return;
+    setOpen(batchExpandOpen);
+  }, [batchExpandNonce, batchExpandOpen]);
   const [snippetOpen, setSnippetOpen] = useState(false);
   const [snippetTitle, setSnippetTitle] = useState("");
   const [snippetContent, setSnippetContent] = useState("");
