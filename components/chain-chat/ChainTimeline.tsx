@@ -25,6 +25,9 @@ function stableTimelineKey(e: ChainEvent, index: number): string {
       typeof pi === "number" && Number.isFinite(pi) ? String(Math.round(pi)) : "";
     return `${base}:p${part}:i${index}`;
   }
+  if (e.type === "agent.debug.llm_prompts") {
+    return `${base}:dbg:i${index}`;
+  }
   return `${base}:i${index}`;
 }
 
