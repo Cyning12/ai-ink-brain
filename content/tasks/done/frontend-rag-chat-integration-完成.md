@@ -153,4 +153,4 @@ localStorage.setItem("rag_session_id:floating", "1e01381d-bbf2-4aff-846d-0872dc8
 | 对接的后端部署环境 | （按实际 Vercel / 自建填写） |
 | 备注 | `localStorage` key：`rag_session_id:<scope>`；历史加载完成前禁用发送，避免与首包竞态。 |
 
-**文件名约定**：本任务已完成，原文件重命名为 `content/tasks/frontend-rag-chat-integration-完成.md`。
+**文件名约定**：本任务已完成；归档路径为 `content/tasks/done/frontend-rag-chat-integration-完成.md`（见 `content/tasks/README.md`）。

@@ -48,10 +48,13 @@ function walkMarkdownFiles(
 
     const abs = path.join(currentDir, ent.name);
     if (ent.isDirectory()) {
+      // 任务维护目录：不参与博客 slug 扫描（与 `content/tasks/README.md` 约定一致）
+      if (ent.name === "_views" || ent.name === "templates") continue;
       walkMarkdownFiles(rootDir, abs, out);
       continue;
     }
     if (!ent.isFile()) continue;
+    if (ent.name.toLowerCase() === "readme.md") continue;
     if (!isMarkdownFile(ent.name)) continue;
 
     // 统一为 posix 路径，方便 URL 拼接

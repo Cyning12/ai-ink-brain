@@ -5,7 +5,7 @@
 > **关联 Issue/PR**：（待填）  
 > **后端依赖**：无新增 HTTP 契约；后端多轮语义见配对仓 **`ai-ink-brain-api-python/docs/spec/v2-agent/SPEC-ChatBI-V2-Agent-Overview.md`**（**§2.6**、**§7.5.5**、**§7.5.5.1**）  
 > **关联任务（后端）**：`ai-ink-brain-api-python/docs/tasks/active/task_chatbi_v2_agent_p1_behavior.md`（行为总览，可选）  
-> **关联任务（V2 Timeline / LLM Prompt 调试）**：`content/tasks/task_frontend_unified_chat_v2_rewrite_llm_prompt_debug_v1.md`（与后端 `task_chatbi_v2_rewrite_timeline_llm_prompt_capture_v1.md` 配对）
+> **关联任务（V2 Timeline / LLM Prompt 调试）**：`content/tasks/active/task_frontend_unified_chat_v2_rewrite_llm_prompt_debug_v1.md`（与后端 `ai-ink-brain-api-python/docs/tasks/active/task_chatbi_v2_rewrite_timeline_llm_prompt_capture_v1.md` 配对）
 
 ---
 

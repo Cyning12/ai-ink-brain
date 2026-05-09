@@ -11,15 +11,18 @@ export default function ProjectsPage() {
       <BackButton />
       <h1 className="text-3xl font-semibold tracking-tight">Tasks</h1>
       <p className="mt-4 max-w-2xl text-muted-foreground">
-        默认展示 <code className="text-xs">content/tasks</code> 下的{" "}
+        默认展示 <code className="text-xs">content/tasks/active</code> 与{" "}
+        <code className="text-xs">content/tasks/done</code> 下的{" "}
         <code className="text-xs">.md/.mdx</code>（代码可用 Markdown 代码块格式化展示）。
       </p>
 
       {tasks.length === 0 ? (
         <div className="mt-10 rounded-2xl border border-border bg-card/40 px-5 py-6 text-sm text-muted-foreground">
           目前还没有任务文档。请在{" "}
-          <code className="text-xs">content/tasks</code> 下新增{" "}
-          <code className="text-xs">.md/.mdx</code> 文件。
+          <code className="text-xs">content/tasks/active</code> 下新增{" "}
+          <code className="text-xs">.md/.mdx</code> 文件（完成后归档到{" "}
+          <code className="text-xs">content/tasks/done</code>，见{" "}
+          <code className="text-xs">content/tasks/README.md</code>）。
         </div>
       ) : (
         <ul className="mt-10 space-y-4">
