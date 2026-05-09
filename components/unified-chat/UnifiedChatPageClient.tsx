@@ -15,6 +15,9 @@ type PreferMode = "auto" | "rag" | "text2sql";
 
 type ChatRow = { id: string; role: "user" | "assistant"; text: string };
 
+/** 跨轮会话摘要（内存；硬刷新清空，见任务单 D4） */
+type TranscriptTurn = { id: string; user: string; assistant: string };
+
 function readToken(): string {
   if (typeof window === "undefined") return "";
   return localStorage.getItem(LS_TOKEN_KEY)?.trim() ?? "";
@@ -452,6 +455,8 @@ export function UnifiedChatPageClient() {
   const tokenInputRef = useRef<HTMLInputElement | null>(null);
   const streamAbortRef = useRef<AbortController | null>(null);
   const lastQueryRef = useRef<string>("");
+  /** 本轮 SSE 累积事件（与 React state 同步，供流结束后 extractFinalAnswer / transcript 钉死 D2） */
+  const roundEventsRef = useRef<ChainEvent[]>([]);
   /** vNext §5.4：坏帧计数，默认不对用户展示 */
   const parseErrorCountRef = useRef(0);
 
@@ -462,6 +467,7 @@ export function UnifiedChatPageClient() {
   const [errorText, setErrorText] = useState<string | null>(null);
   const [events, setEvents] = useState<ChainEvent[]>([]);
   const [finalAnswer, setFinalAnswer] = useState<string>("");
+  const [transcript, setTranscript] = useState<TranscriptTurn[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -492,11 +498,18 @@ export function UnifiedChatPageClient() {
   const [timelineBatchNonce, setTimelineBatchNonce] = useState(0);
   const [timelineBatchOpen, setTimelineBatchOpen] = useState(false);
 
-  const debugEnabled = useMemo(() => {
-    if (typeof window === "undefined") return false;
-    const sp = new URLSearchParams(window.location.search);
-    return sp.get("debug") === "1" || sp.get("debug") === "true";
+  const [debugFromUrl, setDebugFromUrl] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const read = () => {
+      const sp = new URLSearchParams(window.location.search);
+      setDebugFromUrl(sp.get("debug") === "1" || sp.get("debug") === "true");
+    };
+    read();
+    window.addEventListener("popstate", read);
+    return () => window.removeEventListener("popstate", read);
   }, []);
+  const debugEnabled = debugFromUrl;
 
   // 关闭 Debug 时清理本轮 debug 节点，避免误读旧数据
   useEffect(() => {
@@ -549,6 +562,7 @@ export function UnifiedChatPageClient() {
       step_id: "user",
       payload: { text: q },
     };
+    roundEventsRef.current = [userEvent];
     setEvents([userEvent]);
     setTimelineBatchOpen(false);
     setTimelineBatchNonce((n) => n + 1);
@@ -586,6 +600,14 @@ export function UnifiedChatPageClient() {
       // 服务端可能在 done 里返回 run_id；先用本地 runId，后续如拿到再覆盖
       let currentRunId = runId;
       let donePayload: unknown = null;
+      /** 本轮 SSE 是否收到 done（与 lastDone 同源，供 transcript 判定） */
+      let streamLastDone: {
+        ok: boolean;
+        mode: string;
+        run_id: string;
+        session_id: string;
+        request_id: string;
+      } | null = null;
 
       while (true) {
         const { value, done } = await reader.read();
@@ -617,7 +639,11 @@ export function UnifiedChatPageClient() {
               console.debug("[UnifiedChat SSE] chain 帧跳过", parseErrorCountRef.current);
               continue;
             }
-            setEvents((prev) => [...prev, ev]);
+            setEvents((prev) => {
+              const next = [...prev, ev];
+              roundEventsRef.current = next;
+              return next;
+            });
             continue;
           }
           if (b.event === "token") {
@@ -638,13 +664,15 @@ export function UnifiedChatPageClient() {
               const ok = typeof obj.ok === "boolean" ? obj.ok : false;
               const mode = typeof obj.mode === "string" ? obj.mode : "";
               const session = typeof obj.session_id === "string" ? obj.session_id : "";
-              setLastDone({
+              const doneSnap = {
                 ok,
                 mode,
                 run_id: rid.trim(),
                 session_id: session,
                 request_id: requestId.trim(),
-              });
+              };
+              streamLastDone = doneSnap;
+              setLastDone(doneSnap);
 
               if (debugEnabled) {
                 console.debug("[UnifiedChat SSE done]", {
@@ -664,9 +692,16 @@ export function UnifiedChatPageClient() {
       }
 
       // done 后收尾：从当前 events 里补一次最终答案（避免闭包拿不到最新 events）
+      // D2：仅当收到 done 且 ok、且有非空最终答时追加 transcript；流失败路径不追加（与 PR 说明一致）
       setEvents((prev) => {
+        roundEventsRef.current = prev;
         const inferred = extractFinalAnswer({ answer: undefined, events: prev });
         if (inferred.trim()) setFinalAnswer((fa) => (fa.trim() ? fa : inferred));
+        if (streamLastDone?.ok && lastQueryRef.current.trim() && inferred.trim()) {
+          const uid = lastQueryRef.current.trim();
+          const aid = inferred.trim();
+          setTranscript((t) => [...t, { id: runId, user: uid, assistant: aid }]);
+        }
         // donePayload 仅用于调试/未来扩展，这里不落 event，避免污染时间线
         void donePayload;
         return prev;
@@ -859,8 +894,24 @@ export function UnifiedChatPageClient() {
         <>
           <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40 px-4 py-3">
             <div className="flex flex-wrap items-end gap-4">
-              <div className="min-w-0 text-[11px] text-slate-500">
-                session_id: <span className="font-mono text-slate-700">{sessionId}</span>
+              <div className="min-w-0 flex-1 space-y-2 text-[11px] text-slate-600">
+                <p className="leading-relaxed text-slate-600">
+                  同一浏览器内连续提问共享上下文，直至点击「新会话」。刷新页面后本条历史摘要会清空，但{" "}
+                  <span className="font-mono">session_id</span> 仍可能相同，后端多轮仍有效。
+                </p>
+                {debugEnabled ? (
+                  <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-slate-300/80 bg-slate-50/80 px-2 py-1.5 font-mono text-[11px] text-slate-800">
+                    <span className="text-slate-500">session_id（前 8 位）</span>
+                    <span>{sessionId.slice(0, 8)}</span>
+                    <button
+                      type="button"
+                      className="rounded border border-[color:var(--color-border)] bg-white px-2 py-0.5 text-[11px] text-slate-700 hover:bg-slate-50"
+                      onClick={() => void navigator.clipboard.writeText(sessionId)}
+                    >
+                      复制完整 id
+                    </button>
+                  </div>
+                ) : null}
               </div>
               <label className="block text-[11px] text-slate-500">
                 prefer
@@ -876,6 +927,34 @@ export function UnifiedChatPageClient() {
               </label>
             </div>
           </section>
+
+          {transcript.length > 0 ? (
+            <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
+              <div className="border-b border-[color:var(--color-border)] px-4 py-3">
+                <div className="font-serif text-sm text-[#2c2c2c]">历史消息</div>
+                <div className="mt-0.5 text-[11px] text-slate-500">
+                  已完成轮次摘要（方案 A）；当前轮 Timeline 与下方「消息」区仅展示本轮
+                </div>
+              </div>
+              <div className="max-h-[36vh] space-y-3 overflow-auto px-4 py-3">
+                {transcript.map((row) => (
+                  <div
+                    key={row.id}
+                    className="space-y-2 rounded-xl border border-[color:var(--color-border)] bg-[#f9f9f7]/80 px-3 py-2"
+                  >
+                    <div>
+                      <div className="text-[10px] text-slate-400">user</div>
+                      <div className="mt-0.5 whitespace-pre-wrap text-sm text-slate-900">{row.user}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] text-slate-400">assistant</div>
+                      <div className="mt-0.5 whitespace-pre-wrap text-sm text-slate-800">{row.assistant}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           {/* Timeline（左）| 执行链路 + Timeline 输出（右）：固定左右双栏 */}
           <div className="grid min-h-0 grid-cols-2 gap-4 [&>section]:min-w-0">
@@ -1142,7 +1221,9 @@ export function UnifiedChatPageClient() {
                     streamAbortRef.current?.abort();
                     streamAbortRef.current = null;
                     resetSession();
+                    setTranscript([]);
                     setEvents([]);
+                    roundEventsRef.current = [];
                     setTimelineBatchOpen(false);
                     setTimelineBatchNonce((n) => n + 1);
                     setErrorText(null);
