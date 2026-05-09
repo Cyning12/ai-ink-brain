@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 
 import { useSessionId } from "@/lib/hooks/useSessionId";
 import type { ChainEvent } from "@/components/chain-chat/types";
@@ -691,21 +692,28 @@ export function UnifiedChatPageClient() {
         }
       }
 
-      // done 后收尾：从当前 events 里补一次最终答案（避免闭包拿不到最新 events）
+      // done 后收尾：先 flushSync 读到与 DOM 一致的 events（await 循环末尾可能尚有未提交的 setEvents）
+      // 再在 updater 外 setFinalAnswer / setTranscript，避免 Strict Mode 重复执行 updater 导致 transcript 双写、key 重复。
       // D2：仅当收到 done 且 ok、且有非空最终答时追加 transcript；流失败路径不追加（与 PR 说明一致）
-      setEvents((prev) => {
-        roundEventsRef.current = prev;
-        const inferred = extractFinalAnswer({ answer: undefined, events: prev });
-        if (inferred.trim()) setFinalAnswer((fa) => (fa.trim() ? fa : inferred));
-        if (streamLastDone?.ok && lastQueryRef.current.trim() && inferred.trim()) {
-          const uid = lastQueryRef.current.trim();
-          const aid = inferred.trim();
-          setTranscript((t) => [...t, { id: runId, user: uid, assistant: aid }]);
-        }
-        // donePayload 仅用于调试/未来扩展，这里不落 event，避免污染时间线
-        void donePayload;
-        return prev;
+      void donePayload;
+      let latestEvents: ChainEvent[] = [];
+      flushSync(() => {
+        setEvents((prev) => {
+          latestEvents = prev;
+          return prev;
+        });
       });
+      roundEventsRef.current = latestEvents;
+      const inferred = extractFinalAnswer({ answer: undefined, events: latestEvents });
+      if (inferred.trim()) {
+        setFinalAnswer((fa) => (fa.trim() ? fa : inferred));
+      }
+      if (streamLastDone?.ok && lastQueryRef.current.trim() && inferred.trim()) {
+        const uid = lastQueryRef.current.trim();
+        const aid = inferred.trim();
+        const rowId = crypto.randomUUID();
+        setTranscript((t) => [...t, { id: rowId, user: uid, assistant: aid }]);
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       setErrorText(msg);
