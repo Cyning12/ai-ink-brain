@@ -94,6 +94,7 @@ function badgeTone(type: ChainEvent["type"]): string {
   if (type.startsWith("chart.")) return "bg-amber-500/10 text-amber-800 border-amber-500/20";
   if (type === "agent.intent") return "bg-violet-500/10 text-violet-900 border-violet-500/25";
   if (type.startsWith("agent.llm")) return "bg-cyan-500/10 text-cyan-900 border-cyan-500/25";
+  if (type.startsWith("agent.debug")) return "bg-orange-500/10 text-orange-950 border-orange-500/25";
   if (type.startsWith("agent.")) return "bg-fuchsia-500/10 text-fuchsia-900 border-fuchsia-500/20";
   return "bg-emerald-500/10 text-emerald-800 border-emerald-500/20";
 }
@@ -138,10 +139,25 @@ export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Pro
       const r = typeof p.reason === "string" && p.reason.trim() ? p.reason : "truncated";
       return `agent.llm.truncated · ${r}`;
     }
+    if (event.type === "agent.debug.llm_prompts") {
+      const sc = typeof p.scope === "string" && p.scope.trim() ? p.scope : "llm";
+      const tn = typeof p.tool === "string" && p.tool.trim() ? p.tool : "";
+      return tn ? `agent.debug.llm_prompts · ${sc} · ${tn}` : `agent.debug.llm_prompts · ${sc}`;
+    }
+    if (event.type === "agent.think") {
+      const tool = typeof p.selected_tool === "string" && p.selected_tool.trim() ? p.selected_tool : "?";
+      return `agent.think · ${tool}`;
+    }
     if (event.type === "sql.result") return "sql.result";
     if (event.type === "rag.sources") return "rag.sources";
     if (event.type === "latency") return "latency";
     if (event.type === "error") return "error";
+    if (event.type === "tool.call.end") {
+      const er = p.error;
+      const failed = typeof er === "string" && er.trim().length > 0;
+      const name = typeof p.tool === "string" && p.tool.trim() ? p.tool : "tool";
+      return `tool.call.end · ${name} · ${failed ? "fail" : "ok"}`;
+    }
     if (event.type.startsWith("tool.")) {
       const name = typeof p.tool === "string" ? p.tool : typeof p.name === "string" ? p.name : "tool";
       return `${event.type} · ${name}`;
@@ -328,6 +344,100 @@ export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Pro
               </div>
             </div>
           </details>
+        </div>
+      );
+    }
+    if (event.type === "agent.think") {
+      const p = event.payload ?? {};
+      const thought = typeof p.thought === "string" ? p.thought : "";
+      const tool = typeof p.selected_tool === "string" ? p.selected_tool : "—";
+      const mode = typeof p.mode === "string" ? p.mode : "—";
+      const stepNo = p.step_number;
+      const stepStr =
+        typeof stepNo === "number" && Number.isFinite(stepNo) ? String(Math.round(stepNo)) : "—";
+      return (
+        <div className="space-y-2 text-[11px] text-slate-700">
+          <div className="grid gap-1 rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <span className="text-[10px] text-slate-500">step</span>
+              <span className="font-mono">{stepStr}</span>
+            </div>
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <span className="text-[10px] text-slate-500">tool</span>
+              <span className="font-mono">{tool}</span>
+            </div>
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <span className="text-[10px] text-slate-500">mode</span>
+              <span className="font-mono">{mode}</span>
+            </div>
+          </div>
+          <div>
+            <div className="text-[10px] text-slate-500">thought</div>
+            <div className="mt-1 max-h-[42vh] overflow-auto whitespace-pre-wrap break-words text-[12px] leading-relaxed text-slate-900">
+              {thought.trim() ? thought : "—"}
+            </div>
+          </div>
+        </div>
+      );
+    }
+    if (event.type === "agent.debug.llm_prompts") {
+      const p = event.payload ?? {};
+      const items = Array.isArray(p.items) ? (p.items as unknown[]) : [];
+      const scope = typeof p.scope === "string" ? p.scope : "—";
+      const stepNo = p.step_number;
+      const stepStr =
+        typeof stepNo === "number" && Number.isFinite(stepNo) ? String(Math.round(stepNo)) : "—";
+      const fullJson = safeStringify(p);
+      return (
+        <div className="space-y-2 text-[11px] text-slate-700">
+          <div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-500">
+            <span>
+              scope=<span className="font-mono text-slate-700">{scope}</span>
+            </span>
+            {typeof p.tool === "string" && p.tool.trim() ? (
+              <span>
+                tool=<span className="font-mono text-slate-700">{p.tool}</span>
+              </span>
+            ) : null}
+            <span>
+              step=<span className="font-mono text-slate-700">{stepStr}</span>
+            </span>
+            <span>段数 {items.length}</span>
+          </div>
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const ok = await copyToClipboard(fullJson);
+                setCopied(ok);
+                if (ok) window.setTimeout(() => setCopied(false), 1200);
+              }}
+              className="rounded-full border border-[color:var(--color-border)] bg-white/60 px-2 py-0.5 text-[10px] text-slate-600 hover:bg-white/80"
+              title="复制本事件完整 JSON"
+            >
+              {copied ? "已复制" : "复制 JSON"}
+            </button>
+          </div>
+          <div className="max-h-[48vh] space-y-2 overflow-auto">
+            {items.map((it, idx) => {
+              const row = it && typeof it === "object" ? (it as Record<string, unknown>) : {};
+              const phase = typeof row.phase === "string" ? row.phase : `段 ${idx + 1}`;
+              const model = typeof row.model === "string" ? row.model : "";
+              return (
+                <details key={`${phase}:${idx}`} className="rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2">
+                  <summary className="cursor-pointer select-none font-mono text-[11px] text-slate-800">
+                    {phase}
+                    {model ? <span className="ml-2 text-[10px] text-slate-500">{model}</span> : null}
+                  </summary>
+                  <pre className="mt-2 max-h-[32vh] overflow-auto whitespace-pre-wrap break-words font-mono text-[10px] text-slate-700">
+                    {safeStringify(row)}
+                  </pre>
+                </details>
+              );
+            })}
+          </div>
         </div>
       );
     }
@@ -574,6 +684,67 @@ export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Pro
         </pre>
       );
     }
+    if (event.type === "tool.call.start") {
+      const p = event.payload ?? {};
+      const tool = typeof p.tool === "string" ? p.tool : "—";
+      const inp = p.input;
+      return (
+        <div className="space-y-2 text-[11px] text-slate-700">
+          <div>
+            <span className="text-slate-500">tool</span>{" "}
+            <span className="font-mono text-slate-900">{tool}</span>
+          </div>
+          {inp && typeof inp === "object" ? (
+            <div>
+              <div className="text-[10px] text-slate-500">input</div>
+              <pre className="mt-1 max-h-[28vh] overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[color:var(--color-border)] bg-white/70 p-2 font-mono text-[10px] text-slate-800">
+                {safeStringify(inp)}
+              </pre>
+            </div>
+          ) : (
+            <div className="text-[10px] text-slate-500">（无 input）</div>
+          )}
+        </div>
+      );
+    }
+    if (event.type === "tool.call.end") {
+      const p = event.payload ?? {};
+      const err = typeof p.error === "string" ? p.error.trim() : "";
+      const lat = p.latency_ms;
+      const latStr = typeof lat === "number" && Number.isFinite(lat) ? `${Math.round(lat)} ms` : "—";
+      const out = p.output;
+      return (
+        <div className="space-y-2 text-[11px] text-slate-700">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-slate-500">latency</span>
+            <span className="font-mono text-slate-900">{latStr}</span>
+            {err ? (
+              <span className="rounded-full border border-rose-300/80 bg-rose-50 px-2 py-0.5 text-[10px] font-medium text-rose-900">
+                含 error
+              </span>
+            ) : (
+              <span className="rounded-full border border-emerald-300/70 bg-emerald-50/80 px-2 py-0.5 text-[10px] text-emerald-900">
+                无 error
+              </span>
+            )}
+          </div>
+          {err ? (
+            <div>
+              <div className="text-[10px] text-rose-800">error（工具层原文）</div>
+              <div className="mt-1 whitespace-pre-wrap break-words rounded-lg border border-rose-200/90 bg-rose-50/90 px-2 py-1.5 font-mono text-[11px] text-rose-950">
+                {err}
+              </div>
+            </div>
+          ) : null}
+          <div>
+            <div className="text-[10px] text-slate-500">output</div>
+            <pre className="mt-1 max-h-[32vh] overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[color:var(--color-border)] bg-white/70 p-2 font-mono text-[10px] text-slate-800">
+              {out !== undefined && out !== null ? safeStringify(out) : "（空）"}
+            </pre>
+          </div>
+        </div>
+      );
+    }
     if (event.type === "error") {
       const stage =
         typeof event.payload.stage === "string"
@@ -587,6 +758,7 @@ export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Pro
         typeof event.payload.message === "string"
           ? event.payload.message
           : safeStringify(event.payload);
+      const persist = (event.payload as Record<string, unknown>).persist;
       return (
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-[11px] text-slate-600">
@@ -596,6 +768,14 @@ export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Pro
             <span className="font-mono text-red-700/90">{stage || "unknown"}</span>
           </div>
           <div className="whitespace-pre-wrap text-sm text-red-700/90">{msg}</div>
+          {persist && typeof persist === "object" && !Array.isArray(persist) ? (
+            <details className="rounded-xl border border-red-200/60 bg-white/60 p-2">
+              <summary className="cursor-pointer select-none text-[11px] text-red-900/90">persist 详情</summary>
+              <pre className="mt-2 max-h-[36vh] overflow-auto whitespace-pre-wrap break-words font-mono text-[10px] text-red-950">
+                {safeStringify(persist)}
+              </pre>
+            </details>
+          ) : null}
         </div>
       );
     }

@@ -19,7 +19,7 @@
    - `13_flow_components.md` — 组件渲染 & 数据交互（[AI 协议版](docs/_tech_graph/13_flow_components.ai.md)）
    - `99_spec.md` — 前端实现规约
    - `99_mermaid_protocol.md` — Mermaid 拓扑协议（引用后端仓规范）
-4. **`content/tasks/task_*.md`**：任务规格（实现与验收口径）
+4. **`content/tasks/README.md`** + **`content/tasks/active/`**、**`content/tasks/done/`**：任务规格与归档规则（与后端 `docs/tasks/` 分类一致）
 5. **多子仓协作**（总设职责、任务单规范与落盘路径）见工作区根 `Projects/AGENTS.md` **§2**，跨仓任务按该约定先写任务初稿再分派子 Agent 丰富。
 6. **日记/日志规则**（含截图占位、引用 ≤ 300 字、禁止本地路径）见工作区根 `DIARY_GUIDE.md`；前端"知识总结"素材写在 `docs/diary/`（按日期命名）。
 
@@ -58,7 +58,7 @@
 ## 交付物约定
 
 - **配置真值表**：`docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md`（随代码演进持续更新）
-- **任务驱动**：优先阅读对应 `content/tasks/task_*.md`，实现完成后回填验收项
+- **任务驱动**：优先阅读对应 `content/tasks/active/task_*.md`，实现完成后回填验收项；**验收通过后**须按 `content/tasks/README.md` 将任务单 **`git mv`** 至 `content/tasks/done/` 并更新 `content/tasks/_views/done.md`
 - **图谱同步**：代码变更后自动增量更新 `docs/_tech_graph/` 对应文件
   - flowchart 流程图维护双轨：`.md`（人类版）+ `.ai.md`（AI 协议版）
   - 修改代码后，优先更新 `.ai.md`，再同步 `.md`

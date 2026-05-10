@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 
+import type { ChatHistoryRow } from "@/lib/chat/chatApi";
+import { fetchChatHistory } from "@/lib/chat/chatApi";
 import { useSessionId } from "@/lib/hooks/useSessionId";
 import type { ChainEvent } from "@/components/chain-chat/types";
 import { ChainTimeline, chainTimelineExpandBtnClass } from "@/components/chain-chat/ChainTimeline";
@@ -14,6 +17,37 @@ const SSE_CONTRACT_V2 = "2";
 type PreferMode = "auto" | "rag" | "text2sql";
 
 type ChatRow = { id: string; role: "user" | "assistant"; text: string };
+
+/** 跨轮会话摘要（进入页面时从 GET /api/py/chat/history 恢复，与 session_id 对齐） */
+type TranscriptTurn = { id: string; user: string; assistant: string };
+
+/** 将历史接口的扁平 messages（user/assistant 交替）转为 transcript 轮次 */
+function mapHistoryRowsToTranscript(messages: ChatHistoryRow[] | undefined): TranscriptTurn[] {
+  if (!messages?.length) return [];
+  const out: TranscriptTurn[] = [];
+  let pendingUser = "";
+  for (const m of messages) {
+    if (m.role === "user") {
+      pendingUser = typeof m.content === "string" ? m.content.trim() : "";
+    } else if (m.role === "assistant") {
+      const a = typeof m.content === "string" ? m.content.trim() : "";
+      out.push({
+        id: `hist-${out.length}`,
+        user: pendingUser,
+        assistant: a,
+      });
+      pendingUser = "";
+    }
+  }
+  if (pendingUser) {
+    out.push({
+      id: `hist-pending-${out.length}`,
+      user: pendingUser,
+      assistant: "",
+    });
+  }
+  return out;
+}
 
 function readToken(): string {
   if (typeof window === "undefined") return "";
@@ -73,9 +107,15 @@ type ExecSection =
   | { kind: "intent"; tool: string; mode: string }
   | { kind: "think"; thought: string; tool: string; mode: string }
   | { kind: "tool_start"; tool: string }
-  | { kind: "tool_end"; tool: string; snippet: string }
+  | {
+      kind: "tool_end";
+      tool: string;
+      snippet: string;
+      toolError: string | null;
+      latencyMs: number | null;
+    }
   | { kind: "truncated"; reason: string; dropped: number }
-  | { kind: "error_line"; stage: string; message: string };
+  | { kind: "error_line"; stage: string; message: string; persistHint?: string };
 
 function buildExecutionTraceSections(events: ChainEvent[]): ExecSection[] {
   const out: ExecSection[] = [];
@@ -91,6 +131,10 @@ function buildExecutionTraceSections(events: ChainEvent[]): ExecSection[] {
       continue;
     }
     if (e.type === "agent.step.start" || e.type === "agent.step.end") {
+      i += 1;
+      continue;
+    }
+    if (e.type === "agent.debug.llm_prompts") {
       i += 1;
       continue;
     }
@@ -163,7 +207,14 @@ function buildExecutionTraceSections(events: ChainEvent[]): ExecSection[] {
       continue;
     }
     if (e.type === "tool.call.end") {
-      const snippet = extractTextFromPayload(e.payload).slice(0, 200);
+      const pl = e.payload ?? {};
+      const snippet = extractTextFromPayload(pl).slice(0, 400);
+      const toolErrRaw = pl.error;
+      const toolError =
+        typeof toolErrRaw === "string" && toolErrRaw.trim() ? toolErrRaw.trim() : null;
+      const latRaw = pl.latency_ms;
+      const latencyMs =
+        typeof latRaw === "number" && Number.isFinite(latRaw) ? Math.round(latRaw) : null;
       let toolName = "tool";
       for (let k = i - 1; k >= 0; k -= 1) {
         const ev = events[k];
@@ -174,14 +225,27 @@ function buildExecutionTraceSections(events: ChainEvent[]): ExecSection[] {
           break;
         }
       }
-      out.push({ kind: "tool_end", tool: toolName, snippet });
+      out.push({ kind: "tool_end", tool: toolName, snippet, toolError, latencyMs });
       i += 1;
       continue;
     }
     if (e.type === "error") {
       const stage = typeof e.payload.stage === "string" ? e.payload.stage : "error";
       const message = typeof e.payload.message === "string" ? e.payload.message : "";
-      out.push({ kind: "error_line", stage, message });
+      let persistHint: string | undefined;
+      const pr = (e.payload as Record<string, unknown>).persist;
+      if (pr && typeof pr === "object" && !Array.isArray(pr)) {
+        const o = pr as Record<string, unknown>;
+        const compact = {
+          ok: o.ok,
+          error: o.error,
+          path: o.path,
+          timeout_s: o.timeout_s,
+          skipped: o.skipped,
+        };
+        persistHint = safeStringify(compact);
+      }
+      out.push({ kind: "error_line", stage, message, persistHint });
       i += 1;
       continue;
     }
@@ -452,16 +516,21 @@ export function UnifiedChatPageClient() {
   const tokenInputRef = useRef<HTMLInputElement | null>(null);
   const streamAbortRef = useRef<AbortController | null>(null);
   const lastQueryRef = useRef<string>("");
+  /** 本轮 SSE 累积事件（与 React state 同步，供流结束后 extractFinalAnswer / transcript 钉死 D2） */
+  const roundEventsRef = useRef<ChainEvent[]>([]);
   /** vNext §5.4：坏帧计数，默认不对用户展示 */
   const parseErrorCountRef = useRef(0);
 
   const [prefer, setPrefer] = useState<PreferMode>("auto");
   const [debugRouter, setDebugRouter] = useState(false);
+  /** 与后端 `debug_llm_prompts` / `CHATBI_V2_DEBUG_LLM_PROMPTS` 对齐；仅建议在 ?debug=1 下开启 */
+  const [debugLlmPrompts, setDebugLlmPrompts] = useState(false);
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [events, setEvents] = useState<ChainEvent[]>([]);
   const [finalAnswer, setFinalAnswer] = useState<string>("");
+  const [transcript, setTranscript] = useState<TranscriptTurn[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -480,6 +549,12 @@ export function UnifiedChatPageClient() {
   }, [token]);
 
   const { sessionId, resetSession } = useSessionId("unified-chat");
+  const sessionIdRef = useRef(sessionId);
+  sessionIdRef.current = sessionId;
+
+  const [historyReady, setHistoryReady] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+
   const [activeRequestId, setActiveRequestId] = useState<string>("");
   const [lastDone, setLastDone] = useState<{
     ok: boolean;
@@ -487,16 +562,82 @@ export function UnifiedChatPageClient() {
     run_id: string;
     session_id: string;
     request_id: string;
+    /** 后端 V2 落库 `rag_conversation_logs` 结果（`ok: false` 时多轮历史可能缺本轮） */
+    persist?: Record<string, unknown>;
   } | null>(null);
   /** Timeline 卡片：标题栏「全部展开/收起」受控 */
   const [timelineBatchNonce, setTimelineBatchNonce] = useState(0);
   const [timelineBatchOpen, setTimelineBatchOpen] = useState(false);
 
-  const debugEnabled = useMemo(() => {
-    if (typeof window === "undefined") return false;
-    const sp = new URLSearchParams(window.location.search);
-    return sp.get("debug") === "1" || sp.get("debug") === "true";
+  const [debugFromUrl, setDebugFromUrl] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const read = () => {
+      const sp = new URLSearchParams(window.location.search);
+      setDebugFromUrl(sp.get("debug") === "1" || sp.get("debug") === "true");
+    };
+    read();
+    window.addEventListener("popstate", read);
+    return () => window.removeEventListener("popstate", read);
   }, []);
+
+  /** 与地址栏 `?debug=1` 同步，便于本页一键开关调试区（不整段手改 URL） */
+  const syncDebugUrlParam = useCallback((on: boolean) => {
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    if (on) {
+      sp.set("debug", "1");
+    } else {
+      sp.delete("debug");
+    }
+    const qs = sp.toString();
+    const next = `${window.location.pathname}${qs ? `?${qs}` : ""}${window.location.hash}`;
+    window.history.replaceState(window.history.state, "", next);
+    setDebugFromUrl(on);
+  }, []);
+
+  const debugEnabled = debugFromUrl;
+
+  useEffect(() => {
+    if (debugEnabled) return;
+    setDebugLlmPrompts(false);
+  }, [debugEnabled]);
+
+  // 与 ChatPanel 一致：解锁后按 session_id 拉 rag_conversation_logs，刷新/重进页面可恢复摘要
+  useEffect(() => {
+    if (!mounted || locked) {
+      return;
+    }
+
+    const ac = new AbortController();
+    const sidAtStart = sessionId;
+    setHistoryReady(false);
+    setHistoryError(null);
+
+    void (async () => {
+      try {
+        const data = await fetchChatHistory({
+          sessionId: sidAtStart,
+          headers,
+          limit: 100,
+          signal: ac.signal,
+        });
+        if (ac.signal.aborted || sessionIdRef.current !== sidAtStart) return;
+        setTranscript(mapHistoryRowsToTranscript(data.messages));
+      } catch (e) {
+        if (ac.signal.aborted) return;
+        if (e instanceof DOMException && e.name === "AbortError") return;
+        if (sessionIdRef.current !== sidAtStart) return;
+        setHistoryError(e instanceof Error ? e.message : String(e));
+      } finally {
+        if (!ac.signal.aborted && sessionIdRef.current === sidAtStart) {
+          setHistoryReady(true);
+        }
+      }
+    })();
+
+    return () => ac.abort();
+  }, [mounted, locked, sessionId, headers]);
 
   // 关闭 Debug 时清理本轮 debug 节点，避免误读旧数据
   useEffect(() => {
@@ -506,6 +647,11 @@ export function UnifiedChatPageClient() {
     );
   }, [debugRouter]);
 
+  useEffect(() => {
+    if (debugLlmPrompts) return;
+    setEvents((prev) => prev.filter((e) => e.type !== "agent.debug.llm_prompts"));
+  }, [debugLlmPrompts]);
+
   const messages = useMemo(() => extractMessagesFromEvents(events), [events]);
   const routerDecision = useMemo(() => extractRouterDecision(events), [events]);
   const routerEvidence = useMemo(() => extractRouterEvidence(events), [events]);
@@ -513,11 +659,15 @@ export function UnifiedChatPageClient() {
   const queryTextTrace = useMemo(() => extractUserQueryText(events), [events]);
   const execSections = useMemo(() => buildExecutionTraceSections(events), [events]);
   const timelineEvents = useMemo(() => {
-    if (debugRouter) return events;
-    return events.filter(
-      (e) => e.type !== "router.evidence.details" && e.type !== "agent.intent",
-    );
-  }, [debugRouter, events]);
+    let xs = events;
+    if (!debugRouter) {
+      xs = xs.filter((e) => e.type !== "router.evidence.details" && e.type !== "agent.intent");
+    }
+    if (!debugLlmPrompts) {
+      xs = xs.filter((e) => e.type !== "agent.debug.llm_prompts");
+    }
+    return xs;
+  }, [debugRouter, debugLlmPrompts, events]);
 
   if (!mounted) {
     return (
@@ -549,6 +699,7 @@ export function UnifiedChatPageClient() {
       step_id: "user",
       payload: { text: q },
     };
+    roundEventsRef.current = [userEvent];
     setEvents([userEvent]);
     setTimelineBatchOpen(false);
     setTimelineBatchNonce((n) => n + 1);
@@ -571,6 +722,7 @@ export function UnifiedChatPageClient() {
           query: q,
           prefer,
           debug_router: debugRouter,
+          ...(debugLlmPrompts ? { debug_llm_prompts: true } : {}),
         }),
       });
       if (!res.ok) {
@@ -586,6 +738,15 @@ export function UnifiedChatPageClient() {
       // 服务端可能在 done 里返回 run_id；先用本地 runId，后续如拿到再覆盖
       let currentRunId = runId;
       let donePayload: unknown = null;
+      /** 本轮 SSE 是否收到 done（与 lastDone 同源，供 transcript 判定） */
+      let streamLastDone: {
+        ok: boolean;
+        mode: string;
+        run_id: string;
+        session_id: string;
+        request_id: string;
+        persist?: Record<string, unknown>;
+      } | null = null;
 
       while (true) {
         const { value, done } = await reader.read();
@@ -617,7 +778,11 @@ export function UnifiedChatPageClient() {
               console.debug("[UnifiedChat SSE] chain 帧跳过", parseErrorCountRef.current);
               continue;
             }
-            setEvents((prev) => [...prev, ev]);
+            setEvents((prev) => {
+              const next = [...prev, ev];
+              roundEventsRef.current = next;
+              return next;
+            });
             continue;
           }
           if (b.event === "token") {
@@ -638,13 +803,21 @@ export function UnifiedChatPageClient() {
               const ok = typeof obj.ok === "boolean" ? obj.ok : false;
               const mode = typeof obj.mode === "string" ? obj.mode : "";
               const session = typeof obj.session_id === "string" ? obj.session_id : "";
-              setLastDone({
+              const persistRaw = obj.persist;
+              const persist =
+                persistRaw && typeof persistRaw === "object" && !Array.isArray(persistRaw)
+                  ? (persistRaw as Record<string, unknown>)
+                  : undefined;
+              const doneSnap = {
                 ok,
                 mode,
                 run_id: rid.trim(),
                 session_id: session,
                 request_id: requestId.trim(),
-              });
+                ...(persist ? { persist } : {}),
+              };
+              streamLastDone = doneSnap;
+              setLastDone(doneSnap);
 
               if (debugEnabled) {
                 console.debug("[UnifiedChat SSE done]", {
@@ -663,14 +836,28 @@ export function UnifiedChatPageClient() {
         }
       }
 
-      // done 后收尾：从当前 events 里补一次最终答案（避免闭包拿不到最新 events）
-      setEvents((prev) => {
-        const inferred = extractFinalAnswer({ answer: undefined, events: prev });
-        if (inferred.trim()) setFinalAnswer((fa) => (fa.trim() ? fa : inferred));
-        // donePayload 仅用于调试/未来扩展，这里不落 event，避免污染时间线
-        void donePayload;
-        return prev;
+      // done 后收尾：先 flushSync 读到与 DOM 一致的 events（await 循环末尾可能尚有未提交的 setEvents）
+      // 再在 updater 外 setFinalAnswer / setTranscript，避免 Strict Mode 重复执行 updater 导致 transcript 双写、key 重复。
+      // D2：仅当收到 done 且 ok、且有非空最终答时追加 transcript；流失败路径不追加（与 PR 说明一致）
+      void donePayload;
+      let latestEvents: ChainEvent[] = [];
+      flushSync(() => {
+        setEvents((prev) => {
+          latestEvents = prev;
+          return prev;
+        });
       });
+      roundEventsRef.current = latestEvents;
+      const inferred = extractFinalAnswer({ answer: undefined, events: latestEvents });
+      if (inferred.trim()) {
+        setFinalAnswer((fa) => (fa.trim() ? fa : inferred));
+      }
+      if (streamLastDone?.ok && lastQueryRef.current.trim() && inferred.trim()) {
+        const uid = lastQueryRef.current.trim();
+        const aid = inferred.trim();
+        const rowId = crypto.randomUUID();
+        setTranscript((t) => [...t, { id: rowId, user: uid, assistant: aid }]);
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       setErrorText(msg);
@@ -736,7 +923,7 @@ export function UnifiedChatPageClient() {
                 {s.kind === "think" ? (
                   <div className="space-y-1 text-sm">
                     <div className="font-mono text-[11px] text-slate-600">agent.think</div>
-                    <div className="whitespace-pre-wrap rounded border border-slate-200/80 bg-slate-50/80 px-2 py-1.5 text-slate-800">
+                    <div className="max-h-[40vh] overflow-auto whitespace-pre-wrap break-words rounded border border-slate-200/80 bg-slate-50/80 px-2 py-1.5 text-[13px] leading-relaxed text-slate-900">
                       {s.thought || "—"}
                     </div>
                     <div className="text-[11px] text-slate-500">
@@ -751,12 +938,38 @@ export function UnifiedChatPageClient() {
                   </div>
                 ) : null}
                 {s.kind === "tool_end" ? (
-                  <div className="space-y-1">
-                    <div className="font-mono text-[12px] text-amber-900">tool.call.end · {s.tool}</div>
-                    {s.snippet.trim() ? (
-                      <div className="line-clamp-4 whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-slate-600">
-                        {s.snippet}
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-mono text-[12px] text-amber-900">tool.call.end · {s.tool}</span>
+                      {s.latencyMs != null ? (
+                        <span className="rounded-full border border-slate-300/80 bg-white/80 px-2 py-0.5 font-mono text-[10px] text-slate-600">
+                          {s.latencyMs} ms
+                        </span>
+                      ) : null}
+                      {s.toolError ? (
+                        <span className="rounded-full border border-rose-300/80 bg-rose-50 px-2 py-0.5 text-[10px] font-medium text-rose-900">
+                          工具返回 error
+                        </span>
+                      ) : (
+                        <span className="rounded-full border border-emerald-300/60 bg-emerald-50/80 px-2 py-0.5 text-[10px] text-emerald-900">
+                          无 error 字段
+                        </span>
+                      )}
+                    </div>
+                    {s.toolError ? (
+                      <div className="rounded-lg border border-rose-200/90 bg-rose-50/90 px-2 py-1.5 font-mono text-[11px] leading-relaxed text-rose-950">
+                        {s.toolError}
                       </div>
+                    ) : null}
+                    {s.snippet.trim() ? (
+                      <div>
+                        <div className="text-[10px] font-medium text-slate-500">output 摘要</div>
+                        <div className="mt-0.5 max-h-[28vh] overflow-auto whitespace-pre-wrap break-words rounded border border-slate-200/80 bg-slate-50/80 px-2 py-1.5 font-mono text-[11px] leading-relaxed text-slate-700">
+                          {s.snippet}
+                        </div>
+                      </div>
+                    ) : !s.toolError ? (
+                      <div className="text-[11px] text-slate-500">（无 output 摘要）</div>
                     ) : null}
                   </div>
                 ) : null}
@@ -766,8 +979,20 @@ export function UnifiedChatPageClient() {
                   </div>
                 ) : null}
                 {s.kind === "error_line" ? (
-                  <div className="font-mono text-[11px] text-rose-800">
-                    error [{s.stage}] {s.message}
+                  <div className="space-y-2 rounded-lg border border-rose-200/90 bg-rose-50/70 px-2 py-2">
+                    <div className="font-mono text-[11px] text-rose-900">
+                      <span className="text-rose-700">error</span> ·{" "}
+                      <span className="rounded bg-white/80 px-1 py-0.5">{s.stage}</span>
+                    </div>
+                    <div className="whitespace-pre-wrap text-[12px] leading-relaxed text-rose-950">{s.message}</div>
+                    {s.persistHint ? (
+                      <div>
+                        <div className="text-[10px] font-medium text-rose-800/90">persist（done 同源摘要）</div>
+                        <pre className="mt-0.5 max-h-[22vh] overflow-auto whitespace-pre-wrap break-words rounded border border-rose-200/60 bg-white/90 p-2 font-mono text-[10px] text-rose-950">
+                          {s.persistHint}
+                        </pre>
+                      </div>
+                    ) : null}
                   </div>
                 ) : null}
               </div>
@@ -859,8 +1084,26 @@ export function UnifiedChatPageClient() {
         <>
           <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40 px-4 py-3">
             <div className="flex flex-wrap items-end gap-4">
-              <div className="min-w-0 text-[11px] text-slate-500">
-                session_id: <span className="font-mono text-slate-700">{sessionId}</span>
+              <div className="min-w-0 flex-1 space-y-2 text-[11px] text-slate-600">
+                <p className="leading-relaxed text-slate-600">
+                  同一浏览器内连续提问共享上下文，直至点击「新会话」。只要{" "}
+                  <span className="font-mono">session_id</span> 不变且后端已落库，刷新或再次进入本页会从{" "}
+                  <span className="font-mono">/api/py/chat/history</span> 恢复下方「历史消息」摘要；Timeline
+                  仍仅展示当前轮 SSE。
+                </p>
+                {debugEnabled ? (
+                  <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-slate-300/80 bg-slate-50/80 px-2 py-1.5 font-mono text-[11px] text-slate-800">
+                    <span className="text-slate-500">session_id（前 8 位）</span>
+                    <span>{sessionId.slice(0, 8)}</span>
+                    <button
+                      type="button"
+                      className="rounded border border-[color:var(--color-border)] bg-white px-2 py-0.5 text-[11px] text-slate-700 hover:bg-slate-50"
+                      onClick={() => void navigator.clipboard.writeText(sessionId)}
+                    >
+                      复制完整 id
+                    </button>
+                  </div>
+                ) : null}
               </div>
               <label className="block text-[11px] text-slate-500">
                 prefer
@@ -874,8 +1117,82 @@ export function UnifiedChatPageClient() {
                   <option value="text2sql">text2sql</option>
                 </select>
               </label>
+              <div className="flex shrink-0 flex-col gap-1">
+                <span className="text-[11px] text-slate-500">页面调试</span>
+                {debugEnabled ? (
+                  <button
+                    type="button"
+                    onClick={() => syncDebugUrlParam(false)}
+                    className="rounded-xl border border-slate-400/40 bg-white/80 px-3 py-2 text-[12px] text-slate-800 hover:bg-slate-50"
+                    title="从地址栏移除 debug 参数并隐藏调试区"
+                  >
+                    关闭调试模式
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => syncDebugUrlParam(true)}
+                    className="rounded-xl border border-amber-500/35 bg-amber-500/10 px-3 py-2 text-[12px] text-amber-950 hover:bg-amber-500/15"
+                    title="等同在地址栏加上 ?debug=1"
+                  >
+                    开启调试模式
+                  </button>
+                )}
+              </div>
             </div>
           </section>
+
+          {!historyReady ? (
+            <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40 px-4 py-3">
+              <p className="text-[12px] text-slate-500">正在加载本会话历史…</p>
+            </section>
+          ) : historyError ? (
+            <section className="rounded-2xl border border-amber-200/80 bg-amber-50/50 px-4 py-3">
+              <p className="text-[12px] text-amber-900/90">
+                历史接口不可用（将无法从服务端恢复摘要）：{historyError}
+              </p>
+            </section>
+          ) : transcript.length > 0 ? (
+            <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
+              <div className="border-b border-[color:var(--color-border)] px-4 py-3">
+                <div className="font-serif text-sm text-[#2c2c2c]">历史消息</div>
+                <div className="mt-0.5 text-[11px] text-slate-500">
+                  已完成轮次摘要（来自 rag_conversation_logs）；当前轮 Timeline 与下方「消息」区仅展示本轮
+                </div>
+              </div>
+              <div className="max-h-[36vh] space-y-3 overflow-auto px-4 py-3">
+                {transcript.map((row) => (
+                  <div
+                    key={row.id}
+                    className="space-y-2 rounded-xl border border-[color:var(--color-border)] bg-[#f9f9f7]/80 px-3 py-2"
+                  >
+                    <div>
+                      <div className="text-[10px] text-slate-400">user</div>
+                      <div className="mt-0.5 whitespace-pre-wrap text-sm text-slate-900">{row.user}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] text-slate-400">assistant</div>
+                      <div className="mt-0.5 whitespace-pre-wrap text-sm text-slate-800">{row.assistant}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {lastDone?.persist && lastDone.persist.ok === false ? (
+            <section className="rounded-2xl border border-rose-300/70 bg-rose-50/90 px-4 py-3">
+              <div className="font-serif text-sm text-rose-950">会话落库失败</div>
+              <p className="mt-1 text-[12px] leading-relaxed text-rose-900/95">
+                本轮回答已生成，但写入 <span className="font-mono">rag_conversation_logs</span> 未成功，多轮上下文与历史摘要可能缺本轮。请检查
+                Supabase 网络或表结构；详情见下方 Debug 或 Timeline 中的{" "}
+                <span className="font-mono">error · agent_db</span> 事件。
+              </p>
+              <pre className="mt-2 max-h-[20vh] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-rose-200/80 bg-white/80 p-2 font-mono text-[10px] text-rose-950">
+                {safeStringify(lastDone.persist)}
+              </pre>
+            </section>
+          ) : null}
 
           {/* Timeline（左）| 执行链路 + Timeline 输出（右）：固定左右双栏 */}
           <div className="grid min-h-0 grid-cols-2 gap-4 [&>section]:min-w-0">
@@ -951,6 +1268,49 @@ export function UnifiedChatPageClient() {
                 </button>
               </div>
             </div>
+
+            {debugEnabled ? (
+              <div className="rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/70 p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-[12px] text-slate-700">LLM Prompt 调试</div>
+                    <div className="mt-0.5 text-[11px] text-slate-500">
+                      开启后请求体附带 <span className="font-mono">debug_llm_prompts: true</span>
+                      ，Timeline 展示{" "}
+                      <span className="font-mono">agent.debug.llm_prompts</span>（含 Intent / 工具链各段
+                      messages）。服务端亦可设环境变量{" "}
+                      <span className="font-mono">CHATBI_V2_DEBUG_LLM_PROMPTS=1</span> 强制开启。内容可能较长且含
+                      system 指令，请勿对不可信受众默认开启。
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const next = !debugLlmPrompts;
+                      setDebugLlmPrompts(next);
+                      if (loading && lastQueryRef.current.trim()) {
+                        streamAbortRef.current?.abort();
+                        streamAbortRef.current = null;
+                        await send(lastQueryRef.current.trim());
+                      }
+                    }}
+                    className={[
+                      "shrink-0 rounded-full border px-3 py-1 text-[11px]",
+                      debugLlmPrompts
+                        ? "border-orange-500/40 bg-orange-500/10 text-orange-950"
+                        : "border-[color:var(--color-border)] bg-white/60 text-slate-700",
+                    ].join(" ")}
+                    title={
+                      debugLlmPrompts
+                        ? "点击关闭（会清理当前会话中的 LLM prompt 调试事件）"
+                        : "点击开启（必要时会重连 SSE）"
+                    }
+                  >
+                    {debugLlmPrompts ? "ON" : "OFF"}
+                  </button>
+                </div>
+              </div>
+            ) : null}
 
               <details className="rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/70 p-3">
                 <summary className="cursor-pointer select-none text-[12px] text-slate-700">
@@ -1142,7 +1502,9 @@ export function UnifiedChatPageClient() {
                     streamAbortRef.current?.abort();
                     streamAbortRef.current = null;
                     resetSession();
+                    setTranscript([]);
                     setEvents([]);
+                    roundEventsRef.current = [];
                     setTimelineBatchOpen(false);
                     setTimelineBatchNonce((n) => n + 1);
                     setErrorText(null);

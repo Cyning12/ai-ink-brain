@@ -22,7 +22,8 @@ export type ChainEventType =
   | "agent.llm.end"
   | "agent.llm.truncated"
   | "agent.step.end"
-  | "agent.final";
+  | "agent.final"
+  | "agent.debug.llm_prompts";
 
 export type ChainEvent = {
   type: ChainEventType;

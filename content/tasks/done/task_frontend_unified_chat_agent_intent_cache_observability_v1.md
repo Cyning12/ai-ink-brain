@@ -41,7 +41,7 @@
 |--------|-----------|
 | PROJECT_CONFIG | `docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md` |
 | BFF SSE | `app/api/py/unified/chat/stream/route.ts`（确认 **透传 body** 与 **不缓冲删字段**；一般无需改，以实测为准） |
-| 现有 Debug 参考 | `content/tasks/task_frontend_debug_router_observability_toggle_v1.md` |
+| 现有 Debug 参考 | `content/tasks/active/task_frontend_debug_router_observability_toggle_v1.md` |
 | 后端契约真值 | `ai-ink-brain-api-python/docs/_tech_graph/_contract_manifest.json` → `sse.chain.type_values` / `payload_min_keys_by_type.agent.intent` |
 | 后端实现参考 | `ai-ink-brain-api-python/api/unified_chat.py`（`agent.intent` 组装处）、`api/intent_agent.py`（`raw_response` 字段名） |
 

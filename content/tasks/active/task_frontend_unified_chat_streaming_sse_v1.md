@@ -98,5 +98,5 @@ SSE 解析建议（实现细节）：
 
 ## 后续（vNext）
 
-执行期增量 SSE、LLM delta、Timeline/双栏见：`content/tasks/task_chatbi_v2_incremental_sse_timeline_frontend_v1.md`（配对后端：`ai-ink-brain-api-python/docs/tasks/active/task_chatbi_v2_incremental_sse_backend_v1.md`）。
+执行期增量 SSE、LLM delta、Timeline/双栏见：`content/tasks/active/task_chatbi_v2_incremental_sse_timeline_frontend_v1.md`（配对后端：`ai-ink-brain-api-python/docs/tasks/active/task_chatbi_v2_incremental_sse_backend_v1.md`）。
 

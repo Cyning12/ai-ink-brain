@@ -2,7 +2,7 @@
 
 状态：pending  
 后端依赖：`ai-ink-brain-api-python/docs/tasks/done/task_unified_chat_router_evidence_event_v1.md`（后端已验收通过）  
-关联：`content/tasks/task_frontend_intent_router_debug_v1.md`（router.decision 既有展示）
+关联：`content/tasks/active/task_frontend_intent_router_debug_v1.md`（router.decision 既有展示）
 
 ---
 

@@ -15,11 +15,14 @@ flowchart TB
         // → components/Text2SqlChatPanel.tsx
     end
 
-    %% === Unified 三栏布局 ===
+    %% === Unified：transcript + 当前轮双栏 + 消息区 ===
     subgraph UC_UI[[UnifiedChatPageClient UI]]
-        UCP --"->"--> UC_LEFT[[左栏: messages + 答案]]
-        UCP --"->"--> UC_MID[[中栏: ChainTimeline]]
-        UCP --"->"--> UC_RIGHT[[右栏: prefer + 推荐问法 + 路由决策]]
+        UCP --"->"--> UC_TOP[[顶栏 prefer + 多轮说明 + debug 短前缀]]
+        UCP --"->"--> UC_HIST[[历史 transcript 跨轮]]
+        UCP --"->"--> UC_MID[[左 ChainTimeline 当前轮]]
+        UCP --"->"--> UC_RIGHT[[右 执行链路 当前轮]]
+        UCP --"->"--> UC_MSG[[底 消息区 当前轮]]
+        UCP --"->"--> UC_DBG[[Router Debug 与输入]]
     end
 
     UC_MID --"->"--> TL[[ChainTimeline]]
@@ -56,6 +59,6 @@ flowchart TB
 
     class CHAT,UNIFIED,CHAIN,T2S page
     class CP,UCP,CCP,T2P,TL,EC,SQLT,SC,MD comp
-    class UC_LEFT,UC_MID,UC_RIGHT ui
+    class UC_TOP,UC_HIST,UC_MID,UC_RIGHT,UC_MSG,UC_DBG ui
     class STREAM,HISTORY,SID lib
 ```

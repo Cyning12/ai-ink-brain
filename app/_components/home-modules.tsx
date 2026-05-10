@@ -14,7 +14,12 @@ type HomeModule = {
 const BASE_MODULES: HomeModule[] = [
   { id: "blog-log", title: "学习日志", href: "/blog", hint: "笔记与检索" },
   { id: "blog-resources", title: "学习资源", href: "/learning", hint: "content/learning" },
-  { id: "tasks", title: "任务", href: "/projects", hint: "content/tasks" },
+  {
+    id: "tasks",
+    title: "任务",
+    href: "/projects",
+    hint: "content/tasks/active · done",
+  },
 ];
 
 const ADMIN_MODULES: HomeModule[] = [

@@ -1,5 +1,6 @@
 # 前端 Task：<动词 + 范围>
 
+> **落盘**：新建任务文件请放在 `content/tasks/active/`（验收通过后 `git mv` 至 `content/tasks/done/`，见同目录 `README.md`）。  
 > **状态**：draft / pending / in_progress / done  
 > **关联图谱**：`docs/_tech_graph/xx_flow_xxx.md`  
 > **关联 Issue/PR**：#xxx  

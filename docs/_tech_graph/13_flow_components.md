@@ -9,11 +9,14 @@ flowchart TB
     T2S["/text2sql\napp/text2sql/page.tsx"] --> T2P["Text2SqlChatPanel\ncomponents/Text2SqlChatPanel.tsx"]:::c
   end
 
-  %% Unified 3-column layout（消息 / timeline / 控制台）
+  %% Unified：方案 A — 历史 transcript（跨轮）+ 双栏当前轮 Timeline / 执行链路 + 底部当前轮消息区
   subgraph UC_UI[UnifiedChatPageClient UI]
-    UCP --> UC_LEFT[左栏: messages + 最终答案]:::u
-    UCP --> UC_MID[中栏: ChainTimeline]:::u
-    UCP --> UC_RIGHT[右栏: prefer + 推荐问法 + 路由决策(router.decision)]:::u
+    UCP --> UC_TOP[顶栏: prefer + 多轮说明；?debug=1 下 session_id 短前缀与复制]:::u
+    UCP --> UC_HIST[历史消息: transcript\n跨轮 user/assistant 摘要（内存）]:::u
+    UCP --> UC_MID[左栏: ChainTimeline\n当前轮 SSE]:::u
+    UCP --> UC_RIGHT[右栏: 执行链路\n当前轮]:::u
+    UCP --> UC_MSG[底部: 消息区\n当前轮 finalAnswer + events 提取]:::u
+    UCP --> UC_DBG[Router Debug / 推荐问法 / 输入]:::u
   end
 
   UC_MID --> TL["ChainTimeline\ncomponents/chain-chat/ChainTimeline.tsx"]:::c
