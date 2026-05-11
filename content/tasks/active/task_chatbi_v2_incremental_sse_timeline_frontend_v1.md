@@ -5,7 +5,7 @@
 **关联 SPEC（后端仓）**：`ai-ink-brain-api-python/docs/spec/v2-agent/SPEC-ChatBI-V2-Incremental-SSE-Timeline-vNext.md`（**§0、§5、§6、§6.1、§7、§9**）  
 **关联 Events（后端仓）**：`ai-ink-brain-api-python/docs/spec/v2-agent/SPEC-ChatBI-V2-Events.md` **§8**
 
-**配对后端任务**：`ai-ink-brain-api-python/docs/tasks/active/task_chatbi_v2_incremental_sse_backend_v1.md`
+**配对后端任务**：`ai-ink-brain-api-python/docs/tasks/done/task_chatbi_v2_incremental_sse_backend_v1.md`（已验收归档）
 
 ---
 

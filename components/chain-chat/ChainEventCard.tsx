@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import type { ChainEvent } from "@/components/chain-chat/types";
 import { SqlResultTable } from "@/components/chain-chat/SqlResultTable";
@@ -100,12 +100,10 @@ function badgeTone(type: ChainEvent["type"]): string {
 }
 
 export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Props) {
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    if (batchExpandNonce === undefined || batchExpandOpen === undefined) return;
-    setOpen(batchExpandOpen);
-  }, [batchExpandNonce, batchExpandOpen]);
+  /** 批量展开由父级 key（含 nonce/open）驱动 remount，避免在 effect 内同步 setState */
+  const [open, setOpen] = useState(
+    batchExpandNonce !== undefined && batchExpandOpen !== undefined ? batchExpandOpen : false,
+  );
   const [snippetOpen, setSnippetOpen] = useState(false);
   const [snippetTitle, setSnippetTitle] = useState("");
   const [snippetContent, setSnippetContent] = useState("");
