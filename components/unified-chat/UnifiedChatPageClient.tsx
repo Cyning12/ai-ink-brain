@@ -77,6 +77,29 @@ function safeStringify(v: unknown): string {
   }
 }
 
+/** 复制纯文本到剪贴板（含 execCommand 兜底） */
+async function copyPlainToClipboard(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    try {
+      const el = document.createElement("textarea");
+      el.value = text;
+      el.setAttribute("readonly", "true");
+      el.style.position = "fixed";
+      el.style.top = "-9999px";
+      document.body.appendChild(el);
+      el.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(el);
+      return ok;
+    } catch {
+      return false;
+    }
+  }
+}
+
 /** 按 SSE append 顺序拼接 LLM 子步增量（v1 不做 step 聚合卡片） */
 /** 单段 LLM：仅拼接相邻 delta（由 start/end 界定，避免跨 phase 混拼） */
 function joinLlmDeltasInRange(events: ChainEvent[], startIdx: number, endIdx: number): string {
@@ -252,6 +275,51 @@ function buildExecutionTraceSections(events: ChainEvent[]): ExecSection[] {
     i += 1;
   }
   return out;
+}
+
+/** 与右栏「执行链路」展示一致的纯文本，供复制 */
+function buildExecutionTraceCopyText(query: string, sections: ExecSection[]): string {
+  const lines: string[] = ["=== 执行链路 ===", ""];
+  const q = query.trim();
+  if (q) {
+    lines.push("Query:", q, "");
+  }
+  if (sections.length === 0) {
+    lines.push("（暂无步骤）");
+    return lines.join("\n");
+  }
+  for (let idx = 0; idx < sections.length; idx += 1) {
+    const s = sections[idx];
+    if (!s) continue;
+    lines.push(`--- step-${idx + 1} ---`);
+    if (s.kind === "llm_block") {
+      lines.push(
+        `agent.llm.start · ${s.phase}（${phaseHintCn(s.phase)}）`,
+        s.body.trim() ? s.body : "（无 delta 正文）",
+        `agent.llm.end · ${s.phase} · ${s.ok ? "ok" : "fail"}`,
+      );
+    } else if (s.kind === "router") {
+      lines.push(`router.decision → ${s.finalMode}`);
+    } else if (s.kind === "intent") {
+      lines.push(`agent.intent · ${s.tool} · mode ${s.mode}`);
+    } else if (s.kind === "think") {
+      lines.push("agent.think", s.thought || "—", `tool ${s.tool || "—"} · mode ${s.mode || "—"}`);
+    } else if (s.kind === "tool_start") {
+      lines.push(`tool.call.start · ${s.tool}`);
+    } else if (s.kind === "tool_end") {
+      lines.push(`tool.call.end · ${s.tool}`);
+      if (s.latencyMs != null) lines.push(`${s.latencyMs} ms`);
+      lines.push(s.toolError ? `工具 error: ${s.toolError}` : "（无 error 字段）");
+      lines.push(s.snippet.trim() ? `output 摘要:\n${s.snippet}` : "（无 output 摘要）");
+    } else if (s.kind === "truncated") {
+      lines.push(`agent.llm.truncated · dropped=${s.dropped} · ${s.reason}`);
+    } else if (s.kind === "error_line") {
+      lines.push(`error · ${s.stage}`, s.message);
+      if (s.persistHint) lines.push(`persist:\n${s.persistHint}`);
+    }
+    lines.push("");
+  }
+  return `${lines.join("\n").trimEnd()}\n`;
 }
 
 function extractUserQueryText(events: ChainEvent[]): string {
@@ -669,6 +737,46 @@ export function UnifiedChatPageClient() {
     return xs;
   }, [debugRouter, debugLlmPrompts, events]);
 
+  /** 浏览器下 setTimeout 返回 number，与 NodeJS.Timeout 区分 */
+  const copyFeedbackTimerRef = useRef<number | null>(null);
+  const [sectionCopyFeedback, setSectionCopyFeedback] = useState<"timeline" | "exec" | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyFeedbackTimerRef.current != null) {
+        window.clearTimeout(copyFeedbackTimerRef.current);
+        copyFeedbackTimerRef.current = null;
+      }
+    };
+  }, []);
+
+  const handleCopyTimeline = useCallback(async () => {
+    const body =
+      timelineEvents.length === 0
+        ? "（暂无 Timeline 事件）"
+        : `=== Timeline（共 ${timelineEvents.length} 条，JSON）===\n${safeStringify(timelineEvents)}`;
+    const ok = await copyPlainToClipboard(body);
+    if (!ok) return;
+    if (copyFeedbackTimerRef.current != null) window.clearTimeout(copyFeedbackTimerRef.current);
+    setSectionCopyFeedback("timeline");
+    copyFeedbackTimerRef.current = window.setTimeout(() => {
+      setSectionCopyFeedback(null);
+      copyFeedbackTimerRef.current = null;
+    }, 2000);
+  }, [timelineEvents]);
+
+  const handleCopyExecutionTrace = useCallback(async () => {
+    const body = buildExecutionTraceCopyText(queryTextTrace, execSections);
+    const ok = await copyPlainToClipboard(body);
+    if (!ok) return;
+    if (copyFeedbackTimerRef.current != null) window.clearTimeout(copyFeedbackTimerRef.current);
+    setSectionCopyFeedback("exec");
+    copyFeedbackTimerRef.current = window.setTimeout(() => {
+      setSectionCopyFeedback(null);
+      copyFeedbackTimerRef.current = null;
+    }, 2000);
+  }, [queryTextTrace, execSections]);
+
   if (!mounted) {
     return (
       <div className="rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/95 p-4 text-sm text-slate-600">
@@ -869,11 +977,21 @@ export function UnifiedChatPageClient() {
 
   const executionLinkSection = (
     <section className="flex min-h-[72vh] min-w-0 flex-col rounded-2xl border border-[color:var(--color-border)] bg-white/40">
-      <div className="border-b border-[color:var(--color-border)] px-4 py-3">
-        <div className="font-serif text-sm text-[#2c2c2c]">执行链路</div>
-        <div className="mt-0.5 text-[11px] text-slate-500">
-          按 SSE 顺序展示 Agent 子步与决策（每段 <span className="font-mono">agent.llm.*</span> 单独成块，不混拼）；明细见左侧 Timeline
+      <div className="flex items-start justify-between gap-3 border-b border-[color:var(--color-border)] px-4 py-3">
+        <div className="min-w-0 flex-1">
+          <div className="font-serif text-sm text-[#2c2c2c]">执行链路</div>
+          <div className="mt-0.5 text-[11px] text-slate-500">
+            按 SSE 顺序展示 Agent 子步与决策（每段 <span className="font-mono">agent.llm.*</span> 单独成块，不混拼）；明细见左侧 Timeline
+          </div>
         </div>
+        <button
+          type="button"
+          className={chainTimelineExpandBtnClass}
+          onClick={() => void handleCopyExecutionTrace()}
+          title="复制当前执行链路摘要（纯文本）"
+        >
+          {sectionCopyFeedback === "exec" ? "已复制" : "复制"}
+        </button>
       </div>
       <div className="min-h-0 flex-1 overflow-auto px-4 py-3">
         {!queryTextTrace.trim() && execSections.length === 0 ? (
@@ -1012,30 +1130,40 @@ export function UnifiedChatPageClient() {
             vNext：SSE 到达序（含 agent.llm.*）；展开查看详情
           </div>
         </div>
-        {timelineEvents.length > 0 ? (
-          <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
-            <button
-              type="button"
-              className={chainTimelineExpandBtnClass}
-              onClick={() => {
-                setTimelineBatchOpen(true);
-                setTimelineBatchNonce((n) => n + 1);
-              }}
-            >
-              全部展开
-            </button>
-            <button
-              type="button"
-              className={chainTimelineExpandBtnClass}
-              onClick={() => {
-                setTimelineBatchOpen(false);
-                setTimelineBatchNonce((n) => n + 1);
-              }}
-            >
-              全部收起
-            </button>
-          </div>
-        ) : null}
+        <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
+          <button
+            type="button"
+            className={chainTimelineExpandBtnClass}
+            onClick={() => void handleCopyTimeline()}
+            title="复制当前 Timeline 事件（JSON）"
+          >
+            {sectionCopyFeedback === "timeline" ? "已复制" : "复制"}
+          </button>
+          {timelineEvents.length > 0 ? (
+            <>
+              <button
+                type="button"
+                className={chainTimelineExpandBtnClass}
+                onClick={() => {
+                  setTimelineBatchOpen(true);
+                  setTimelineBatchNonce((n) => n + 1);
+                }}
+              >
+                全部展开
+              </button>
+              <button
+                type="button"
+                className={chainTimelineExpandBtnClass}
+                onClick={() => {
+                  setTimelineBatchOpen(false);
+                  setTimelineBatchNonce((n) => n + 1);
+                }}
+              >
+                全部收起
+              </button>
+            </>
+          ) : null}
+        </div>
       </div>
       <div className="min-h-0 flex-1 overflow-auto px-4 py-4">
         <ChainTimeline
@@ -1191,6 +1319,21 @@ export function UnifiedChatPageClient() {
               <pre className="mt-2 max-h-[20vh] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-rose-200/80 bg-white/80 p-2 font-mono text-[10px] text-rose-950">
                 {safeStringify(lastDone.persist)}
               </pre>
+            </section>
+          ) : null}
+
+          {lastDone && lastDone.ok === false ? (
+            <section className="rounded-2xl border border-rose-300/70 bg-rose-50/90 px-4 py-3">
+              <div className="font-serif text-sm text-rose-950">本轮未完成（done · ok=false）</div>
+              <p className="mt-1 text-[12px] leading-relaxed text-rose-900/95">
+                请查看左侧 Timeline 或右侧执行链路中的 <span className="font-mono">error</span> 链事件；开启页面{" "}
+                <span className="font-mono">?debug=1</span> 可查看 <span className="font-mono">done</span> 完整载荷。
+              </p>
+              {debugEnabled ? (
+                <pre className="mt-2 max-h-[20vh] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-rose-200/80 bg-white/80 p-2 font-mono text-[10px] text-rose-950">
+                  {safeStringify(lastDone)}
+                </pre>
+              ) : null}
             </section>
           ) : null}
 

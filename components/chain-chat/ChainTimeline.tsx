@@ -86,7 +86,7 @@ export function ChainTimeline({
       <div className="space-y-3">
         {sorted.map((e, idx) => (
           <ChainEventCard
-            key={`${idx}-${stableTimelineKey(e, idx)}`}
+            key={`${stableTimelineKey(e, idx)}-b${batchNonce}-${String(batchOpen)}`}
             event={e}
             batchExpandNonce={batchNonce}
             batchExpandOpen={batchOpen}
