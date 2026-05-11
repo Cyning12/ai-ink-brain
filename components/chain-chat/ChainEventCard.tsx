@@ -94,6 +94,7 @@ function badgeTone(type: ChainEvent["type"]): string {
   if (type === "latency") return "bg-sky-500/10 text-sky-800 border-sky-500/20";
   if (type.startsWith("chart.")) return "bg-amber-500/10 text-amber-800 border-amber-500/20";
   if (type === "agent.intent") return "bg-violet-500/10 text-violet-900 border-violet-500/25";
+  if (type === "agent.clarify") return "bg-amber-500/15 text-amber-950 border-amber-500/40";
   if (type.startsWith("agent.llm")) return "bg-cyan-500/10 text-cyan-900 border-cyan-500/25";
   if (type.startsWith("agent.debug")) return "bg-orange-500/10 text-orange-950 border-orange-500/25";
   if (type.startsWith("text2sql.phase")) return "bg-indigo-500/10 text-indigo-900 border-indigo-500/25";
@@ -143,6 +144,10 @@ export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Pro
       const sc = typeof p.scope === "string" && p.scope.trim() ? p.scope : "llm";
       const tn = typeof p.tool === "string" && p.tool.trim() ? p.tool : "";
       return tn ? `agent.debug.llm_prompts · ${sc} · ${tn}` : `agent.debug.llm_prompts · ${sc}`;
+    }
+    if (event.type === "agent.clarify") {
+      const short = typeof p.message === "string" && p.message.trim() ? p.message.trim().slice(0, 48) : "clarify";
+      return `agent.clarify · ${short}`;
     }
     if (event.type === "agent.think") {
       const tool = typeof p.selected_tool === "string" && p.selected_tool.trim() ? p.selected_tool : "?";
@@ -353,6 +358,36 @@ export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Pro
               </div>
             </div>
           </details>
+        </div>
+      );
+    }
+    if (event.type === "agent.clarify") {
+      const p = event.payload ?? {};
+      const msg = typeof p.message === "string" ? p.message : "";
+      const prompt = typeof p.prompt_for_user === "string" ? p.prompt_for_user : "";
+      const stepNo = p.step_number;
+      const stepStr =
+        typeof stepNo === "number" && Number.isFinite(stepNo) ? String(Math.round(stepNo)) : "—";
+      return (
+        <div className="space-y-2 text-[11px] text-slate-800">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-amber-500/60 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-950">
+              澄清中 · 待您确认
+            </span>
+            <span className="text-[10px] text-slate-500">step {stepStr}</span>
+          </div>
+          <div>
+            <div className="text-[10px] font-medium uppercase tracking-wide text-amber-900/90">摘要</div>
+            <div className="mt-1 rounded-lg border border-amber-200/70 bg-amber-50/50 px-2 py-1.5 text-[12px] leading-relaxed text-slate-900">
+              {msg.trim() ? msg : "—"}
+            </div>
+          </div>
+          <div>
+            <div className="text-[10px] font-medium uppercase tracking-wide text-slate-600">追问</div>
+            <div className="mt-1 max-h-[42vh] overflow-auto whitespace-pre-wrap break-words text-[12px] leading-relaxed text-slate-900">
+              {prompt.trim() ? prompt : "—"}
+            </div>
+          </div>
         </div>
       );
     }

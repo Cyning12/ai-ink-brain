@@ -6,7 +6,7 @@ import { flushSync } from "react-dom";
 import type { ChatHistoryRow } from "@/lib/chat/chatApi";
 import { fetchChatHistory } from "@/lib/chat/chatApi";
 import { useSessionId } from "@/lib/hooks/useSessionId";
-import type { ChainEvent } from "@/components/chain-chat/types";
+import { type ChainEvent, UNIFIED_SSE_CHAIN_TYPE_WHITELIST } from "@/components/chain-chat/types";
 import { ChainTimeline, chainTimelineExpandBtnClass } from "@/components/chain-chat/ChainTimeline";
 import {
   extractText2sqlPhasesMsFromToolOutput,
@@ -134,6 +134,7 @@ type ExecSection =
   | { kind: "router"; finalMode: string }
   | { kind: "intent"; tool: string; mode: string }
   | { kind: "think"; thought: string; tool: string; mode: string }
+  | { kind: "clarify"; message: string; prompt_for_user: string }
   | { kind: "tool_start"; tool: string }
   | {
       kind: "tool_end";
@@ -229,6 +230,14 @@ function buildExecutionTraceSections(events: ChainEvent[]): ExecSection[] {
       const tool = typeof e.payload.selected_tool === "string" ? e.payload.selected_tool : "";
       const mode = typeof e.payload.mode === "string" ? e.payload.mode : "";
       out.push({ kind: "think", thought, tool, mode });
+      i += 1;
+      continue;
+    }
+    if (e.type === "agent.clarify") {
+      const p = e.payload ?? {};
+      const msg = typeof p.message === "string" ? p.message : "";
+      const prompt = typeof p.prompt_for_user === "string" ? p.prompt_for_user : "";
+      out.push({ kind: "clarify", message: msg, prompt_for_user: prompt });
       i += 1;
       continue;
     }
@@ -340,6 +349,8 @@ function buildExecutionTraceCopyText(query: string, sections: ExecSection[]): st
       lines.push(`agent.intent · ${s.tool} · mode ${s.mode}`);
     } else if (s.kind === "think") {
       lines.push("agent.think", s.thought || "—", `tool ${s.tool || "—"} · mode ${s.mode || "—"}`);
+    } else if (s.kind === "clarify") {
+      lines.push("agent.clarify", s.message || "—", s.prompt_for_user || "—");
     } else if (s.kind === "tool_start") {
       lines.push(`tool.call.start · ${s.tool}`);
     } else if (s.kind === "tool_end") {
@@ -443,6 +454,15 @@ function extractFinalAnswer(args: {
 
 type SseBlock = { event: string; data: string };
 
+/** manifest `agent.clarify` 最小键校验；缺字段则整帧丢弃（策略 B） */
+function isValidAgentClarifyPayload(p: Record<string, unknown>): boolean {
+  const sn = p.step_number;
+  if (typeof sn !== "number" || !Number.isFinite(sn)) return false;
+  if (typeof p.message !== "string") return false;
+  if (typeof p.prompt_for_user !== "string") return false;
+  return true;
+}
+
 function parseSseBlocks(chunkText: string): SseBlock[] {
   // 这里只做“块级解析”；事件的组包（跨 chunk）由外层 buffer 处理
   const blocks: SseBlock[] = [];
@@ -479,6 +499,11 @@ function chainEventFromSse(args: {
   const type = typeof obj.type === "string" ? obj.type : "";
   if (!type) return null;
 
+  if (!UNIFIED_SSE_CHAIN_TYPE_WHITELIST.has(type)) {
+    console.debug("[UnifiedChat SSE] 未知 chain.type，策略 B 跳过", type);
+    return null;
+  }
+
   // vNext §5.4：delta 缺 text 则跳过该帧
   if (type === "agent.llm.delta") {
     const pl = obj.payload;
@@ -503,6 +528,9 @@ function chainEventFromSse(args: {
     return null;
   }
   if (type === "text2sql.phase.end" && !isValidText2SqlPhaseEndPayload(payload)) {
+    return null;
+  }
+  if (type === "agent.clarify" && !isValidAgentClarifyPayload(payload)) {
     return null;
   }
 
@@ -1117,6 +1145,20 @@ export function UnifiedChatPageClient() {
                     <div className="text-[11px] text-slate-500">
                       tool <span className="font-mono">{s.tool || "—"}</span> · mode{" "}
                       <span className="font-mono">{s.mode || "—"}</span>
+                    </div>
+                  </div>
+                ) : null}
+                {s.kind === "clarify" ? (
+                  <div className="space-y-2 border-l-2 border-amber-400/90 pl-2 text-sm">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full border border-amber-500/60 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-950">
+                        待您澄清
+                      </span>
+                      <span className="font-mono text-[11px] text-amber-900">agent.clarify</span>
+                    </div>
+                    <div className="text-[12px] font-medium text-slate-800">{s.message.trim() ? s.message : "—"}</div>
+                    <div className="max-h-[40vh] overflow-auto whitespace-pre-wrap break-words rounded border border-amber-200/80 bg-amber-50/40 px-2 py-1.5 text-[13px] leading-relaxed text-slate-900">
+                      {s.prompt_for_user.trim() ? s.prompt_for_user : "—"}
                     </div>
                   </div>
                 ) : null}

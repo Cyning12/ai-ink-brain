@@ -74,3 +74,10 @@ flowchart LR
 - **契约帧**：`text2sql.phase.start` / `text2sql.phase.end`；终态汇总 **`tool.call.end` → `output.text2sql_phases_ms`**。  
 - **任务与真值**：`content/tasks/active/task_chatbi_v3_text2sql_phase_sse_timeline_frontend_v1.md`（§V1 交付、§数据源与 UI 策略）；后端 L1 摘要见配对仓 `SPEC-ChatBI-V3-Observability-Text2SQL.md` §5.1。
 
+## ChatBI V3 · 多轮澄清 SSE（`agent.clarify`）
+
+- **消费入口**：同上 `UnifiedChatPageClient` SSE 路径。  
+- **契约帧**：`agent.clarify`，payload 最小键 `step_number` / `message` / `prompt_for_user`（真值：`Projects/ai-ink-brain-api-python/docs/_tech_graph/_contract_manifest.json`；语义见 `SPEC-ChatBI-V2-Events.md` §3.2.1）。  
+- **UI**：Timeline / `ChainEventCard` 与 `agent.think` 分开展示；未知 `chain.type` 走策略 B 丢弃。  
+- **SSE 文本样例**：`Projects/ai-ink-brain-api-python/docs/spec/v3-agent/P0/SSE-sample-agent-clarify.md`。
+
