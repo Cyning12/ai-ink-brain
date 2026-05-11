@@ -77,6 +77,8 @@
 | BFF | `app/api/py/unified/chat/stream/route.ts` |
 | Timeline 组件 | `components/chain-chat/ChainTimeline.tsx`、`components/chain-chat/types.ts`（以实际引用为准） |
 | 前端 PROJECT_CONFIG | `docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md` |
+| 后端 L1 摘要（勿与本文重复维护长文） | `../ai-ink-brain-api-python/docs/spec/v3-agent/SPEC-ChatBI-V3-Observability-Text2SQL.md` **§5.1** |
+| 本仓 API 流图谱锚点 | `docs/_tech_graph/11_flow_api.md` / `11_flow_api.ai.md`（§ChatBI V3 Text2SQL 子阶段 SSE） |
 
 ---
 

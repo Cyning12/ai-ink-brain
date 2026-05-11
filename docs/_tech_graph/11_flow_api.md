@@ -68,3 +68,9 @@ flowchart LR
   classDef p fill:#f3f0ff,stroke:#7b61ff,color:#221;
 ```
 
+## ChatBI V3 · Text2SQL 子阶段 SSE（Unified 增量路径）
+
+- **消费入口**：`UnifiedChatPageClient` → `POST /api/py/unified/chat/stream`（`X-ChatBI-Sse-Contract: 2`）。  
+- **契约帧**：`text2sql.phase.start` / `text2sql.phase.end`；终态汇总 **`tool.call.end` → `output.text2sql_phases_ms`**。  
+- **任务与真值**：`content/tasks/active/task_chatbi_v3_text2sql_phase_sse_timeline_frontend_v1.md`（§V1 交付、§数据源与 UI 策略）；后端 L1 摘要见配对仓 `SPEC-ChatBI-V3-Observability-Text2SQL.md` §5.1。
+
