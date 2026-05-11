@@ -2,7 +2,7 @@
 
 > **状态**：`implemented`（合并前人工勾选验收）  
 > **关联图谱**：`docs/_tech_graph/13_flow_components.md`（Unified Chat / Timeline）  
-> **配对后端任务**：`ai-ink-brain-api-python/docs/tasks/active/task_chatbi_v2_rewrite_timeline_llm_prompt_capture_v1.md`  
+> **配对后端任务**：`ai-ink-brain-api-python/docs/tasks/done/task_chatbi_v2_rewrite_timeline_llm_prompt_capture_v1.md`  
 > **依赖**：后端 V2 Agent 已 emit `rag.rewrite` 与 `agent.debug.llm_prompts`（见上任务单）
 
 ---
