@@ -2,7 +2,7 @@
 
 > **状态**：done（2026-05-11 验收通过）  
 > **关联图谱**：`docs/_tech_graph/`（Unified Chat SSE 消费流；按需增量 `11_flow_api*.md`）  
-> **配对后端任务**：`../ai-ink-brain-api-python/docs/tasks/active/task_chatbi_v3_text2sql_tool_latency_obs_v1.md`（阶段 A 已产出 `text2sql.phase.*` + `tool.call.end.output.text2sql_phases_ms`）  
+> **配对后端任务**：`../ai-ink-brain-api-python/docs/tasks/done/task_chatbi_v3_text2sql_tool_latency_obs_v1.md`（**done**；含阶段 A/B：`text2sql.phase.*` + `tool.call.end.output.text2sql_phases_ms` + **`CHATBI_JSON_LOG`**）  
 > **L1 子规**：`../ai-ink-brain-api-python/docs/spec/v3-agent/SPEC-ChatBI-V3-Observability-Text2SQL.md`
 
 ---

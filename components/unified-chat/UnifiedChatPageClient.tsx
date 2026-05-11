@@ -893,7 +893,7 @@ export function UnifiedChatPageClient() {
       const decoder = new TextDecoder("utf-8");
       let buffer = "";
 
-      // 服务端可能在 done 里返回 run_id；先用本地 runId，后续如拿到再覆盖
+      // 先用本地 runId 占位；首帧 **meta.payload.run_id** 为服务端 canonical（与 JSON 日志 / done 一致），须立即切换并回填已入列事件，否则 tool.call.end 等与后端 run_id 对不齐
       let currentRunId = runId;
       let donePayload: unknown = null;
       /** 本轮 SSE 是否收到 done（与 lastDone 同源，供 transcript 判定） */
@@ -926,6 +926,22 @@ export function UnifiedChatPageClient() {
               console.debug("[UnifiedChat SSE] chain JSON 跳过", parseErrorCountRef.current);
               continue;
             }
+            const rawObj = j as Record<string, unknown>;
+            const chainType = typeof rawObj.type === "string" ? rawObj.type : "";
+            let serverRunFromMeta: string | null = null;
+            if (chainType === "meta") {
+              const pl = rawObj.payload;
+              if (pl && typeof pl === "object") {
+                const rid = (pl as Record<string, unknown>).run_id;
+                if (typeof rid === "string" && rid.trim()) {
+                  serverRunFromMeta = rid.trim();
+                }
+              }
+            }
+            const srvMeta = serverRunFromMeta;
+            if (srvMeta) {
+              currentRunId = srvMeta;
+            }
             const ev = chainEventFromSse({
               runId: currentRunId,
               raw: j,
@@ -937,7 +953,11 @@ export function UnifiedChatPageClient() {
               continue;
             }
             setEvents((prev) => {
-              const next = [...prev, ev];
+              const base =
+                srvMeta && srvMeta !== runId
+                  ? prev.map((e) => (e.run_id === runId ? { ...e, run_id: srvMeta } : e))
+                  : prev;
+              const next = [...base, ev];
               roundEventsRef.current = next;
               return next;
             });
