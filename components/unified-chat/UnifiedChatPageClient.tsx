@@ -8,6 +8,11 @@ import { fetchChatHistory } from "@/lib/chat/chatApi";
 import { useSessionId } from "@/lib/hooks/useSessionId";
 import type { ChainEvent } from "@/components/chain-chat/types";
 import { ChainTimeline, chainTimelineExpandBtnClass } from "@/components/chain-chat/ChainTimeline";
+import {
+  extractText2sqlPhasesMsFromToolOutput,
+  isValidText2SqlPhaseEndPayload,
+  isValidText2SqlPhaseStartPayload,
+} from "@/lib/unified-chat/text2sqlPhaseSse";
 
 const LS_TOKEN_KEY = "blog_admin_token";
 /** Unified Chat 增量 SSE 契约版本（须与 BFF / Python 一致） */
@@ -136,7 +141,11 @@ type ExecSection =
       snippet: string;
       toolError: string | null;
       latencyMs: number | null;
+      /** 终态分段 ms：仅来自 `output.text2sql_phases_ms`，与 phase.end 的 latency 不并排两套 */
+      text2sqlPhasesMs: Record<string, number> | null;
     }
+  | { kind: "text2sql_phase_start"; phaseId: string; phaseKind: "llm" | "db" | "io" }
+  | { kind: "text2sql_phase_end"; phaseId: string; latencyMs: number }
   | { kind: "truncated"; reason: string; dropped: number }
   | { kind: "error_line"; stage: string; message: string; persistHint?: string };
 
@@ -229,6 +238,32 @@ function buildExecutionTraceSections(events: ChainEvent[]): ExecSection[] {
       i += 1;
       continue;
     }
+    if (e.type === "text2sql.phase.start") {
+      const pl = e.payload ?? {};
+      if (typeof pl === "object" && pl !== null && !Array.isArray(pl)) {
+        const rec = pl as Record<string, unknown>;
+        const pid = typeof rec.phase_id === "string" ? rec.phase_id.trim() : "";
+        const pk = rec.phase_kind;
+        if (pid && (pk === "llm" || pk === "db" || pk === "io")) {
+          out.push({ kind: "text2sql_phase_start", phaseId: pid, phaseKind: pk });
+        }
+      }
+      i += 1;
+      continue;
+    }
+    if (e.type === "text2sql.phase.end") {
+      const pl = e.payload ?? {};
+      if (typeof pl === "object" && pl !== null && !Array.isArray(pl)) {
+        const rec = pl as Record<string, unknown>;
+        const pid = typeof rec.phase_id === "string" ? rec.phase_id.trim() : "";
+        const lat = rec.latency_ms;
+        if (pid && typeof lat === "number" && Number.isFinite(lat)) {
+          out.push({ kind: "text2sql_phase_end", phaseId: pid, latencyMs: Math.round(lat) });
+        }
+      }
+      i += 1;
+      continue;
+    }
     if (e.type === "tool.call.end") {
       const pl = e.payload ?? {};
       const snippet = extractTextFromPayload(pl).slice(0, 400);
@@ -238,6 +273,7 @@ function buildExecutionTraceSections(events: ChainEvent[]): ExecSection[] {
       const latRaw = pl.latency_ms;
       const latencyMs =
         typeof latRaw === "number" && Number.isFinite(latRaw) ? Math.round(latRaw) : null;
+      const text2sqlPhasesMs = extractText2sqlPhasesMsFromToolOutput(pl.output);
       let toolName = "tool";
       for (let k = i - 1; k >= 0; k -= 1) {
         const ev = events[k];
@@ -248,7 +284,7 @@ function buildExecutionTraceSections(events: ChainEvent[]): ExecSection[] {
           break;
         }
       }
-      out.push({ kind: "tool_end", tool: toolName, snippet, toolError, latencyMs });
+      out.push({ kind: "tool_end", tool: toolName, snippet, toolError, latencyMs, text2sqlPhasesMs });
       i += 1;
       continue;
     }
@@ -310,7 +346,14 @@ function buildExecutionTraceCopyText(query: string, sections: ExecSection[]): st
       lines.push(`tool.call.end · ${s.tool}`);
       if (s.latencyMs != null) lines.push(`${s.latencyMs} ms`);
       lines.push(s.toolError ? `工具 error: ${s.toolError}` : "（无 error 字段）");
+      if (s.text2sqlPhasesMs && Object.keys(s.text2sqlPhasesMs).length) {
+        lines.push("Text2SQL 分段耗时（终态 text2sql_phases_ms）:", safeStringify(s.text2sqlPhasesMs));
+      }
       lines.push(s.snippet.trim() ? `output 摘要:\n${s.snippet}` : "（无 output 摘要）");
+    } else if (s.kind === "text2sql_phase_start") {
+      lines.push(`text2sql.phase.start · ${s.phaseId} · kind=${s.phaseKind}`);
+    } else if (s.kind === "text2sql_phase_end") {
+      lines.push(`text2sql.phase.end · ${s.phaseId} · ${s.latencyMs} ms`);
     } else if (s.kind === "truncated") {
       lines.push(`agent.llm.truncated · dropped=${s.dropped} · ${s.reason}`);
     } else if (s.kind === "error_line") {
@@ -455,6 +498,13 @@ function chainEventFromSse(args: {
     obj.payload && typeof obj.payload === "object"
       ? (obj.payload as Record<string, unknown>)
       : {};
+
+  if (type === "text2sql.phase.start" && !isValidText2SqlPhaseStartPayload(payload)) {
+    return null;
+  }
+  if (type === "text2sql.phase.end" && !isValidText2SqlPhaseEndPayload(payload)) {
+    return null;
+  }
 
   return {
     type: type as ChainEvent["type"],
@@ -1055,6 +1105,30 @@ export function UnifiedChatPageClient() {
                     tool.call.start · {s.tool}
                   </div>
                 ) : null}
+                {s.kind === "text2sql_phase_start" ? (
+                  <div className="flex flex-wrap items-center gap-2 font-mono text-[11px] text-indigo-900">
+                    <span className="rounded-full border border-amber-300/70 bg-amber-50/90 px-2 py-0.5 text-[10px]">
+                      text2sql.phase.start
+                    </span>
+                    <span>{s.phaseId}</span>
+                    <span className="text-slate-600">
+                      {s.phaseKind === "llm"
+                        ? "· 模型"
+                        : s.phaseKind === "db"
+                          ? "· 数据库"
+                          : "· IO/检索"}
+                    </span>
+                  </div>
+                ) : null}
+                {s.kind === "text2sql_phase_end" ? (
+                  <div className="flex flex-wrap items-center gap-2 font-mono text-[11px] text-indigo-900">
+                    <span className="rounded-full border border-emerald-300/70 bg-emerald-50/90 px-2 py-0.5 text-[10px]">
+                      text2sql.phase.end
+                    </span>
+                    <span>{s.phaseId}</span>
+                    <span className="text-slate-600">· 本段 {s.latencyMs} ms</span>
+                  </div>
+                ) : null}
                 {s.kind === "tool_end" ? (
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
@@ -1074,6 +1148,23 @@ export function UnifiedChatPageClient() {
                         </span>
                       )}
                     </div>
+                    {s.text2sqlPhasesMs && Object.keys(s.text2sqlPhasesMs).length > 0 ? (
+                      <div className="rounded-lg border border-indigo-200/80 bg-indigo-50/50 px-2 py-1.5">
+                        <div className="text-[10px] font-semibold text-indigo-900">
+                          Text2SQL 分段耗时（终态 · text2sql_phases_ms）
+                        </div>
+                        <ul className="mt-1 space-y-0.5 font-mono text-[11px] text-indigo-950">
+                          {Object.entries(s.text2sqlPhasesMs).map(([k, v]) => (
+                            <li key={k} className="flex justify-between gap-2">
+                              <span className="min-w-0 truncate" title={k}>
+                                {k}
+                              </span>
+                              <span>{v} ms</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
                     {s.toolError ? (
                       <div className="rounded-lg border border-rose-200/90 bg-rose-50/90 px-2 py-1.5 font-mono text-[11px] leading-relaxed text-rose-950">
                         {s.toolError}

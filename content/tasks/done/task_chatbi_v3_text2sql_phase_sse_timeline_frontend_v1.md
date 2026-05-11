@@ -1,6 +1,6 @@
 # 前端 Task：ChatBI V3 · Text2SQL 子阶段 SSE 对接（Timeline / 契约）
 
-> **状态**：draft  
+> **状态**：done（2026-05-11 验收通过）  
 > **关联图谱**：`docs/_tech_graph/`（Unified Chat SSE 消费流；按需增量 `11_flow_api*.md`）  
 > **配对后端任务**：`../ai-ink-brain-api-python/docs/tasks/active/task_chatbi_v3_text2sql_tool_latency_obs_v1.md`（阶段 A 已产出 `text2sql.phase.*` + `tool.call.end.output.text2sql_phases_ms`）  
 > **L1 子规**：`../ai-ink-brain-api-python/docs/spec/v3-agent/SPEC-ChatBI-V3-Observability-Text2SQL.md`
@@ -52,11 +52,11 @@
 
 ## 范围
 
-- [ ] **SSE 解析**：在 `components/unified-chat/UnifiedChatPageClient.tsx`（或抽离的 parser）中识别 `text2sql.phase.start` / `text2sql.phase.end`，写入本轮助手消息的 **执行链路状态**（与现有 `ChainEvent` / Timeline 数据结构对齐或扩展；**步骤见上节**）。
-- [ ] **BFF 透传**：确认 `app/api/py/unified/chat/stream/route.ts` 已将 **`X-ChatBI-Sse-Contract`** 原样带给上游（现状应已满足；若新增查询参数或版本枚举，须与后端 vNext 文档一致）。
-- [ ] **Timeline UI**：在 `ChainTimeline` / `ChainEventCard`（或 Text2SQL 工具步骤区域）展示子阶段条（至少：阶段名 + 进行中 / 已完成 + 可选 `latency_ms`）；**数据源策略以上节「数据源与 UI 策略」为准**。
-- [ ] **契约对齐**：前端仅读取 `_contract_manifest.json` 已承诺的 payload 键（`subphase_id`、`phase_id`、`phase_kind`、`latency_ms`）；不读取未承诺键；本地 `grep`/自审与跨仓 `tech_graph_contract_check` 的 **`frontend_expect ⊆ contract`** 一致。
-- [ ] **类型与回归**：为新增 `chain.type` 分支补充最小类型收窄；单测或 Story 级快照（若有现成 harness）覆盖「收到 phase.start → phase.end → tool.call.end」序列。
+- [x] **SSE 解析**：在 `components/unified-chat/UnifiedChatPageClient.tsx`（或抽离的 parser）中识别 `text2sql.phase.start` / `text2sql.phase.end`，写入本轮助手消息的 **执行链路状态**（与现有 `ChainEvent` / Timeline 数据结构对齐或扩展；**步骤见上节**）。
+- [x] **BFF 透传**：确认 `app/api/py/unified/chat/stream/route.ts` 已将 **`X-ChatBI-Sse-Contract`** 原样带给上游（现状应已满足；若新增查询参数或版本枚举，须与后端 vNext 文档一致）。
+- [x] **Timeline UI**：在 `ChainTimeline` / `ChainEventCard`（或 Text2SQL 工具步骤区域）展示子阶段条（至少：阶段名 + 进行中 / 已完成 + 可选 `latency_ms`）；**数据源策略以上节「数据源与 UI 策略」为准**。
+- [x] **契约对齐**：前端仅读取 `_contract_manifest.json` 已承诺的 payload 键（`subphase_id`、`phase_id`、`phase_kind`、`latency_ms`）；不读取未承诺键；本地 `grep`/自审与跨仓 `tech_graph_contract_check` 的 **`frontend_expect ⊆ contract`** 一致。
+- [x] **类型与回归**：为新增 `chain.type` 分支补充最小类型收窄；单测或 Story 级快照（若有现成 harness）覆盖「收到 phase.start → phase.end → tool.call.end」序列。
 
 ## 非范围
 
@@ -84,11 +84,11 @@
 
 ## 验收标准
 
-- [ ] **策略 B**：随机插入未知 `chain.type` 或缺字段帧时，页面不崩溃、解析错误计数可接受（与现有 SSE 容错一致）。
-- [ ] **进行中可感知**：在真实 Agent + Text2SQL 场景（或 mock SSE fixture）下，用户能在 **`tool.call.end` 之前** 看到至少一种 UI 反馈区分 **`phase_kind === "llm"`** 与 **`"db"` 或 `"io"`**（文案或图标二选一即可，不要求动画）。
-- [ ] **`text2sql_phases_ms`**：在 `tool.call.end` 到达且 `output.text2sql_phases_ms` 存在时，Timeline 或详情区能展示 **分段 ms**（**终态数值来源** 以 **§数据源与 UI 策略** 为准；禁止并排两套「分段 ms」定义导致用户无法判断以谁为准）。
-- [ ] **契约无越界**：不读取 manifest 未列键；必要时跑后端仓 `python tools/tech_graph_contract_check.py` 绿。
-- [ ] **图谱**：若改了 SSE 消费或数据流，增量更新本仓 `docs/_tech_graph/` 对应 flow（人类版 + 若改 flowchart 则 `.ai.md` 双轨）。
+- [x] **策略 B**：随机插入未知 `chain.type` 或缺字段帧时，页面不崩溃、解析错误计数可接受（与现有 SSE 容错一致）。
+- [x] **进行中可感知**：在真实 Agent + Text2SQL 场景（或 mock SSE fixture）下，用户能在 **`tool.call.end` 之前** 看到至少一种 UI 反馈区分 **`phase_kind === "llm"`** 与 **`"db"` 或 `"io"`**（文案或图标二选一即可，不要求动画）。
+- [x] **`text2sql_phases_ms`**：在 `tool.call.end` 到达且 `output.text2sql_phases_ms` 存在时，Timeline 或详情区能展示 **分段 ms**（**终态数值来源** 以 **§数据源与 UI 策略** 为准；禁止并排两套「分段 ms」定义导致用户无法判断以谁为准）。
+- [x] **契约无越界**：不读取 manifest 未列键；必要时跑后端仓 `python tools/tech_graph_contract_check.py` 绿。
+- [x] **图谱**：若改了 SSE 消费或数据流，增量更新本仓 `docs/_tech_graph/` 对应 flow（人类版 + 若改 flowchart 则 `.ai.md` 双轨）。
 
 ---
 
@@ -104,7 +104,7 @@
 
 | 项 | 内容（默认 · 可被 PR 说明覆盖） |
 |----|----------------------------------|
-| 涉及文件 | `components/unified-chat/UnifiedChatPageClient.tsx`；`app/api/py/unified/chat/stream/route.ts`；`components/chain-chat/ChainTimeline.tsx` / `ChainEventCard`（若存在）/ `types.ts`；单测或 fixture 新增文件（待填路径） |
+| 涉及文件 | `components/unified-chat/UnifiedChatPageClient.tsx`；`components/chain-chat/ChainTimeline.tsx`；`components/chain-chat/ChainEventCard.tsx`；`components/chain-chat/types.ts`；`lib/unified-chat/text2sqlPhaseSse.ts`；BFF `app/api/py/unified/chat/stream/route.ts` 未改（已透传契约头） |
 | UI 决策 | **进行中**：`text2sql.phase.*` 的 `phase_kind` + `phase.end.latency_ms`；**终态**：仅 **`tool.call.end.output.text2sql_phases_ms`** 作为唯一「分段 ms」汇总列（见 §数据源与 UI 策略） |
 | 契约版本 | **v1 维持 `X-ChatBI-Sse-Contract: 2`**（与 `SSE_CONTRACT_V2` 一致）；升级 `3` 须另任务 + vNext 矩阵文档 |
 

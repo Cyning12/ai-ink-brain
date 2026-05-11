@@ -28,6 +28,13 @@ function stableTimelineKey(e: ChainEvent, index: number): string {
   if (e.type === "agent.debug.llm_prompts") {
     return `${base}:dbg:i${index}`;
   }
+  if (e.type === "text2sql.phase.start" || e.type === "text2sql.phase.end") {
+    const sid =
+      typeof e.payload.subphase_id === "string" && e.payload.subphase_id.trim()
+        ? e.payload.subphase_id.trim()
+        : "";
+    return sid ? `${base}:t2s:${sid}` : `${base}:t2s:i${index}`;
+  }
   return `${base}:i${index}`;
 }
 

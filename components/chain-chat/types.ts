@@ -21,6 +21,8 @@ export type ChainEventType =
   | "agent.llm.delta"
   | "agent.llm.end"
   | "agent.llm.truncated"
+  | "text2sql.phase.start"
+  | "text2sql.phase.end"
   | "agent.step.end"
   | "agent.final"
   | "agent.debug.llm_prompts";

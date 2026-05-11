@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 
 import type { ChainEvent } from "@/components/chain-chat/types";
 import { SqlResultTable } from "@/components/chain-chat/SqlResultTable";
+import { extractText2sqlPhasesMsFromToolOutput } from "@/lib/unified-chat/text2sqlPhaseSse";
 import { SourceCitations } from "@/components/SourceCitations";
 import type { SourceCitation } from "@/lib/chat/chatApi";
 
@@ -95,6 +96,7 @@ function badgeTone(type: ChainEvent["type"]): string {
   if (type === "agent.intent") return "bg-violet-500/10 text-violet-900 border-violet-500/25";
   if (type.startsWith("agent.llm")) return "bg-cyan-500/10 text-cyan-900 border-cyan-500/25";
   if (type.startsWith("agent.debug")) return "bg-orange-500/10 text-orange-950 border-orange-500/25";
+  if (type.startsWith("text2sql.phase")) return "bg-indigo-500/10 text-indigo-900 border-indigo-500/25";
   if (type.startsWith("agent.")) return "bg-fuchsia-500/10 text-fuchsia-900 border-fuchsia-500/20";
   return "bg-emerald-500/10 text-emerald-800 border-emerald-500/20";
 }
@@ -150,6 +152,15 @@ export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Pro
     if (event.type === "rag.sources") return "rag.sources";
     if (event.type === "latency") return "latency";
     if (event.type === "error") return "error";
+    if (event.type === "text2sql.phase.start") {
+      const pid = typeof p.phase_id === "string" && p.phase_id.trim() ? p.phase_id.trim() : "phase";
+      const k = typeof p.phase_kind === "string" ? p.phase_kind : "?";
+      return `text2sql.phase.start · ${pid} · ${k}`;
+    }
+    if (event.type === "text2sql.phase.end") {
+      const pid = typeof p.phase_id === "string" && p.phase_id.trim() ? p.phase_id.trim() : "phase";
+      return `text2sql.phase.end · ${pid}`;
+    }
     if (event.type === "tool.call.end") {
       const er = p.error;
       const failed = typeof er === "string" && er.trim().length > 0;
@@ -705,12 +716,58 @@ export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Pro
         </div>
       );
     }
+    if (event.type === "text2sql.phase.start") {
+      const p = event.payload ?? {};
+      const phaseId = typeof p.phase_id === "string" ? p.phase_id : "—";
+      const kind = typeof p.phase_kind === "string" ? p.phase_kind : "—";
+      const kindLabel =
+        kind === "llm" ? "模型（LLM）" : kind === "db" ? "数据库" : kind === "io" ? "IO / 检索" : kind;
+      return (
+        <div className="space-y-2 text-[11px] text-slate-700">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-amber-300/70 bg-amber-50/90 px-2 py-0.5 font-mono text-[10px] text-amber-900">
+              进行中
+            </span>
+            <span className="text-slate-500">phase_id</span>
+            <span className="font-mono text-slate-900">{phaseId}</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-slate-500">phase_kind</span>
+            <span className="rounded-full border border-indigo-300/60 bg-indigo-50/90 px-2 py-0.5 font-mono text-[10px] text-indigo-900">
+              {kindLabel}
+            </span>
+          </div>
+        </div>
+      );
+    }
+    if (event.type === "text2sql.phase.end") {
+      const p = event.payload ?? {};
+      const phaseId = typeof p.phase_id === "string" ? p.phase_id : "—";
+      const lat = p.latency_ms;
+      const latStr = typeof lat === "number" && Number.isFinite(lat) ? `${Math.round(lat)} ms` : "—";
+      return (
+        <div className="space-y-1 text-[11px] text-slate-700">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-emerald-300/70 bg-emerald-50/90 px-2 py-0.5 font-mono text-[10px] text-emerald-900">
+              子阶段完成
+            </span>
+            <span className="font-mono text-slate-900">{phaseId}</span>
+            <span className="text-slate-500">本段</span>
+            <span className="font-mono text-slate-900">{latStr}</span>
+          </div>
+          <p className="text-[10px] text-slate-500">
+            终态「分段 ms」汇总以 <span className="font-mono">tool.call.end.output.text2sql_phases_ms</span> 为准。
+          </p>
+        </div>
+      );
+    }
     if (event.type === "tool.call.end") {
       const p = event.payload ?? {};
       const err = typeof p.error === "string" ? p.error.trim() : "";
       const lat = p.latency_ms;
       const latStr = typeof lat === "number" && Number.isFinite(lat) ? `${Math.round(lat)} ms` : "—";
       const out = p.output;
+      const phasesMs = extractText2sqlPhasesMsFromToolOutput(out);
       return (
         <div className="space-y-2 text-[11px] text-slate-700">
           <div className="flex flex-wrap items-center gap-2">
@@ -726,6 +783,23 @@ export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Pro
               </span>
             )}
           </div>
+          {phasesMs ? (
+            <div className="rounded-xl border border-indigo-200/80 bg-indigo-50/50 p-2">
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-indigo-900">
+                Text2SQL 分段耗时（终态 · text2sql_phases_ms）
+              </div>
+              <ul className="mt-1.5 space-y-0.5 font-mono text-[11px] text-indigo-950">
+                {Object.entries(phasesMs).map(([k, v]) => (
+                  <li key={k} className="flex justify-between gap-3">
+                    <span className="min-w-0 truncate" title={k}>
+                      {k}
+                    </span>
+                    <span>{v} ms</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           {err ? (
             <div>
               <div className="text-[10px] text-rose-800">error（工具层原文）</div>
