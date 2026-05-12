@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { clearChatbiToken, writeChatbiToken } from "@/lib/chatbi-client";
+
 type StatusPayload = {
   ok: boolean;
   vercelEnv: string;
@@ -115,24 +117,30 @@ export default function SystemStatus(props: { variant?: "floating" | "nav" }) {
 
   const handleUnlock = async () => {
     setUnlockError(null);
+    const raw = secretInput.trim();
     try {
       const res = await fetch("/api/auth/unlock", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ secret: secretInput.trim() }),
+        body: JSON.stringify({ secret: raw }),
       });
       const data = (await res.json().catch(() => ({}))) as {
         ok?: boolean;
         error?: string;
+        mode?: string;
       };
       if (!res.ok) {
         setUnlockError(data.error ?? "解锁失败");
         return;
       }
+      if (data.mode === "chatbi" && raw) {
+        writeChatbiToken(raw);
+      }
       setSecretInput("");
       setPanelOpen(false);
-      await refreshSession();
+      // 整页回到首页，确保导航/模块与 Cookie、localStorage 一致刷新
+      window.location.assign("/");
     } catch {
       setUnlockError("网络错误");
     }
@@ -147,8 +155,9 @@ export default function SystemStatus(props: { variant?: "floating" | "nav" }) {
     } catch {
       /* 忽略 */
     }
+    clearChatbiToken();
     setPanelOpen(false);
-    await refreshSession();
+    window.location.assign("/");
   };
 
   const pollSyncJob = useCallback(async (jobId: string) => {
@@ -257,20 +266,20 @@ export default function SystemStatus(props: { variant?: "floating" | "nav" }) {
             <div className="w-52 space-y-2 border-t border-[color:var(--color-border)]/80 pt-2">
               {sessionChecked && !adminConfigured && (
                 <p className="text-[9px] text-amber-700/90">
-                  未配置 NEXT_PUBLIC_ADMIN_SECRET（或 CHAT_API_SECRET），解锁不可用。
+                  生产环境需配置 PY_API_URL（ChatBI 校验）或 Ink 密钥；开发环境默认可连本机 Python。
                 </p>
               )}
               {!isAdmin ? (
                 <>
                   <label className="block text-[9px] text-slate-500">
-                    管理员凭证（与 .env 中密钥一致，经服务端校验）
+                    ChatBI DB 明文访问令牌（服务端转发 Python verify）
                     <input
                       ref={secretInputRef}
                       type="password"
                       value={secretInput}
                       onChange={(e) => setSecretInput(e.target.value)}
                       className="mt-1 w-full rounded-md border border-[color:var(--color-border)] bg-white/80 px-2 py-1 text-[10px] text-[#2c2c2c] outline-none ring-0 focus:border-slate-400"
-                      placeholder="NEXT_PUBLIC_ADMIN_SECRET"
+                      placeholder="Authorization: Bearer …"
                       autoComplete="off"
                     />
                   </label>
@@ -330,10 +339,8 @@ export default function SystemStatus(props: { variant?: "floating" | "nav" }) {
                 </>
               )}
               <p className="text-[9px] leading-relaxed text-slate-400">
-                调用 /api/chat 时请附带{" "}
-                <span className="text-slate-500">Authorization: Bearer …</span>{" "}
-                或{" "}
-                <span className="text-slate-500">x-blog-admin-token</span>
+                Chat 类 BFF 仍可能要求 Ink Bearer；ChatBI 页请带{" "}
+                <span className="text-slate-500">Authorization: Bearer &lt;明文&gt;</span>
               </p>
             </div>
           )}

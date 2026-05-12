@@ -5,6 +5,13 @@ import { flushSync } from "react-dom";
 
 import type { ChatHistoryRow } from "@/lib/chat/chatApi";
 import { fetchChatHistory } from "@/lib/chat/chatApi";
+import {
+  clearChatbiToken,
+  isChatbiUnauthorizedBody,
+  readChatbiToken,
+  requestChatbiAccessVerify,
+  writeChatbiToken,
+} from "@/lib/chatbi-client";
 import { useSessionId } from "@/lib/hooks/useSessionId";
 import { type ChainEvent, UNIFIED_SSE_CHAIN_TYPE_WHITELIST } from "@/components/chain-chat/types";
 import { ChainTimeline, chainTimelineExpandBtnClass } from "@/components/chain-chat/ChainTimeline";
@@ -14,11 +21,6 @@ import {
   isValidText2SqlPhaseStartPayload,
 } from "@/lib/unified-chat/text2sqlPhaseSse";
 
-const LS_TOKEN_KEY = "blog_admin_token";
-/** ChatBI / Python Unified 上游 DB 明文 token（与 Ink admin 分离，见 task_chatbi_unified_bff_python_bearer_v1） */
-const LS_CHATBI_KEY = "chatbi_access_token_plain";
-/** 浏览器 → Next BFF；BFF 再转为上游 `Authorization: Bearer <DB token>` */
-const CHATBI_ACCESS_HEADER = "X-ChatBI-Access-Token";
 /** Unified Chat 增量 SSE 契约版本（须与 BFF / Python 一致） */
 const SSE_CONTRACT_HEADER = "X-ChatBI-Sse-Contract";
 const SSE_CONTRACT_V2 = "2";
@@ -56,30 +58,6 @@ function mapHistoryRowsToTranscript(messages: ChatHistoryRow[] | undefined): Tra
     });
   }
   return out;
-}
-
-function readToken(): string {
-  if (typeof window === "undefined") return "";
-  return localStorage.getItem(LS_TOKEN_KEY)?.trim() ?? "";
-}
-
-function writeToken(token: string) {
-  if (typeof window === "undefined") return;
-  const t = token.trim();
-  if (!t) localStorage.removeItem(LS_TOKEN_KEY);
-  else localStorage.setItem(LS_TOKEN_KEY, t);
-}
-
-function readChatbiToken(): string {
-  if (typeof window === "undefined") return "";
-  return localStorage.getItem(LS_CHATBI_KEY)?.trim() ?? "";
-}
-
-function writeChatbiToken(plain: string) {
-  if (typeof window === "undefined") return;
-  const t = plain.replace(/^bearer\s+/i, "").trim();
-  if (!t) localStorage.removeItem(LS_CHATBI_KEY);
-  else localStorage.setItem(LS_CHATBI_KEY, t);
 }
 
 function safeJson(text: string): unknown {
@@ -673,10 +651,11 @@ function modeTone(mode: string): string {
 
 export function UnifiedChatPageClient() {
   const [mounted, setMounted] = useState(false);
-  const [token, setToken] = useState("");
-  const [tokenInput, setTokenInput] = useState("");
+  /** 假登录：仅 ChatBI DB 明文；校验在「解锁」按钮触发 */
+  const [credentialInput, setCredentialInput] = useState("");
   const [chatbiToken, setChatbiToken] = useState("");
-  const [chatbiInput, setChatbiInput] = useState("");
+  const [unlockBusy, setUnlockBusy] = useState(false);
+  const [unlockError, setUnlockError] = useState<string | null>(null);
   const tokenInputRef = useRef<HTMLInputElement | null>(null);
   const streamAbortRef = useRef<AbortController | null>(null);
   const lastQueryRef = useRef<string>("");
@@ -696,28 +675,23 @@ export function UnifiedChatPageClient() {
   const [finalAnswer, setFinalAnswer] = useState<string>("");
   const [transcript, setTranscript] = useState<TranscriptTurn[]>([]);
 
+  const locked = !chatbiToken.trim();
+
   useEffect(() => {
     setMounted(true);
-    setToken(readToken());
-    const c = readChatbiToken();
-    setChatbiToken(c);
-    setChatbiInput(c);
+    setChatbiToken(readChatbiToken());
   }, []);
 
   useEffect(() => {
-    if (mounted && !token) tokenInputRef.current?.focus();
-  }, [mounted, token]);
-
-  const locked = !token.trim();
+    if (mounted && locked) tokenInputRef.current?.focus();
+  }, [mounted, locked]);
 
   const headers: Record<string, string> = useMemo(() => {
-    const t = token.trim();
-    if (!t) return {} as Record<string, string>;
-    const h: Record<string, string> = { Authorization: `Bearer ${t}` };
     const c = chatbiToken.replace(/^bearer\s+/i, "").trim();
-    if (c) h[CHATBI_ACCESS_HEADER] = c;
-    return h;
-  }, [token, chatbiToken]);
+    if (!c) return {} as Record<string, string>;
+    // 与 Python GET verify / Unified 一致：Bearer 明文，经 BFF 原样转上游（或 rewrite 直连 Python）
+    return { Authorization: `Bearer ${c}` };
+  }, [chatbiToken]);
 
   const { sessionId, resetSession } = useSessionId("unified-chat");
   const sessionIdRef = useRef(sessionId);
@@ -938,6 +912,13 @@ export function UnifiedChatPageClient() {
       });
       if (!res.ok) {
         const raw = await res.text().catch(() => "");
+        if (res.status === 401 && isChatbiUnauthorizedBody(raw)) {
+          clearChatbiToken();
+          setChatbiToken("");
+          setLoading(false);
+          setErrorText("ChatBI 访问令牌已失效，已自动登出，请重新解锁");
+          return;
+        }
         throw new Error(pickErrorMessage(raw, res.status, res.statusText));
       }
       if (!res.body) throw new Error("SSE 响应无 body（ReadableStream 不可用）");
@@ -1361,46 +1342,65 @@ export function UnifiedChatPageClient() {
         <section className="mx-auto max-w-lg rounded-2xl border border-[color:var(--color-border)] bg-white/40 p-4">
           <div className="space-y-2">
             <p className="text-sm leading-relaxed text-slate-700">
-              此功能仅博主可用：第一行填 Ink 管理员密钥（校验 Next BFF）；第二行填 ChatBI 在库里下发的
-              <span className="font-mono"> chatbi_access_tokens </span>
-              明文 token（转发 Python）。二者可不同字符串。
+              请输入 <strong>ChatBI DB 明文访问令牌</strong>（
+              <span className="font-mono">chatbi_access_tokens</span>
+              ），点击<strong>解锁</strong>：由 Next BFF 转发 <span className="font-mono">GET /api/py/chatbi/access/verify</span>{" "}
+              到 Python 校验；**不**使用 <span className="font-mono">NEXT_PUBLIC_ADMIN_SECRET</span>
+              。通过后令牌写入 <span className="font-mono">localStorage</span>，后续 Unified / 历史请求均带{" "}
+              <span className="font-mono">Authorization: Bearer &lt;明文&gt;</span>（与 Python 约定一致）。
             </p>
             <label className="block text-[11px] text-slate-500">
-              Ink 管理员密钥（NEXT_PUBLIC_ADMIN_SECRET / CHAT_API_SECRET）
+              访问令牌（明文）
               <input
                 ref={tokenInputRef}
                 type="password"
-                value={tokenInput}
-                onChange={(e) => setTokenInput(e.target.value)}
+                value={credentialInput}
+                onChange={(e) => {
+                  setCredentialInput(e.target.value);
+                  setUnlockError(null);
+                }}
                 className="mt-1 w-full rounded-xl border border-[color:var(--color-border)] bg-white/70 px-3 py-2 text-sm text-[#2c2c2c] outline-none focus:border-slate-400"
-                placeholder="输入后本地存储（blog_admin_token）"
+                placeholder="解锁后请求带 Authorization: Bearer <明文>"
                 autoComplete="off"
               />
             </label>
-            <label className="block text-[11px] text-slate-500">
-              ChatBI / Python 访问令牌（可选；不填则 BFF 仍透传 Authorization，易与仅 admin 场景 401）
-              <input
-                type="password"
-                value={chatbiInput}
-                onChange={(e) => setChatbiInput(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-[color:var(--color-border)] bg-white/70 px-3 py-2 text-sm text-[#2c2c2c] outline-none focus:border-slate-400"
-                placeholder="明文 DB token → X-ChatBI-Access-Token"
-                autoComplete="off"
-              />
-            </label>
+            {unlockError ? (
+              <p className="text-[12px] leading-relaxed text-rose-600/90">{unlockError}</p>
+            ) : null}
             <button
               type="button"
+              disabled={unlockBusy}
               onClick={() => {
-                const t = tokenInput.trim();
-                writeToken(t);
-                setToken(t);
-                const cb = chatbiInput.replace(/^bearer\s+/i, "").trim();
-                writeChatbiToken(cb);
-                setChatbiToken(cb);
+                void (async () => {
+                  setUnlockError(null);
+                  const v = credentialInput.trim();
+                  if (!v) {
+                    setUnlockError("请输入 ChatBI 明文 token");
+                    return;
+                  }
+                  const plain = v.replace(/^bearer\s+/i, "").trim();
+                  if (!plain) {
+                    setUnlockError("请输入有效的 ChatBI 明文 token");
+                    return;
+                  }
+                  setUnlockBusy(true);
+                  try {
+                    const gate = await requestChatbiAccessVerify({ plain });
+                    if (!gate.ok) {
+                      setUnlockError(gate.message);
+                      return;
+                    }
+                    writeChatbiToken(plain);
+                    setChatbiToken(plain);
+                    setCredentialInput("");
+                  } finally {
+                    setUnlockBusy(false);
+                  }
+                })();
               }}
-              className="w-full rounded-xl bg-[#2c2c2c] px-3 py-2 text-sm text-[#f9f9f7] hover:opacity-90"
+              className="w-full rounded-xl bg-[#2c2c2c] px-3 py-2 text-sm text-[#f9f9f7] hover:opacity-90 disabled:opacity-50"
             >
-              解锁
+              {unlockBusy ? "校验中…" : "解锁"}
             </button>
           </div>
         </section>
@@ -1409,38 +1409,6 @@ export function UnifiedChatPageClient() {
           <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40 px-4 py-3">
             <div className="flex flex-wrap items-end gap-4">
               <div className="min-w-0 flex-1 space-y-2 text-[11px] text-slate-600">
-                <details className="rounded-lg border border-[color:var(--color-border)] bg-[#f9f9f7]/60 px-2 py-2">
-                  <summary className="cursor-pointer select-none text-[12px] text-slate-700">
-                    ChatBI / Python 访问令牌（本地存储）
-                  </summary>
-                  <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
-                    与 Ink 管理员密钥分离；仅 Unified 请求经 BFF 发往 Python 时使用。留空则走旧版透传（上游
-                    <span className="font-mono"> Authorization </span>
-                    与 Ink 相同，可能导致 Python 401）。
-                  </p>
-                  <label className="mt-2 block text-[11px] text-slate-500">
-                    明文 token
-                    <input
-                      type="password"
-                      value={chatbiInput}
-                      onChange={(e) => setChatbiInput(e.target.value)}
-                      className="mt-1 w-full max-w-md rounded-xl border border-[color:var(--color-border)] bg-white/70 px-3 py-2 text-sm text-[#2c2c2c] outline-none focus:border-slate-400"
-                      placeholder="更新后点保存"
-                      autoComplete="off"
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    className="mt-2 rounded-xl border border-[color:var(--color-border)] bg-white/80 px-3 py-1.5 text-[12px] text-slate-800 hover:bg-slate-50"
-                    onClick={() => {
-                      const cb = chatbiInput.replace(/^bearer\s+/i, "").trim();
-                      writeChatbiToken(cb);
-                      setChatbiToken(cb);
-                    }}
-                  >
-                    保存 ChatBI 令牌
-                  </button>
-                </details>
                 <p className="leading-relaxed text-slate-600">
                   同一浏览器内连续提问共享上下文，直至点击「新会话」。只要{" "}
                   <span className="font-mono">session_id</span> 不变且后端已落库，刷新或再次进入本页会从{" "}
