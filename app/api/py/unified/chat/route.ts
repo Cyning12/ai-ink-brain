@@ -19,10 +19,18 @@ export async function POST(request: Request): Promise<Response> {
   const body = await request.text();
   const auth = request.headers.get("authorization");
   const xBlog = request.headers.get("x-blog-admin-token");
+  const chatbiAccess = request.headers.get("x-chatbi-access-token")?.trim() ?? "";
   const contentType = request.headers.get("content-type") ?? "application/json";
 
   const upstreamHeaders: Record<string, string> = { "Content-Type": contentType };
-  if (auth) upstreamHeaders.Authorization = auth;
+  // Unified：Ink 管理员走 requireAdminApiSecret；Python 仅认 DB 明文 token。若带 X-ChatBI-Access-Token 则单独构造上游 Bearer，避免与 Authorization 争用。
+  if (chatbiAccess) {
+    const plain = chatbiAccess.replace(/^bearer\s+/i, "").trim();
+    if (plain) upstreamHeaders.Authorization = `Bearer ${plain}`;
+    else if (auth?.trim()) upstreamHeaders.Authorization = auth.trim();
+  } else if (auth?.trim()) {
+    upstreamHeaders.Authorization = auth.trim();
+  }
   if (xBlog) upstreamHeaders["x-blog-admin-token"] = xBlog;
 
   let upstream: Response;

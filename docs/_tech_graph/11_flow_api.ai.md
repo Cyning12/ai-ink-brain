@@ -43,8 +43,8 @@ flowchart LR
         // → lib/auth.ts
         COOKIE[[ADMIN_SESSION_COOKIE]]
         // → lib/auth/admin-cookie.ts
-        BEARER[[Authorization: Bearer]]
-        // → localStorage: blog_admin_token
+        BEARER[[Ink admin Bearer / cookie]]
+        // → localStorage: blog_admin_token；Unified 另可选 X-ChatBI-Access-Token → Python Bearer
     end
 
     %% === Python 后端 ===

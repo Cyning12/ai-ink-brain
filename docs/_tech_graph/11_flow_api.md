@@ -24,7 +24,7 @@ flowchart LR
   subgraph AUTH[Auth Gate]
     REQ["requireAdminApiSecret()\nlib/auth.ts"]:::s
     COOKIE["ADMIN_SESSION_COOKIE\n(app/api/auth/unlock sets)\nlib/auth/admin-cookie.ts"]:::s
-    BEARER["Authorization: Bearer <blog_admin_token>\nlocalStorage: blog_admin_token"]:::s
+    BEARER["Ink admin: Authorization / cookie\nUnified: optional X-ChatBI-Access-Token → Python Bearer"]:::s
   end
 
   subgraph PY[Python FastAPI (PY_API_URL)]
@@ -67,6 +67,12 @@ flowchart LR
   classDef s fill:#fff7e6,stroke:#d89b00,color:#553;
   classDef p fill:#f3f0ff,stroke:#7b61ff,color:#221;
 ```
+
+## Unified Chat · Ink BFF 与 Python DB Bearer
+
+- **浏览器 → Next**：`Authorization: Bearer <NEXT_PUBLIC_ADMIN_SECRET>`（或 `x-blog-admin-token` / 管理 Cookie）仅用于 `requireAdminApiSecret`。
+- **浏览器 → Next（Unified）**：可选请求头 **`X-ChatBI-Access-Token: <明文 DB token>`**（前端 `localStorage` 键 `chatbi_access_token_plain`）；BFF（`app/api/py/unified/chat/route.ts` 与 `stream/route.ts`）转发 Python 时写入 **`Authorization: Bearer <DB token>`**。
+- **兼容**：无 `X-ChatBI-Access-Token` 时 BFF 仍透传客户端 **`Authorization`**（旧版「单字符串」联调）。
 
 ## ChatBI V3 · Text2SQL 子阶段 SSE（Unified 增量路径）
 
