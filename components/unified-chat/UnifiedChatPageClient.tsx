@@ -6,8 +6,7 @@ import { flushSync } from "react-dom";
 import type { ChatHistoryRow } from "@/lib/chat/chatApi";
 import { fetchChatHistory } from "@/lib/chat/chatApi";
 import {
-  clearChatbiToken,
-  isChatbiUnauthorizedBody,
+  fetchWithAuthRecovery,
   readChatbiToken,
   requestChatbiAccessVerify,
   writeChatbiToken,
@@ -893,7 +892,7 @@ export function UnifiedChatPageClient() {
       const ac = new AbortController();
       streamAbortRef.current = ac;
 
-      const res = await fetch("/api/py/unified/chat/stream", {
+      const res = await fetchWithAuthRecovery("/api/py/unified/chat/stream", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -912,13 +911,6 @@ export function UnifiedChatPageClient() {
       });
       if (!res.ok) {
         const raw = await res.text().catch(() => "");
-        if (res.status === 401 && isChatbiUnauthorizedBody(raw)) {
-          clearChatbiToken();
-          setChatbiToken("");
-          setLoading(false);
-          setErrorText("ChatBI 访问令牌已失效，已自动登出，请重新解锁");
-          return;
-        }
         throw new Error(pickErrorMessage(raw, res.status, res.statusText));
       }
       if (!res.body) throw new Error("SSE 响应无 body（ReadableStream 不可用）");
