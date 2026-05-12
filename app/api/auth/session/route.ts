@@ -1,17 +1,32 @@
 import { verifyAdminSessionCookie } from "@/lib/auth/admin-cookie";
 import { getAdminApiSecret } from "@/lib/auth/admin-env";
+import {
+  decodeChatbiTokenFromCookie,
+  readChatbiSiteCookieRaw,
+} from "@/lib/auth/chatbi-site-cookie";
+import { verifyChatbiPlainUpstream } from "@/lib/server/chatbi-access-verify-upstream";
 
 export const runtime = "nodejs";
 
-/** 供前端判断当前是否持有有效管理员会话 Cookie（不含密钥本身） */
+/** 供前端判断「管理入口可见」：Ink 管理员 Cookie 或 ChatBI 站点 HttpOnly Cookie 且上游仍有效 */
 export async function GET(request: Request): Promise<Response> {
-  const secret = getAdminApiSecret();
-  if (!secret) {
-    return Response.json({ ok: true, admin: false, configured: false });
+  const ink = getAdminApiSecret();
+  let admin = false;
+  if (ink && verifyAdminSessionCookie(request.headers.get("cookie"), ink)) {
+    admin = true;
   }
-  const admin = verifyAdminSessionCookie(
-    request.headers.get("cookie"),
-    secret,
-  );
-  return Response.json({ ok: true, admin, configured: true });
+  if (!admin) {
+    const raw = readChatbiSiteCookieRaw(request.headers.get("cookie"));
+    if (raw) {
+      const plain = decodeChatbiTokenFromCookie(raw);
+      if (plain && (await verifyChatbiPlainUpstream(plain))) {
+        admin = true;
+      }
+    }
+  }
+  const configured =
+    Boolean(ink) ||
+    Boolean((process.env.PY_API_URL ?? "").trim()) ||
+    process.env.NODE_ENV === "development";
+  return Response.json({ ok: true, admin, configured });
 }

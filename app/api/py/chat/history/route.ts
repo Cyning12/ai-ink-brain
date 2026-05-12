@@ -1,14 +1,10 @@
-import { requireAdminApiSecret } from "@/lib/auth";
-
 export const runtime = "nodejs";
 
 /**
  * BFF：转发 GET 到 Python，用于按 session_id 恢复对话历史。
+ * Python：Ink admin 或 `X-ChatBI-Access-Token`（DB 明文）二轨；本层不再校验 Ink env secret。
  */
 export async function GET(request: Request): Promise<Response> {
-  const denied = requireAdminApiSecret(request);
-  if (denied) return denied;
-
   const pyBase = (process.env.PY_API_URL ?? "http://127.0.0.1:8000").replace(
     /\/$/,
     "",
@@ -19,9 +15,14 @@ export async function GET(request: Request): Promise<Response> {
 
   const auth = request.headers.get("authorization");
   const xBlog = request.headers.get("x-blog-admin-token");
+  const chatbiAccess = request.headers.get("x-chatbi-access-token")?.trim() ?? "";
   const upstreamHeaders: Record<string, string> = {};
   if (auth) upstreamHeaders.Authorization = auth;
   if (xBlog) upstreamHeaders["x-blog-admin-token"] = xBlog;
+  if (chatbiAccess) {
+    const plain = chatbiAccess.replace(/^bearer\s+/i, "").trim();
+    if (plain) upstreamHeaders["x-chatbi-access-token"] = plain;
+  }
 
   let upstream: Response;
   try {

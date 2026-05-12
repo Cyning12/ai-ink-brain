@@ -24,7 +24,7 @@ flowchart LR
   subgraph AUTH[Auth Gate]
     REQ["requireAdminApiSecret()\nlib/auth.ts"]:::s
     COOKIE["ADMIN_SESSION_COOKIE\n(app/api/auth/unlock sets)\nlib/auth/admin-cookie.ts"]:::s
-    BEARER["Authorization: Bearer <blog_admin_token>\nlocalStorage: blog_admin_token"]:::s
+    BEARER["Ink admin（非 Unified）/ cookie\nUnified：仅 X-ChatBI-Access-Token → Python Bearer"]:::s
   end
 
   subgraph PY[Python FastAPI (PY_API_URL)]
@@ -67,4 +67,23 @@ flowchart LR
   classDef s fill:#fff7e6,stroke:#d89b00,color:#553;
   classDef p fill:#f3f0ff,stroke:#7b61ff,color:#221;
 ```
+
+## Unified Chat · Ink BFF 与 Python DB Bearer
+
+- **浏览器 → Next**：`Authorization: Bearer <NEXT_PUBLIC_ADMIN_SECRET>`（或 `x-blog-admin-token` / 管理 Cookie）仅用于 `requireAdminApiSecret`。
+- **浏览器 → Next（Unified / verify / RAG history BFF）**：**不**再强制 `NEXT_PUBLIC_ADMIN_SECRET`；仅 **`X-ChatBI-Access-Token: <明文>`**（`localStorage`：`chatbi_access_token_plain`）即可由 Python 鉴权；假登录触发点为 **Unified 页「解锁」**（`GET /api/py/chatbi/access/verify`）。
+- **兼容**：无 `X-ChatBI-Access-Token` 时 BFF 仍透传客户端 **`Authorization`**（旧 Ink admin 客户端）。
+
+## ChatBI V3 · Text2SQL 子阶段 SSE（Unified 增量路径）
+
+- **消费入口**：`UnifiedChatPageClient` → `POST /api/py/unified/chat/stream`（`X-ChatBI-Sse-Contract: 2`）。  
+- **契约帧**：`text2sql.phase.start` / `text2sql.phase.end`；终态汇总 **`tool.call.end` → `output.text2sql_phases_ms`**。  
+- **任务与真值**：`content/tasks/active/task_chatbi_v3_text2sql_phase_sse_timeline_frontend_v1.md`（§V1 交付、§数据源与 UI 策略）；后端 L1 摘要见配对仓 `SPEC-ChatBI-V3-Observability-Text2SQL.md` §5.1。
+
+## ChatBI V3 · 多轮澄清 SSE（`agent.clarify`）
+
+- **消费入口**：同上 `UnifiedChatPageClient` SSE 路径。  
+- **契约帧**：`agent.clarify`，payload 最小键 `step_number` / `message` / `prompt_for_user`（真值：`Projects/ai-ink-brain-api-python/docs/_tech_graph/_contract_manifest.json`；语义见 `SPEC-ChatBI-V2-Events.md` §3.2.1）。  
+- **UI**：Timeline / `ChainEventCard` 与 `agent.think` 分开展示；未知 `chain.type` 走策略 B 丢弃。  
+- **SSE 文本样例**：`Projects/ai-ink-brain-api-python/docs/spec/v3-agent/P0/SSE-sample-agent-clarify.md`。
 

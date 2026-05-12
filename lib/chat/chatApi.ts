@@ -1,3 +1,5 @@
+import { fetchWithAuthRecovery } from "@/lib/chatbi-client";
+
 export type ChatRole = "user" | "assistant" | "system";
 
 export type ChatMessage = {
@@ -97,7 +99,7 @@ export async function fetchChatHistory(
   const sp = new URLSearchParams({ session_id: sessionId });
   if (limit !== undefined) sp.set("limit", String(limit));
 
-  const res = await fetch(`/api/py/chat/history?${sp.toString()}`, {
+  const res = await fetchWithAuthRecovery(`/api/py/chat/history?${sp.toString()}`, {
     method: "GET",
     headers: { ...args.headers },
     credentials: "include",
@@ -195,7 +197,7 @@ export async function streamChat(args: StreamChatArgs): Promise<StreamChatResult
   debugLog(args.debug === true, args.onDebugLog, `[chat] session_id=${sessionId}`);
   debugLog(args.debug === true, args.onDebugLog, `[chat] messages=${args.messages.length}`);
 
-  const res = await fetch("/api/py/chat", {
+  const res = await fetchWithAuthRecovery("/api/py/chat", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

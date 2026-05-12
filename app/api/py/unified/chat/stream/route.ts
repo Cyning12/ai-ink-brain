@@ -1,21 +1,18 @@
-import { requireAdminApiSecret } from "@/lib/auth";
-
 export const runtime = "nodejs";
 
 /**
  * BFF：将 /api/py/unified/chat/stream 转发到 Python（SSE）。
  * 说明：前端使用 fetch(POST) 读取 Response.body 来解析 SSE。
+ * 鉴权由 Python `require_chatbi_principal`；本层不再校验 Ink env secret。
  */
 export async function POST(request: Request): Promise<Response> {
-  const denied = requireAdminApiSecret(request);
-  if (denied) return denied;
-
   const pyBase = (process.env.PY_API_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
   const url = `${pyBase}/api/py/unified/chat/stream`;
 
   const body = await request.text();
   const auth = request.headers.get("authorization");
   const xBlog = request.headers.get("x-blog-admin-token");
+  const chatbiAccess = request.headers.get("x-chatbi-access-token")?.trim() ?? "";
   const sseContract = request.headers.get("x-chatbi-sse-contract");
   const contentType = request.headers.get("content-type") ?? "application/json";
 
@@ -23,7 +20,14 @@ export async function POST(request: Request): Promise<Response> {
     "Content-Type": contentType,
     Accept: "text/event-stream",
   };
-  if (auth) upstreamHeaders.Authorization = auth;
+  // 上游 Python 只认 Authorization Bearer；浏览器可只发 Bearer 明文，或用 X-ChatBI-Access-Token 覆盖。
+  if (chatbiAccess) {
+    const plain = chatbiAccess.replace(/^bearer\s+/i, "").trim();
+    if (plain) upstreamHeaders.Authorization = `Bearer ${plain}`;
+    else if (auth?.trim()) upstreamHeaders.Authorization = auth.trim();
+  } else if (auth?.trim()) {
+    upstreamHeaders.Authorization = auth.trim();
+  }
   if (xBlog) upstreamHeaders["x-blog-admin-token"] = xBlog;
   // vNext：与 Python 协商增量 SSE 契约（须与客户端 `X-ChatBI-Sse-Contract` 一致）
   if (sseContract?.trim()) upstreamHeaders["X-ChatBI-Sse-Contract"] = sseContract.trim();

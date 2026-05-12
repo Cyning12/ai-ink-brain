@@ -5,11 +5,21 @@ import { flushSync } from "react-dom";
 
 import type { ChatHistoryRow } from "@/lib/chat/chatApi";
 import { fetchChatHistory } from "@/lib/chat/chatApi";
+import {
+  fetchWithAuthRecovery,
+  readChatbiToken,
+  requestChatbiAccessVerify,
+  writeChatbiToken,
+} from "@/lib/chatbi-client";
 import { useSessionId } from "@/lib/hooks/useSessionId";
-import type { ChainEvent } from "@/components/chain-chat/types";
+import { type ChainEvent, UNIFIED_SSE_CHAIN_TYPE_WHITELIST } from "@/components/chain-chat/types";
 import { ChainTimeline, chainTimelineExpandBtnClass } from "@/components/chain-chat/ChainTimeline";
+import {
+  extractText2sqlPhasesMsFromToolOutput,
+  isValidText2SqlPhaseEndPayload,
+  isValidText2SqlPhaseStartPayload,
+} from "@/lib/unified-chat/text2sqlPhaseSse";
 
-const LS_TOKEN_KEY = "blog_admin_token";
 /** Unified Chat 增量 SSE 契约版本（须与 BFF / Python 一致） */
 const SSE_CONTRACT_HEADER = "X-ChatBI-Sse-Contract";
 const SSE_CONTRACT_V2 = "2";
@@ -47,18 +57,6 @@ function mapHistoryRowsToTranscript(messages: ChatHistoryRow[] | undefined): Tra
     });
   }
   return out;
-}
-
-function readToken(): string {
-  if (typeof window === "undefined") return "";
-  return localStorage.getItem(LS_TOKEN_KEY)?.trim() ?? "";
-}
-
-function writeToken(token: string) {
-  if (typeof window === "undefined") return;
-  const t = token.trim();
-  if (!t) localStorage.removeItem(LS_TOKEN_KEY);
-  else localStorage.setItem(LS_TOKEN_KEY, t);
 }
 
 function safeJson(text: string): unknown {
@@ -129,6 +127,7 @@ type ExecSection =
   | { kind: "router"; finalMode: string }
   | { kind: "intent"; tool: string; mode: string }
   | { kind: "think"; thought: string; tool: string; mode: string }
+  | { kind: "clarify"; message: string; prompt_for_user: string }
   | { kind: "tool_start"; tool: string }
   | {
       kind: "tool_end";
@@ -136,7 +135,11 @@ type ExecSection =
       snippet: string;
       toolError: string | null;
       latencyMs: number | null;
+      /** 终态分段 ms：仅来自 `output.text2sql_phases_ms`，与 phase.end 的 latency 不并排两套 */
+      text2sqlPhasesMs: Record<string, number> | null;
     }
+  | { kind: "text2sql_phase_start"; phaseId: string; phaseKind: "llm" | "db" | "io" }
+  | { kind: "text2sql_phase_end"; phaseId: string; latencyMs: number }
   | { kind: "truncated"; reason: string; dropped: number }
   | { kind: "error_line"; stage: string; message: string; persistHint?: string };
 
@@ -223,9 +226,43 @@ function buildExecutionTraceSections(events: ChainEvent[]): ExecSection[] {
       i += 1;
       continue;
     }
+    if (e.type === "agent.clarify") {
+      const p = e.payload ?? {};
+      const msg = typeof p.message === "string" ? p.message : "";
+      const prompt = typeof p.prompt_for_user === "string" ? p.prompt_for_user : "";
+      out.push({ kind: "clarify", message: msg, prompt_for_user: prompt });
+      i += 1;
+      continue;
+    }
     if (e.type === "tool.call.start") {
       const tool = typeof e.payload.tool === "string" ? e.payload.tool : "—";
       out.push({ kind: "tool_start", tool });
+      i += 1;
+      continue;
+    }
+    if (e.type === "text2sql.phase.start") {
+      const pl = e.payload ?? {};
+      if (typeof pl === "object" && pl !== null && !Array.isArray(pl)) {
+        const rec = pl as Record<string, unknown>;
+        const pid = typeof rec.phase_id === "string" ? rec.phase_id.trim() : "";
+        const pk = rec.phase_kind;
+        if (pid && (pk === "llm" || pk === "db" || pk === "io")) {
+          out.push({ kind: "text2sql_phase_start", phaseId: pid, phaseKind: pk });
+        }
+      }
+      i += 1;
+      continue;
+    }
+    if (e.type === "text2sql.phase.end") {
+      const pl = e.payload ?? {};
+      if (typeof pl === "object" && pl !== null && !Array.isArray(pl)) {
+        const rec = pl as Record<string, unknown>;
+        const pid = typeof rec.phase_id === "string" ? rec.phase_id.trim() : "";
+        const lat = rec.latency_ms;
+        if (pid && typeof lat === "number" && Number.isFinite(lat)) {
+          out.push({ kind: "text2sql_phase_end", phaseId: pid, latencyMs: Math.round(lat) });
+        }
+      }
       i += 1;
       continue;
     }
@@ -238,6 +275,7 @@ function buildExecutionTraceSections(events: ChainEvent[]): ExecSection[] {
       const latRaw = pl.latency_ms;
       const latencyMs =
         typeof latRaw === "number" && Number.isFinite(latRaw) ? Math.round(latRaw) : null;
+      const text2sqlPhasesMs = extractText2sqlPhasesMsFromToolOutput(pl.output);
       let toolName = "tool";
       for (let k = i - 1; k >= 0; k -= 1) {
         const ev = events[k];
@@ -248,7 +286,7 @@ function buildExecutionTraceSections(events: ChainEvent[]): ExecSection[] {
           break;
         }
       }
-      out.push({ kind: "tool_end", tool: toolName, snippet, toolError, latencyMs });
+      out.push({ kind: "tool_end", tool: toolName, snippet, toolError, latencyMs, text2sqlPhasesMs });
       i += 1;
       continue;
     }
@@ -304,13 +342,22 @@ function buildExecutionTraceCopyText(query: string, sections: ExecSection[]): st
       lines.push(`agent.intent · ${s.tool} · mode ${s.mode}`);
     } else if (s.kind === "think") {
       lines.push("agent.think", s.thought || "—", `tool ${s.tool || "—"} · mode ${s.mode || "—"}`);
+    } else if (s.kind === "clarify") {
+      lines.push("agent.clarify", s.message || "—", s.prompt_for_user || "—");
     } else if (s.kind === "tool_start") {
       lines.push(`tool.call.start · ${s.tool}`);
     } else if (s.kind === "tool_end") {
       lines.push(`tool.call.end · ${s.tool}`);
       if (s.latencyMs != null) lines.push(`${s.latencyMs} ms`);
       lines.push(s.toolError ? `工具 error: ${s.toolError}` : "（无 error 字段）");
+      if (s.text2sqlPhasesMs && Object.keys(s.text2sqlPhasesMs).length) {
+        lines.push("Text2SQL 分段耗时（终态 text2sql_phases_ms）:", safeStringify(s.text2sqlPhasesMs));
+      }
       lines.push(s.snippet.trim() ? `output 摘要:\n${s.snippet}` : "（无 output 摘要）");
+    } else if (s.kind === "text2sql_phase_start") {
+      lines.push(`text2sql.phase.start · ${s.phaseId} · kind=${s.phaseKind}`);
+    } else if (s.kind === "text2sql_phase_end") {
+      lines.push(`text2sql.phase.end · ${s.phaseId} · ${s.latencyMs} ms`);
     } else if (s.kind === "truncated") {
       lines.push(`agent.llm.truncated · dropped=${s.dropped} · ${s.reason}`);
     } else if (s.kind === "error_line") {
@@ -400,6 +447,15 @@ function extractFinalAnswer(args: {
 
 type SseBlock = { event: string; data: string };
 
+/** manifest `agent.clarify` 最小键校验；缺字段则整帧丢弃（策略 B） */
+function isValidAgentClarifyPayload(p: Record<string, unknown>): boolean {
+  const sn = p.step_number;
+  if (typeof sn !== "number" || !Number.isFinite(sn)) return false;
+  if (typeof p.message !== "string") return false;
+  if (typeof p.prompt_for_user !== "string") return false;
+  return true;
+}
+
 function parseSseBlocks(chunkText: string): SseBlock[] {
   // 这里只做“块级解析”；事件的组包（跨 chunk）由外层 buffer 处理
   const blocks: SseBlock[] = [];
@@ -436,6 +492,11 @@ function chainEventFromSse(args: {
   const type = typeof obj.type === "string" ? obj.type : "";
   if (!type) return null;
 
+  if (!UNIFIED_SSE_CHAIN_TYPE_WHITELIST.has(type)) {
+    console.debug("[UnifiedChat SSE] 未知 chain.type，策略 B 跳过", type);
+    return null;
+  }
+
   // vNext §5.4：delta 缺 text 则跳过该帧
   if (type === "agent.llm.delta") {
     const pl = obj.payload;
@@ -455,6 +516,16 @@ function chainEventFromSse(args: {
     obj.payload && typeof obj.payload === "object"
       ? (obj.payload as Record<string, unknown>)
       : {};
+
+  if (type === "text2sql.phase.start" && !isValidText2SqlPhaseStartPayload(payload)) {
+    return null;
+  }
+  if (type === "text2sql.phase.end" && !isValidText2SqlPhaseEndPayload(payload)) {
+    return null;
+  }
+  if (type === "agent.clarify" && !isValidAgentClarifyPayload(payload)) {
+    return null;
+  }
 
   return {
     type: type as ChainEvent["type"],
@@ -579,8 +650,11 @@ function modeTone(mode: string): string {
 
 export function UnifiedChatPageClient() {
   const [mounted, setMounted] = useState(false);
-  const [token, setToken] = useState("");
-  const [tokenInput, setTokenInput] = useState("");
+  /** 假登录：仅 ChatBI DB 明文；校验在「解锁」按钮触发 */
+  const [credentialInput, setCredentialInput] = useState("");
+  const [chatbiToken, setChatbiToken] = useState("");
+  const [unlockBusy, setUnlockBusy] = useState(false);
+  const [unlockError, setUnlockError] = useState<string | null>(null);
   const tokenInputRef = useRef<HTMLInputElement | null>(null);
   const streamAbortRef = useRef<AbortController | null>(null);
   const lastQueryRef = useRef<string>("");
@@ -600,21 +674,23 @@ export function UnifiedChatPageClient() {
   const [finalAnswer, setFinalAnswer] = useState<string>("");
   const [transcript, setTranscript] = useState<TranscriptTurn[]>([]);
 
+  const locked = !chatbiToken.trim();
+
   useEffect(() => {
     setMounted(true);
-    setToken(readToken());
+    setChatbiToken(readChatbiToken());
   }, []);
 
   useEffect(() => {
-    if (mounted && !token) tokenInputRef.current?.focus();
-  }, [mounted, token]);
-
-  const locked = !token.trim();
+    if (mounted && locked) tokenInputRef.current?.focus();
+  }, [mounted, locked]);
 
   const headers: Record<string, string> = useMemo(() => {
-    const t = token.trim();
-    return t ? { Authorization: `Bearer ${t}` } : ({} as Record<string, string>);
-  }, [token]);
+    const c = chatbiToken.replace(/^bearer\s+/i, "").trim();
+    if (!c) return {} as Record<string, string>;
+    // 与 Python GET verify / Unified 一致：Bearer 明文，经 BFF 原样转上游（或 rewrite 直连 Python）
+    return { Authorization: `Bearer ${c}` };
+  }, [chatbiToken]);
 
   const { sessionId, resetSession } = useSessionId("unified-chat");
   const sessionIdRef = useRef(sessionId);
@@ -816,7 +892,7 @@ export function UnifiedChatPageClient() {
       const ac = new AbortController();
       streamAbortRef.current = ac;
 
-      const res = await fetch("/api/py/unified/chat/stream", {
+      const res = await fetchWithAuthRecovery("/api/py/unified/chat/stream", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -843,7 +919,7 @@ export function UnifiedChatPageClient() {
       const decoder = new TextDecoder("utf-8");
       let buffer = "";
 
-      // 服务端可能在 done 里返回 run_id；先用本地 runId，后续如拿到再覆盖
+      // 先用本地 runId 占位；首帧 **meta.payload.run_id** 为服务端 canonical（与 JSON 日志 / done 一致），须立即切换并回填已入列事件，否则 tool.call.end 等与后端 run_id 对不齐
       let currentRunId = runId;
       let donePayload: unknown = null;
       /** 本轮 SSE 是否收到 done（与 lastDone 同源，供 transcript 判定） */
@@ -876,6 +952,22 @@ export function UnifiedChatPageClient() {
               console.debug("[UnifiedChat SSE] chain JSON 跳过", parseErrorCountRef.current);
               continue;
             }
+            const rawObj = j as Record<string, unknown>;
+            const chainType = typeof rawObj.type === "string" ? rawObj.type : "";
+            let serverRunFromMeta: string | null = null;
+            if (chainType === "meta") {
+              const pl = rawObj.payload;
+              if (pl && typeof pl === "object") {
+                const rid = (pl as Record<string, unknown>).run_id;
+                if (typeof rid === "string" && rid.trim()) {
+                  serverRunFromMeta = rid.trim();
+                }
+              }
+            }
+            const srvMeta = serverRunFromMeta;
+            if (srvMeta) {
+              currentRunId = srvMeta;
+            }
             const ev = chainEventFromSse({
               runId: currentRunId,
               raw: j,
@@ -887,7 +979,11 @@ export function UnifiedChatPageClient() {
               continue;
             }
             setEvents((prev) => {
-              const next = [...prev, ev];
+              const base =
+                srvMeta && srvMeta !== runId
+                  ? prev.map((e) => (e.run_id === runId ? { ...e, run_id: srvMeta } : e))
+                  : prev;
+              const next = [...base, ev];
               roundEventsRef.current = next;
               return next;
             });
@@ -1050,9 +1146,47 @@ export function UnifiedChatPageClient() {
                     </div>
                   </div>
                 ) : null}
+                {s.kind === "clarify" ? (
+                  <div className="space-y-2 border-l-2 border-amber-400/90 pl-2 text-sm">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full border border-amber-500/60 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-950">
+                        待您澄清
+                      </span>
+                      <span className="font-mono text-[11px] text-amber-900">agent.clarify</span>
+                    </div>
+                    <div className="text-[12px] font-medium text-slate-800">{s.message.trim() ? s.message : "—"}</div>
+                    <div className="max-h-[40vh] overflow-auto whitespace-pre-wrap break-words rounded border border-amber-200/80 bg-amber-50/40 px-2 py-1.5 text-[13px] leading-relaxed text-slate-900">
+                      {s.prompt_for_user.trim() ? s.prompt_for_user : "—"}
+                    </div>
+                  </div>
+                ) : null}
                 {s.kind === "tool_start" ? (
                   <div className="font-mono text-[12px] text-amber-900">
                     tool.call.start · {s.tool}
+                  </div>
+                ) : null}
+                {s.kind === "text2sql_phase_start" ? (
+                  <div className="flex flex-wrap items-center gap-2 font-mono text-[11px] text-indigo-900">
+                    <span className="rounded-full border border-amber-300/70 bg-amber-50/90 px-2 py-0.5 text-[10px]">
+                      text2sql.phase.start
+                    </span>
+                    <span>{s.phaseId}</span>
+                    <span className="text-slate-600">
+                      {s.phaseKind === "llm"
+                        ? "· 模型"
+                        : s.phaseKind === "db"
+                          ? "· 数据库"
+                          : "· IO/检索"}
+                    </span>
+                  </div>
+                ) : null}
+                {s.kind === "text2sql_phase_end" ? (
+                  <div className="flex flex-wrap items-center gap-2 font-mono text-[11px] text-indigo-900">
+                    <span className="rounded-full border border-emerald-300/70 bg-emerald-50/90 px-2 py-0.5 text-[10px]">
+                      text2sql.phase.end
+                    </span>
+                    <span>{s.phaseId}</span>
+                    <span className="text-slate-600">· 本段 {s.latencyMs} ms</span>
                   </div>
                 ) : null}
                 {s.kind === "tool_end" ? (
@@ -1074,6 +1208,23 @@ export function UnifiedChatPageClient() {
                         </span>
                       )}
                     </div>
+                    {s.text2sqlPhasesMs && Object.keys(s.text2sqlPhasesMs).length > 0 ? (
+                      <div className="rounded-lg border border-indigo-200/80 bg-indigo-50/50 px-2 py-1.5">
+                        <div className="text-[10px] font-semibold text-indigo-900">
+                          Text2SQL 分段耗时（终态 · text2sql_phases_ms）
+                        </div>
+                        <ul className="mt-1 space-y-0.5 font-mono text-[11px] text-indigo-950">
+                          {Object.entries(s.text2sqlPhasesMs).map(([k, v]) => (
+                            <li key={k} className="flex justify-between gap-2">
+                              <span className="min-w-0 truncate" title={k}>
+                                {k}
+                              </span>
+                              <span>{v} ms</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
                     {s.toolError ? (
                       <div className="rounded-lg border border-rose-200/90 bg-rose-50/90 px-2 py-1.5 font-mono text-[11px] leading-relaxed text-rose-950">
                         {s.toolError}
@@ -1182,29 +1333,66 @@ export function UnifiedChatPageClient() {
       {locked ? (
         <section className="mx-auto max-w-lg rounded-2xl border border-[color:var(--color-border)] bg-white/40 p-4">
           <div className="space-y-2">
-            <p className="text-sm leading-relaxed text-slate-700">此功能仅博主可用，请输入密钥解锁。</p>
+            <p className="text-sm leading-relaxed text-slate-700">
+              请输入 <strong>ChatBI DB 明文访问令牌</strong>（
+              <span className="font-mono">chatbi_access_tokens</span>
+              ），点击<strong>解锁</strong>：由 Next BFF 转发 <span className="font-mono">GET /api/py/chatbi/access/verify</span>{" "}
+              到 Python 校验；**不**使用 <span className="font-mono">NEXT_PUBLIC_ADMIN_SECRET</span>
+              。通过后令牌写入 <span className="font-mono">localStorage</span>，后续 Unified / 历史请求均带{" "}
+              <span className="font-mono">Authorization: Bearer &lt;明文&gt;</span>（与 Python 约定一致）。
+            </p>
             <label className="block text-[11px] text-slate-500">
-              Token（NEXT_PUBLIC_ADMIN_SECRET）
+              访问令牌（明文）
               <input
                 ref={tokenInputRef}
                 type="password"
-                value={tokenInput}
-                onChange={(e) => setTokenInput(e.target.value)}
+                value={credentialInput}
+                onChange={(e) => {
+                  setCredentialInput(e.target.value);
+                  setUnlockError(null);
+                }}
                 className="mt-1 w-full rounded-xl border border-[color:var(--color-border)] bg-white/70 px-3 py-2 text-sm text-[#2c2c2c] outline-none focus:border-slate-400"
-                placeholder="输入后本地存储"
+                placeholder="解锁后请求带 Authorization: Bearer <明文>"
                 autoComplete="off"
               />
             </label>
+            {unlockError ? (
+              <p className="text-[12px] leading-relaxed text-rose-600/90">{unlockError}</p>
+            ) : null}
             <button
               type="button"
+              disabled={unlockBusy}
               onClick={() => {
-                const t = tokenInput.trim();
-                writeToken(t);
-                setToken(t);
+                void (async () => {
+                  setUnlockError(null);
+                  const v = credentialInput.trim();
+                  if (!v) {
+                    setUnlockError("请输入 ChatBI 明文 token");
+                    return;
+                  }
+                  const plain = v.replace(/^bearer\s+/i, "").trim();
+                  if (!plain) {
+                    setUnlockError("请输入有效的 ChatBI 明文 token");
+                    return;
+                  }
+                  setUnlockBusy(true);
+                  try {
+                    const gate = await requestChatbiAccessVerify({ plain });
+                    if (!gate.ok) {
+                      setUnlockError(gate.message);
+                      return;
+                    }
+                    writeChatbiToken(plain);
+                    setChatbiToken(plain);
+                    setCredentialInput("");
+                  } finally {
+                    setUnlockBusy(false);
+                  }
+                })();
               }}
-              className="w-full rounded-xl bg-[#2c2c2c] px-3 py-2 text-sm text-[#f9f9f7] hover:opacity-90"
+              className="w-full rounded-xl bg-[#2c2c2c] px-3 py-2 text-sm text-[#f9f9f7] hover:opacity-90 disabled:opacity-50"
             >
-              解锁
+              {unlockBusy ? "校验中…" : "解锁"}
             </button>
           </div>
         </section>
