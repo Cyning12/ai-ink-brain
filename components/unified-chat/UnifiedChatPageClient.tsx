@@ -128,6 +128,14 @@ type ExecSection =
   | { kind: "intent"; tool: string; mode: string }
   | { kind: "think"; thought: string; tool: string; mode: string }
   | { kind: "clarify"; message: string; prompt_for_user: string }
+  | {
+      kind: "plan_preview";
+      plan_id: string;
+      tool: string;
+      sql_draft: string;
+      warningsLines: string[];
+      expires_in_sec: number;
+    }
   | { kind: "tool_start"; tool: string }
   | {
       kind: "tool_end";
@@ -231,6 +239,26 @@ function buildExecutionTraceSections(events: ChainEvent[]): ExecSection[] {
       const msg = typeof p.message === "string" ? p.message : "";
       const prompt = typeof p.prompt_for_user === "string" ? p.prompt_for_user : "";
       out.push({ kind: "clarify", message: msg, prompt_for_user: prompt });
+      i += 1;
+      continue;
+    }
+    if (e.type === "agent.plan.preview") {
+      const p = e.payload ?? {};
+      if (typeof p === "object" && p !== null && !Array.isArray(p) && isValidAgentPlanPreviewPayload(p as Record<string, unknown>)) {
+        const rec = p as Record<string, unknown>;
+        const warns = Array.isArray(rec.warnings) ? rec.warnings : [];
+        const warningsLines = warns.map((w) => (typeof w === "string" ? w : safeStringify(w)));
+        const exp = rec.expires_in_sec;
+        const expires_in_sec = typeof exp === "number" && Number.isFinite(exp) ? Math.max(0, exp) : 0;
+        out.push({
+          kind: "plan_preview",
+          plan_id: typeof rec.plan_id === "string" ? rec.plan_id : "",
+          tool: typeof rec.tool === "string" ? rec.tool : "",
+          sql_draft: typeof rec.sql_draft === "string" ? rec.sql_draft : "",
+          warningsLines,
+          expires_in_sec,
+        });
+      }
       i += 1;
       continue;
     }
@@ -344,6 +372,13 @@ function buildExecutionTraceCopyText(query: string, sections: ExecSection[]): st
       lines.push("agent.think", s.thought || "—", `tool ${s.tool || "—"} · mode ${s.mode || "—"}`);
     } else if (s.kind === "clarify") {
       lines.push("agent.clarify", s.message || "—", s.prompt_for_user || "—");
+    } else if (s.kind === "plan_preview") {
+      lines.push(
+        `agent.plan.preview · plan_id=${s.plan_id} · tool=${s.tool}`,
+        `expires_in_sec=${s.expires_in_sec}`,
+        s.sql_draft.trim() ? `sql_draft:\n${s.sql_draft}` : "sql_draft: —",
+        s.warningsLines.length ? `warnings:\n${s.warningsLines.join("\n")}` : "warnings: —",
+      );
     } else if (s.kind === "tool_start") {
       lines.push(`tool.call.start · ${s.tool}`);
     } else if (s.kind === "tool_end") {
@@ -456,6 +491,18 @@ function isValidAgentClarifyPayload(p: Record<string, unknown>): boolean {
   return true;
 }
 
+/** manifest `agent.plan.preview` 最小键校验；缺字段则整帧丢弃（策略 B） */
+function isValidAgentPlanPreviewPayload(p: Record<string, unknown>): boolean {
+  if (typeof p.plan_id !== "string" || !p.plan_id.trim()) return false;
+  if (typeof p.tool !== "string") return false;
+  if (typeof p.sql_draft !== "string") return false;
+  if (!Array.isArray(p.warnings)) return false;
+  if (typeof p.plan_execution_token !== "string" || !p.plan_execution_token.trim()) return false;
+  const exp = p.expires_in_sec;
+  if (typeof exp !== "number" || !Number.isFinite(exp) || exp < 0) return false;
+  return true;
+}
+
 function parseSseBlocks(chunkText: string): SseBlock[] {
   // 这里只做“块级解析”；事件的组包（跨 chunk）由外层 buffer 处理
   const blocks: SseBlock[] = [];
@@ -524,6 +571,9 @@ function chainEventFromSse(args: {
     return null;
   }
   if (type === "agent.clarify" && !isValidAgentClarifyPayload(payload)) {
+    return null;
+  }
+  if (type === "agent.plan.preview" && !isValidAgentPlanPreviewPayload(payload)) {
     return null;
   }
 
@@ -668,6 +718,36 @@ export function UnifiedChatPageClient() {
   /** 与后端 `debug_llm_prompts` / `CHATBI_V2_DEBUG_LLM_PROMPTS` 对齐；仅建议在 ?debug=1 下开启 */
   const [debugLlmPrompts, setDebugLlmPrompts] = useState(false);
   const [draft, setDraft] = useState("");
+  /** 低置信预览：与首轮 user 问句、session 绑定的放行令牌（见 manifest `agent.plan.preview`） */
+  type PendingPlanConfirmState = {
+    token: string;
+    boundQuery: string;
+    sessionId: string;
+    expiresInSec: number;
+    receivedAtMs: number;
+    sqlDraft: string;
+    warnings: unknown[];
+    planId: string;
+    tool: string;
+  };
+  const [pendingPlanConfirm, setPendingPlanConfirm] = useState<PendingPlanConfirmState | null>(null);
+  /** TTL 倒计时：每秒 tick，以后端校验为准 */
+  const [ttlTick, setTtlTick] = useState(0);
+  const dismissedPlanTokenRef = useRef<string | null>(null);
+  const pendingPlanConfirmRef = useRef<PendingPlanConfirmState | null>(null);
+
+  useEffect(() => {
+    pendingPlanConfirmRef.current = pendingPlanConfirm;
+  }, [pendingPlanConfirm]);
+
+  useEffect(() => {
+    if (!pendingPlanConfirm) return;
+    const id = window.setInterval(() => {
+      setTtlTick((n) => n + 1);
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [pendingPlanConfirm?.token]);
+
   const [loading, setLoading] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [events, setEvents] = useState<ChainEvent[]>([]);
@@ -802,6 +882,12 @@ export function UnifiedChatPageClient() {
   const agentIntentObs = useMemo(() => extractAgentIntentObs(events), [events]);
   const queryTextTrace = useMemo(() => extractUserQueryText(events), [events]);
   const execSections = useMemo(() => buildExecutionTraceSections(events), [events]);
+  const planPreviewTtlRemainingSec = useMemo(() => {
+    if (!pendingPlanConfirm) return null;
+    void ttlTick;
+    const elapsed = (Date.now() - pendingPlanConfirm.receivedAtMs) / 1000;
+    return Math.max(0, Math.floor(pendingPlanConfirm.expiresInSec - elapsed));
+  }, [pendingPlanConfirm, ttlTick]);
   const timelineEvents = useMemo(() => {
     let xs = events;
     if (!debugRouter) {
@@ -861,8 +947,32 @@ export function UnifiedChatPageClient() {
     );
   }
 
-  const send = async (q: string) => {
-    lastQueryRef.current = q;
+  const send = async (q: string, opts?: { planExecutionToken?: string }) => {
+    const trimmed = q.trim();
+    if (!trimmed) return;
+
+    const planToken = opts?.planExecutionToken?.trim() ?? "";
+    const sendingWithPlanToken = Boolean(planToken);
+
+    if (!sendingWithPlanToken) {
+      setPendingPlanConfirm(null);
+      dismissedPlanTokenRef.current = null;
+    } else {
+      const pend = pendingPlanConfirmRef.current;
+      if (
+        !pend ||
+        pend.token !== planToken ||
+        pend.boundQuery.trim() !== trimmed ||
+        pend.sessionId !== sessionId
+      ) {
+        setErrorText("无法按预览执行：令牌与当前会话或问题不一致，请重新发起问题。");
+        return;
+      }
+    }
+
+    const usedPlanTokenAtSend = sendingWithPlanToken;
+
+    lastQueryRef.current = trimmed;
     // 取消上一次 SSE
     streamAbortRef.current?.abort();
     streamAbortRef.current = null;
@@ -881,7 +991,7 @@ export function UnifiedChatPageClient() {
       ts: Date.now(),
       run_id: runId,
       step_id: "user",
-      payload: { text: q },
+      payload: { text: trimmed },
     };
     roundEventsRef.current = [userEvent];
     setEvents([userEvent]);
@@ -903,10 +1013,11 @@ export function UnifiedChatPageClient() {
         signal: ac.signal,
         body: JSON.stringify({
           session_id: sessionId,
-          query: q,
+          query: trimmed,
           prefer,
           debug_router: debugRouter,
           ...(debugLlmPrompts ? { debug_llm_prompts: true } : {}),
+          ...(sendingWithPlanToken ? { plan_execution_token: planToken } : {}),
         }),
       });
       if (!res.ok) {
@@ -987,6 +1098,34 @@ export function UnifiedChatPageClient() {
               roundEventsRef.current = next;
               return next;
             });
+            if (ev.type === "agent.plan.preview") {
+              const pl = ev.payload;
+              if (pl && typeof pl === "object" && !Array.isArray(pl)) {
+                const rec = pl as Record<string, unknown>;
+                if (isValidAgentPlanPreviewPayload(rec)) {
+                  const token =
+                    typeof rec.plan_execution_token === "string" ? rec.plan_execution_token.trim() : "";
+                  if (token && dismissedPlanTokenRef.current !== token) {
+                    const boundQuery = extractUserQueryText(roundEventsRef.current);
+                    if (boundQuery.trim()) {
+                      const ex = rec.expires_in_sec;
+                      setPendingPlanConfirm({
+                        token,
+                        boundQuery: boundQuery.trim(),
+                        sessionId: sessionIdRef.current,
+                        expiresInSec:
+                          typeof ex === "number" && Number.isFinite(ex) && ex >= 0 ? Math.floor(ex) : 0,
+                        receivedAtMs: Date.now(),
+                        sqlDraft: typeof rec.sql_draft === "string" ? rec.sql_draft : "",
+                        warnings: Array.isArray(rec.warnings) ? [...rec.warnings] : [],
+                        planId: typeof rec.plan_id === "string" ? rec.plan_id : "",
+                        tool: typeof rec.tool === "string" ? rec.tool : "",
+                      });
+                    }
+                  }
+                }
+              }
+            }
             continue;
           }
           if (b.event === "token") {
@@ -1061,6 +1200,10 @@ export function UnifiedChatPageClient() {
         const aid = inferred.trim();
         const rowId = crypto.randomUUID();
         setTranscript((t) => [...t, { id: rowId, user: uid, assistant: aid }]);
+      }
+      if (streamLastDone?.ok && usedPlanTokenAtSend) {
+        setPendingPlanConfirm(null);
+        dismissedPlanTokenRef.current = null;
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -1157,6 +1300,39 @@ export function UnifiedChatPageClient() {
                     <div className="text-[12px] font-medium text-slate-800">{s.message.trim() ? s.message : "—"}</div>
                     <div className="max-h-[40vh] overflow-auto whitespace-pre-wrap break-words rounded border border-amber-200/80 bg-amber-50/40 px-2 py-1.5 text-[13px] leading-relaxed text-slate-900">
                       {s.prompt_for_user.trim() ? s.prompt_for_user : "—"}
+                    </div>
+                  </div>
+                ) : null}
+                {s.kind === "plan_preview" ? (
+                  <div className="space-y-2 border-l-2 border-indigo-400/90 pl-2 text-sm">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full border border-indigo-500/50 bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-950">
+                        方案预览
+                      </span>
+                      <span className="font-mono text-[11px] text-indigo-900">agent.plan.preview</span>
+                      <span className="text-[10px] text-slate-500">
+                        plan <span className="font-mono">{s.plan_id || "—"}</span> · tool{" "}
+                        <span className="font-mono">{s.tool || "—"}</span>
+                      </span>
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-medium uppercase tracking-wide text-indigo-900/90">sql_draft</div>
+                      <div className="mt-1 max-h-[36vh] overflow-auto whitespace-pre-wrap break-words rounded border border-indigo-200/80 bg-indigo-50/40 px-2 py-1.5 font-mono text-[12px] leading-relaxed text-slate-900">
+                        {s.sql_draft.trim() ? s.sql_draft : "—"}
+                      </div>
+                    </div>
+                    {s.warningsLines.length > 0 ? (
+                      <div>
+                        <div className="text-[10px] font-medium text-slate-600">warnings</div>
+                        <ul className="mt-1 list-disc space-y-1 pl-4 text-[12px] leading-relaxed text-slate-800">
+                          {s.warningsLines.map((w, wi) => (
+                            <li key={`${wi}-${w.slice(0, 24)}`}>{w}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+                    <div className="text-[10px] text-slate-500">
+                      TTL 约 {s.expires_in_sec}s（收到帧起算，以后端校验为准）
                     </div>
                   </div>
                 ) : null}
@@ -1818,6 +1994,65 @@ export function UnifiedChatPageClient() {
                 </p>
               ) : null}
 
+              {pendingPlanConfirm ? (
+                <div className="space-y-2 rounded-xl border border-indigo-300/70 bg-indigo-50/50 px-3 py-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="text-[12px] font-semibold text-indigo-950">低置信 · 预览 SQL 已就绪</div>
+                    {planPreviewTtlRemainingSec != null ? (
+                      <span className="rounded-full border border-indigo-400/40 bg-white/80 px-2 py-0.5 font-mono text-[10px] text-indigo-900">
+                        约 {planPreviewTtlRemainingSec}s 后过期
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="text-[11px] leading-relaxed text-slate-700">
+                    须使用与预览时相同的 <span className="font-mono">query</span> 与{" "}
+                    <span className="font-mono">session_id</span>。若修改输入框中的问题并点击「发送」，将丢弃本令牌。
+                  </p>
+                  <div className="max-h-[28vh] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-indigo-200/80 bg-white/70 px-2 py-2 font-mono text-[11px] text-slate-900">
+                    {pendingPlanConfirm.sqlDraft.trim() ? pendingPlanConfirm.sqlDraft : "（无 sql_draft）"}
+                  </div>
+                  {pendingPlanConfirm.warnings.length > 0 ? (
+                    <ul className="list-disc space-y-1 pl-4 text-[11px] text-slate-800">
+                      {pendingPlanConfirm.warnings.map((w, wi) => (
+                        <li key={wi}>
+                          {typeof w === "string" ? w : safeStringify(w)}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={
+                        loading ||
+                        sessionId !== pendingPlanConfirm.sessionId ||
+                        planPreviewTtlRemainingSec === 0
+                      }
+                      onClick={() => {
+                        setDraft(pendingPlanConfirm.boundQuery);
+                        void send(pendingPlanConfirm.boundQuery, {
+                          planExecutionToken: pendingPlanConfirm.token,
+                        });
+                      }}
+                      className="rounded-xl bg-indigo-700 px-4 py-2 text-sm text-white hover:bg-indigo-800 disabled:opacity-40"
+                    >
+                      按预览执行
+                    </button>
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={() => {
+                        dismissedPlanTokenRef.current = pendingPlanConfirm.token;
+                        setPendingPlanConfirm(null);
+                      }}
+                      className="rounded-xl border border-[color:var(--color-border)] bg-white/70 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+                    >
+                      取消（丢弃令牌）
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
               <textarea
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
@@ -1836,6 +2071,8 @@ export function UnifiedChatPageClient() {
                     setTranscript([]);
                     setEvents([]);
                     roundEventsRef.current = [];
+                    setPendingPlanConfirm(null);
+                    dismissedPlanTokenRef.current = null;
                     setTimelineBatchOpen(false);
                     setTimelineBatchNonce((n) => n + 1);
                     setErrorText(null);

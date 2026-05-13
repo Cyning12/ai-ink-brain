@@ -17,6 +17,7 @@ export type ChainEventType =
   | "agent.step.start"
   | "agent.think"
   | "agent.clarify"
+  | "agent.plan.preview"
   | "agent.intent"
   | "agent.llm.start"
   | "agent.llm.delta"
@@ -33,6 +34,16 @@ export type AgentClarifyPayload = Readonly<{
   step_number: number;
   message: string;
   prompt_for_user: string;
+}>;
+
+/** manifest `agent.plan.preview` 最小 payload（`_contract_manifest.json`） */
+export type AgentPlanPreviewPayload = Readonly<{
+  plan_id: string;
+  tool: string;
+  sql_draft: string;
+  warnings: unknown[];
+  plan_execution_token: string;
+  expires_in_sec: number;
 }>;
 
 export type ChainEvent = {
@@ -65,6 +76,7 @@ export const UNIFIED_SSE_CHAIN_TYPE_WHITELIST = new Set<string>(
     "agent.step.start",
     "agent.think",
     "agent.clarify",
+    "agent.plan.preview",
     "agent.intent",
     "agent.llm.start",
     "agent.llm.delta",

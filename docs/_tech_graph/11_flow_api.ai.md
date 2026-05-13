@@ -97,3 +97,5 @@ flowchart LR
 ```
 
 **ChatBI V3 Text2SQL 子阶段 SSE**：`UNIFIED` → `PY_UNIFIED_SSE` 链上除 `done` 外可增量出现 `text2sql.phase.*`；**终态分段 ms 真值** 以 `tool.call.end` 等价路径上 **`output.text2sql_phases_ms`** 为准（与 Ink-Brain 任务 `task_chatbi_v3_text2sql_phase_sse_timeline_frontend_v1.md` §数据源与 UI 策略、及 Python 仓 `SPEC-ChatBI-V3-Observability-Text2SQL.md` §5.1 对齐）。**Contract v1 维持 header `2`**。
+
+**ChatBI V3 · `agent.plan.preview` + `plan_execution_token`（Unified）**：`UNIFIED` 在 SSE 中消费 `agent.plan.preview` 后，于输入区提供「按预览执行」：下一请求 body 在同 `query`/`session_id` 下附带 **`plan_execution_token`** 透传 `PY_UNIFIED_SSE`；丢弃/过期语义见 Python 仓 `SPEC-ChatBI-V3-LowConfidence-Plan-Confirm.md`。

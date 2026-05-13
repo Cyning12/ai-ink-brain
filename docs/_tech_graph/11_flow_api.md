@@ -87,3 +87,10 @@ flowchart LR
 - **UI**：Timeline / `ChainEventCard` 与 `agent.think` 分开展示；未知 `chain.type` 走策略 B 丢弃。  
 - **SSE 文本样例**：`Projects/ai-ink-brain-api-python/docs/spec/v3-agent/P0/SSE-sample-agent-clarify.md`。
 
+## ChatBI V3 · 低置信方案预览与 `plan_execution_token`（Unified）
+
+- **消费入口**：`UnifiedChatPageClient` 解析 SSE `agent.plan.preview`（最小键见 manifest：`plan_id`、`tool`、`sql_draft`、`warnings`、`plan_execution_token`、`expires_in_sec`）。  
+- **放行请求**：用户点击「按预览执行」后，下一轮 `POST /api/py/unified/chat/stream` 的 JSON body 在 **与预览当轮相同的 `query` + `session_id`** 前提下附带 **`plan_execution_token`**（BFF 整段透传至 Python）。  
+- **状态**：改写输入并发送与绑定问句不同的问题时丢弃令牌；「取消」丢弃并记录令牌以免同帧重复弹出。  
+- **语义真值**：`Projects/ai-ink-brain-api-python/docs/spec/v3-agent/SPEC-ChatBI-V3-LowConfidence-Plan-Confirm.md`；事件字段见 `SPEC-ChatBI-V2-Events.md` §3.2.2。
+
