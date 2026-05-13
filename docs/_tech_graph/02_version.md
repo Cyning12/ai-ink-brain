@@ -25,3 +25,5 @@ timeline
   2026-05-13 : 415b934 auto: components/chain-chat/ChainEventCard.tsx
 ```
 
+**Verify（P1）**：PR 门禁 workflow **`quality`**（`ai-ink-brain/.github/workflows/quality.yml`）含 **`pnpm test`**（Vitest，与根 `AGENTS.md` §8 一致）。
+
