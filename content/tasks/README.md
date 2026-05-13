@@ -4,6 +4,17 @@
 
 ---
 
+## 工作区 Harness 任务（不在本目录）
+
+与 **跨子仓流程 / CI 门禁对齐 / 帽子 prompts / 根级验收** 相关的任务单已统一放在工作区：
+
+- **`docs/harness/tasks/active/`**、**`docs/harness/tasks/done/`**  
+- 规则与索引：**[`../../../docs/harness/tasks/README.md`](../../../docs/harness/tasks/README.md)**（相对本文件：`Projects/docs/harness/tasks/README.md`）
+
+本目录 **`content/tasks/`** 仅承载 **前端业务** 任务；勿再将 Harness 类任务长期放在此处，以免与 `AGENTS.md` §2.2 漂移。
+
+---
+
 ## 目录结构
 
 ```

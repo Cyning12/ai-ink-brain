@@ -1,0 +1,37 @@
+# Harness V2 · P2 可选：独立 Verification（仅 lint + test，无 build）
+# 真值与计费说明：见工作区 docs/harness/VERIFICATION_CI_PATTERN.md
+name: verify-fast
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - production
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
