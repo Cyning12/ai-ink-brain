@@ -16,10 +16,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # 版本以 package.json 的 packageManager（pnpm@x.y.z）为唯一真源，勿在此再写 version，否则与 action-setup 冲突报 ERR_PNPM_BAD_PM_VERSION
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Setup Node
         uses: actions/setup-node@v4
