@@ -740,15 +740,11 @@ export function UnifiedChatPageClient() {
     pendingPlanConfirmRef.current = pendingPlanConfirm;
   }, [pendingPlanConfirm]);
 
-  useEffect(() => {
-    if (!pendingPlanConfirm) return;
-    const id = window.setInterval(() => {
-      setTtlTick((n) => n + 1);
-    }, 1000);
-    return () => window.clearInterval(id);
-  }, [pendingPlanConfirm?.token]);
-
   const [loading, setLoading] = useState(false);
+  const loadingRef = useRef(false);
+  useEffect(() => {
+    loadingRef.current = loading;
+  }, [loading]);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [events, setEvents] = useState<ChainEvent[]>([]);
   const [finalAnswer, setFinalAnswer] = useState<string>("");
@@ -938,14 +934,6 @@ export function UnifiedChatPageClient() {
       copyFeedbackTimerRef.current = null;
     }, 2000);
   }, [queryTextTrace, execSections]);
-
-  if (!mounted) {
-    return (
-      <div className="rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/95 p-4 text-sm text-slate-600">
-        正在加载…
-      </div>
-    );
-  }
 
   const send = async (q: string, opts?: { planExecutionToken?: string }) => {
     const trimmed = q.trim();
@@ -1213,6 +1201,35 @@ export function UnifiedChatPageClient() {
       streamAbortRef.current = null;
     }
   };
+
+  const sendRef = useRef(send);
+  sendRef.current = send;
+
+  /** TTL 倒计时 + 过期后自动以同问句无令牌重拉 SSE，刷新 Timeline / 最终输出 */
+  useEffect(() => {
+    if (!pendingPlanConfirm) return;
+    const id = window.setInterval(() => {
+      setTtlTick((n) => n + 1);
+      const pend = pendingPlanConfirmRef.current;
+      if (!pend || loadingRef.current) return;
+      const elapsed = (Date.now() - pend.receivedAtMs) / 1000;
+      const remaining = Math.max(0, Math.floor(pend.expiresInSec - elapsed));
+      if (remaining > 0) return;
+      const q = pend.boundQuery.trim();
+      if (!q) return;
+      setPendingPlanConfirm(null);
+      void sendRef.current(q);
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [pendingPlanConfirm?.token]);
+
+  if (!mounted) {
+    return (
+      <div className="rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/95 p-4 text-sm text-slate-600">
+        正在加载…
+      </div>
+    );
+  }
 
   const executionLinkSection = (
     <section className="flex min-h-[72vh] min-w-0 flex-col rounded-2xl border border-[color:var(--color-border)] bg-white/40">
@@ -2006,8 +2023,11 @@ export function UnifiedChatPageClient() {
                   </div>
                   <p className="text-[11px] leading-relaxed text-slate-700">
                     须使用与预览时相同的 <span className="font-mono">query</span> 与{" "}
-                    <span className="font-mono">session_id</span>。若修改输入框中的问题并点击「发送」，将丢弃本令牌。
+                    <span className="font-mono">session_id</span>。若修改输入框中的问题并点击「发送」，将丢弃本令牌。令牌过期后将自动以同问句重新请求（不带令牌）。
                   </p>
+                  {planPreviewTtlRemainingSec === 0 && !loading ? (
+                    <p className="text-[11px] font-medium text-amber-900/90">令牌已过期，正在自动重新请求…</p>
+                  ) : null}
                   <div className="max-h-[28vh] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-indigo-200/80 bg-white/70 px-2 py-2 font-mono text-[11px] text-slate-900">
                     {pendingPlanConfirm.sqlDraft.trim() ? pendingPlanConfirm.sqlDraft : "（无 sql_draft）"}
                   </div>
@@ -2042,8 +2062,9 @@ export function UnifiedChatPageClient() {
                       type="button"
                       disabled={loading}
                       onClick={() => {
-                        dismissedPlanTokenRef.current = pendingPlanConfirm.token;
+                        const q = pendingPlanConfirm.boundQuery.trim();
                         setPendingPlanConfirm(null);
+                        if (q) void send(q);
                       }}
                       className="rounded-xl border border-[color:var(--color-border)] bg-white/70 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-40"
                     >
