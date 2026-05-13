@@ -1,7 +1,7 @@
 # 前端：Intent Router 可视化（v1）— Unified Chat 展示 mode 与 why
 
 状态：pending  
-依赖：后端输出 `router.decision` 事件（见 `ai-ink-brain-api-python/docs/tasks/task_intent_router_backend_v1.md`）  
+依赖：后端输出 `router.decision` 事件（见 `ai-ink-brain-api-python/docs/tasks/done/task_intent_router_backend_v1.md`）  
 设计：`ai-ink-brain-api-python/docs/UI/v1/UI-04-intent-router-v1.md`
 
 ## 目标
