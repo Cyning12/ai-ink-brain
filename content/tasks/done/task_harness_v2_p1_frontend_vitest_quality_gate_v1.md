@@ -1,6 +1,6 @@
 # 前端 Task：Harness V2 P1 — 最小单测（Vitest）与合并前必绿清单（v1）
 
-> **状态**：`done`（2026-05-13）  
+> **状态**：`done（2026-05-13 验收通过）`  
 > **前置**：P0 已验收并完成 **commit + push**（见工作区 `docs/harness/HARNESS_V2_P0_ACCEPTANCE.md` §4 勾选）；本任务 **不阻塞** P0 收尾，但执行前须确认默认分支上 **`quality`** workflow 已绿。  
 > **关联 Harness**：`Projects/docs/harness/HARNESS_V2_PLAN.md` **§4 P1**（项 3、4）  
 > **关联 Issue/PR**：无  
