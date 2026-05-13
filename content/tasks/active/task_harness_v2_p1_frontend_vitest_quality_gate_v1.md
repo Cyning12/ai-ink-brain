@@ -68,7 +68,7 @@ P0 已为前端提供 **`quality.yml`**（`lint` + `build`），Verify 仍缺 **
 ## 验收标准
 
 - [x] 本地：`pnpm install --frozen-lockfile && pnpm lint && pnpm test && pnpm build` 全部通过。
-- [ ] CI：`quality`（或约定的新 job 名）在 **PR + push** 至 `main`/`production` 上 **绿灯**，且日志中可见 **`pnpm test`** 执行记录。
+- [x] CI：`quality`（或约定的新 job 名）在 **PR + push** 至 `main`/`production` 上 **绿灯**，且日志中可见 **`pnpm test`** 执行记录。
 - [x] 工作区根文档已更新：**合并前必绿** 清单含 **`pnpm test`** 与对应 workflow / job 名称（路径：`Projects/AGENTS.md` 与/或 `docs/harness/*.md`，以实际修改为准在「实现备忘」回填）。
 - [x] 无 `any` 滥用、无未解释禁用的 eslint-disable；新增测试目录被 **`.gitignore` / eslint 忽略** 规则合理（若有 `coverage/` 等）。
 
@@ -76,9 +76,9 @@ P0 已为前端提供 **`quality.yml`**（`lint` + `build`），Verify 仍缺 **
 
 ## 手动测试用例（必须执行）
 
-1. **冷装**：删除 `node_modules` 后仅 `pnpm install --frozen-lockfile && pnpm test`，期望全绿。  
-2. **CI 对齐**：推送 PR 后，GitHub Actions 中与前端相关的 workflow **全部成功**。  
-3. **文档**：打开根 `AGENTS.md` §8，确认新人可按文档在 **前端仓根目录** 复现与 CI 一致的命令。
+- [x] **冷装**：删除 `node_modules` 后仅 `pnpm install --frozen-lockfile && pnpm test`，期望全绿。（2026-05-13 签收：本地 `pnpm install --frozen-lockfile && pnpm test` 全绿，Vitest 3 files / 8 tests。）
+- [x] **CI 对齐**：推送 PR 后，GitHub Actions 中与前端相关的 workflow **全部成功**。（2026-05-13 用户签收。）
+- [x] **文档**：打开根 `AGENTS.md` §8，确认新人可按文档在 **前端仓根目录** 复现与 CI 一致的命令。（2026-05-13 用户签收。）
 
 ---
 
@@ -91,6 +91,7 @@ P0 已为前端提供 **`quality.yml`**（`lint` + `build`），Verify 仍缺 **
 | 单测文件列表 | `lib/utils.test.ts`、`lib/text/chunk.test.ts`、`lib/ai/embeddings/dimension.test.ts` |
 | workflow 变更摘要 | **`quality`** / job **`lint-and-build`**：在 **Lint** 与 **Build** 之间新增 step **`Test`** → **`pnpm test`** |
 | 根文档变更文件 | `Projects/AGENTS.md` §8；`Projects/docs/harness/HARNESS_V2_PLAN.md`（§0、§2、§4、§10）；`Projects/docs/harness/HARNESS_V2_P0_ACCEPTANCE.md`（§1、§3、§6、§7） |
+| 手动验收签收 | 2026-05-13：用户确认「手动测试用例」三项均已通过；本地安装+单测日志见会话终端（`pnpm install --frozen-lockfile && pnpm test` → 8 passed）。 |
 
 ---
 
