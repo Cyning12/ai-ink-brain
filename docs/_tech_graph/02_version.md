@@ -22,5 +22,8 @@ timeline
   2026-05-09 : e3edfaf auto: components/unified-chat/UnifiedChatPageClient.tsx
   2026-05-11 : 76ccc9b auto: components/chain-chat/ChainEventCard.tsx
   2026-05-12 : ec59622 auto: app/api/py/unified/chat/route.ts
+  2026-05-13 : 415b934 auto: components/chain-chat/ChainEventCard.tsx
 ```
+
+**Verify（P1）**：PR 门禁 workflow **`quality`**（`ai-ink-brain/.github/workflows/quality.yml`）含 **`pnpm test`**（Vitest，与根 `AGENTS.md` §8 一致）。
 

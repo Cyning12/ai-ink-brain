@@ -2,7 +2,7 @@
 
 > **状态**：`done（2026-05-12 验收通过）`  
 > **演进**：已收敛为 Unified **主路径** `Authorization: Bearer <ChatBI DB 明文>`；BFF **不再**对 Unified / verify / py/chat/history 执行 `requireAdminApiSecret`（详见 `content/tasks/done/task_chatbi_fake_login_unlock_401_frontend_v1.md`）。  
-> **关联后端任务**：`ai-ink-brain-api-python/docs/tasks/active/task_chatbi_level_gate_v1.md`  
+> **关联后端任务**：`ai-ink-brain-api-python/docs/tasks/done/task_chatbi_level_gate_v1.md`  
 > **关联真值表**：`ai-ink-brain/docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md`
 
 ---

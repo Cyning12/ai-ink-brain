@@ -441,7 +441,7 @@
 
 ## 附 A：场景 ——「`2026-04-28.md` 写了什么」（RAG 单步成功，与 V1 `rag_rule` 对齐）
 
-> **与正文主场景的区别**：主文是 **双步**（SQL 失败 → RAG）；本附为 **单步即 `rag_search` 成功**，且依赖后端 **`intent_router` 的 `rag_rule_hits` + 证据门控**（见 `ai-ink-brain-api-python/docs/tasks/active/task_intent_router_backend_v1.md` §2026-05-08 回补）。
+> **与正文主场景的区别**：主文是 **双步**（SQL 失败 → RAG）；本附为 **单步即 `rag_search` 成功**，且依赖后端 **`intent_router` 的 `rag_rule_hits` + 证据门控**（见 `ai-ink-brain-api-python/docs/tasks/done/task_intent_router_backend_v1.md` §2026-05-08 回补）。
 
 **展示**：用户气泡 —— `2026-04-28.md写了什么`
 

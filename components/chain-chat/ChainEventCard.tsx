@@ -95,6 +95,7 @@ function badgeTone(type: ChainEvent["type"]): string {
   if (type.startsWith("chart.")) return "bg-amber-500/10 text-amber-800 border-amber-500/20";
   if (type === "agent.intent") return "bg-violet-500/10 text-violet-900 border-violet-500/25";
   if (type === "agent.clarify") return "bg-amber-500/15 text-amber-950 border-amber-500/40";
+  if (type === "agent.plan.preview") return "bg-indigo-500/12 text-indigo-950 border-indigo-500/35";
   if (type.startsWith("agent.llm")) return "bg-cyan-500/10 text-cyan-900 border-cyan-500/25";
   if (type.startsWith("agent.debug")) return "bg-orange-500/10 text-orange-950 border-orange-500/25";
   if (type.startsWith("text2sql.phase")) return "bg-indigo-500/10 text-indigo-900 border-indigo-500/25";
@@ -148,6 +149,11 @@ export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Pro
     if (event.type === "agent.clarify") {
       const short = typeof p.message === "string" && p.message.trim() ? p.message.trim().slice(0, 48) : "clarify";
       return `agent.clarify · ${short}`;
+    }
+    if (event.type === "agent.plan.preview") {
+      const pid = typeof p.plan_id === "string" && p.plan_id.trim() ? p.plan_id.trim().slice(0, 24) : "plan";
+      const tn = typeof p.tool === "string" && p.tool.trim() ? p.tool.trim() : "tool";
+      return `agent.plan.preview · ${tn} · ${pid}`;
     }
     if (event.type === "agent.think") {
       const tool = typeof p.selected_tool === "string" && p.selected_tool.trim() ? p.selected_tool : "?";
@@ -388,6 +394,51 @@ export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Pro
               {prompt.trim() ? prompt : "—"}
             </div>
           </div>
+        </div>
+      );
+    }
+    if (event.type === "agent.plan.preview") {
+      const p = event.payload ?? {};
+      const sql = typeof p.sql_draft === "string" ? p.sql_draft : "";
+      const warns = Array.isArray(p.warnings) ? p.warnings : [];
+      const exp = p.expires_in_sec;
+      const expStr = typeof exp === "number" && Number.isFinite(exp) ? String(Math.max(0, Math.floor(exp))) : "—";
+      const pid = typeof p.plan_id === "string" ? p.plan_id : "";
+      const tool = typeof p.tool === "string" ? p.tool : "";
+      return (
+        <div className="space-y-2 text-[11px] text-slate-800">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-indigo-500/50 bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-950">
+              方案预览（未执行）
+            </span>
+            <span className="text-[10px] text-slate-500">
+              TTL 约 {expStr}s · plan_id <span className="font-mono">{pid || "—"}</span>
+            </span>
+          </div>
+          <div className="grid gap-1 rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2 font-mono text-[10px] text-slate-700">
+            <div>
+              <span className="text-slate-500">tool</span> {tool || "—"}
+            </div>
+          </div>
+          <div>
+            <div className="text-[10px] font-medium text-indigo-900/90">sql_draft</div>
+            <div className="mt-1 max-h-[40vh] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-indigo-200/70 bg-indigo-50/40 px-2 py-1.5 font-mono text-[11px] leading-relaxed text-slate-900">
+              {sql.trim() ? sql : "—"}
+            </div>
+          </div>
+          {warns.length > 0 ? (
+            <div>
+              <div className="text-[10px] font-medium text-slate-600">warnings</div>
+              <ul className="mt-1 list-disc space-y-1 pl-4 text-[12px] leading-relaxed text-slate-900">
+                {warns.map((w, i) => (
+                  <li key={i}>{typeof w === "string" ? w : safeStringify(w)}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          <p className="text-[10px] text-slate-500">
+            放行令牌不在 Timeline 展示；请在输入区使用「按预览执行」。
+          </p>
         </div>
       );
     }

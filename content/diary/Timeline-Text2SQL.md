@@ -3,7 +3,7 @@
 > **本文范围**：**一种** 场景 —— **第 1 步即 `text2sql_query` 成功**：生成/执行 SQL 成功 → 出现 **`sql.result`** → 对最终答句做 **`phase: text2sql_summary`** 的 `agent.llm.*` 伪流式 → **`final_answer`**。  
 > **前提**：`POST /api/py/unified/chat/stream`、`CHATBI_USE_AGENT=true`，建议带 **`X-ChatBI-Sse-Contract: 2`**（增量路径）；下表为 **`event: chain` 的 `data` 对象** 逻辑顺序。  
 > **与抓包差异**：部分 UI 导出会折叠 **`agent.intent`**；**契约全量**中应在 **`agent.llm.end`（intent）** 与 **`router.decision`** 之间出现 `intent_1`，下文按 **服务端完整序列** 编写。  
-> **与 RAG 边界**：`prefer=auto` 下 V1 规则已支持 **`rag_rule_hits` 优先于纯 SQL 关键词**；「问某篇 `.md`/日记写了什么」应走 **RAG** 而非本场景的 Text2SQL，详见 `api/intent_router.py` 与 `docs/tasks/active/task_intent_router_backend_v1.md`（2026-05-08 回补验收）。
+> **与 RAG 边界**：`prefer=auto` 下 V1 规则已支持 **`rag_rule_hits` 优先于纯 SQL 关键词**；「问某篇 `.md`/日记写了什么」应走 **RAG** 而非本场景的 Text2SQL，详见 `api/intent_router.py` 与 **`ai-ink-brain-api-python/docs/tasks/done/task_intent_router_backend_v1.md`**（2026-05-08 回补验收）。
 
 ### 术语：`ts`（消耗时间码）
 
