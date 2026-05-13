@@ -9,7 +9,7 @@
 与 **跨子仓流程 / CI 门禁对齐 / 帽子 prompts / 根级验收** 相关的任务单已统一放在工作区：
 
 - **`docs/harness/tasks/active/`**、**`docs/harness/tasks/done/`**  
-- 规则与索引：**[`../../../docs/harness/tasks/README.md`](../../../docs/harness/tasks/README.md)**（相对本文件：`Projects/docs/harness/tasks/README.md`）
+- 规则与索引：工作区根下 **`docs/harness/tasks/README.md`**（与 `ai-ink-brain/` 同级的 **`Projects/`** 聚合仓；仅克隆本仓时无此路径，请以团队入口或根 `AGENTS.md` §8 为准）
 
 本目录 **`content/tasks/`** 仅承载 **前端业务** 任务；勿再将 Harness 类任务长期放在此处，以免与 `AGENTS.md` §2.2 漂移。
 
@@ -24,7 +24,16 @@ content/tasks/
   active/                  # 设计中 / 待开始 / 进行中（task_*.md）
   done/                    # 已完成（归档目录）
   templates/               # 任务模板（TASK_TEMPLATE.md）
+  review_results/          # 审查帽输出归档（见该目录 README）；可交需求帽回填 SPEC/task
+  reinspect_results/       # 独立复检帽输出归档（见该目录 README）；必要时交需求帽回填
 ```
+
+### 审查与复检产出（非 task 单）
+
+- **`review_results/`**：规格/任务 **审查帽** 结论归档；详见 [`review_results/README.md`](review_results/README.md)。  
+- **`reinspect_results/`**：**独立复检帽** 结论归档；详见 [`reinspect_results/README.md`](reinspect_results/README.md)。  
+
+二者均可将「回填清单」交给工作区 **需求帽**（工作区根 **`docs/harness/prompts/10-requirements.md`**；同上，仅 `Projects/` 聚合布局下存在）以更新本仓或后端仓的 task / SPEC（按清单内路径执行）。
 
 ---
 
@@ -70,4 +79,4 @@ content/tasks/
 ## 常见坑（避免）
 
 - 不要把已完成任务留在 `active/`（会误导 Agent 判断「仍在进行」）
-- 不要把 `README.md`、`_views/`、`templates/` 下的说明当作可发布博客正文（站点扫描已排除这些路径/文件名，见 `lib/content/mdx-posts.ts`）
+- 不要把 `README.md`、`templates/`、`_views/`、`review_results/`、`reinspect_results/` 下的说明当作可发布博客正文（站点扫描已排除这些路径/文件名，见 `lib/content/mdx-posts.ts`）
