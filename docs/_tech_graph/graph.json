@@ -1,0 +1,853 @@
+{
+  "schema_version": "graph_v1",
+  "generated_at": "2026-05-14T13:06:29Z",
+  "nodes": [
+    "ABOUT",
+    "ADMINHOOK",
+    "ADMINS",
+    "API_PY",
+    "API_SESSION",
+    "API_UNLOCK",
+    "APP",
+    "AUTH",
+    "AUTH_SESSION",
+    "AUTH_UNLOCK",
+    "BB",
+    "BEARER",
+    "BLOG",
+    "BLOGSLUG",
+    "CC",
+    "CCP",
+    "CH",
+    "CHAIN",
+    "CHAT",
+    "COOKIE",
+    "CP",
+    "DENY",
+    "DIARY",
+    "EC",
+    "ENV",
+    "FILTER",
+    "G_API",
+    "G_AUTH",
+    "G_COMP",
+    "G_ROUTE",
+    "G_SPEC",
+    "G_STRUCT",
+    "G_VER",
+    "HIDE",
+    "HISTORY",
+    "HM",
+    "HOME",
+    "HOME_LINKS",
+    "L",
+    "LEARNING",
+    "LS",
+    "L_ABOUT",
+    "L_ADMIN",
+    "L_BLOG",
+    "L_DIARY",
+    "L_LEARNING",
+    "L_TASKS",
+    "MD",
+    "NAV",
+    "NAVFILTER",
+    "NAV_ITEMS",
+    "N_ABOUT",
+    "N_BLOG",
+    "N_CHAIN",
+    "N_CHAT",
+    "N_LEARNING",
+    "N_T2S",
+    "N_TASKS",
+    "N_UNIFIED",
+    "PARSE",
+    "PROJECTS",
+    "PY",
+    "PY_CHAIN",
+    "PY_CHAT",
+    "PY_CHAT_HIS",
+    "PY_T2S",
+    "PY_UNIFIED",
+    "PY_UNIFIED_SSE",
+    "P_CHAIN",
+    "P_CHAT",
+    "P_HIS",
+    "P_T2S",
+    "P_UNI",
+    "P_UNI_SSE",
+    "REQ",
+    "ROOT",
+    "ROUTER",
+    "SC",
+    "SESSION_UI",
+    "SID",
+    "SQLT",
+    "STREAM",
+    "T2",
+    "T2P",
+    "T2S",
+    "TL",
+    "TOKEN",
+    "TSE",
+    "UC",
+    "UCP",
+    "UC_DBG",
+    "UC_HIST",
+    "UC_MID",
+    "UC_MSG",
+    "UC_RIGHT",
+    "UC_TOP",
+    "UNIFIED",
+    "UNLOCK_UI",
+    "UPSTREAM",
+    "VALIDATE",
+    "XS"
+  ],
+  "edges": [
+    {
+      "from": "ADMINHOOK",
+      "to": "AUTH_SESSION",
+      "type": "async_calls",
+      "sync": false
+    },
+    {
+      "from": "ADMINS",
+      "to": "FILTER",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "ADMINS",
+      "to": "NAVFILTER",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "API_PY",
+      "to": "REQ",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "API_SESSION",
+      "to": "COOKIE",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "API_SESSION",
+      "to": "ENV",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "API_UNLOCK",
+      "to": "ENV",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "APP",
+      "to": "G_SPEC",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "APP",
+      "to": "G_VER",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "AUTH",
+      "to": "G_AUTH",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "AUTH",
+      "to": "PY",
+      "type": "async_calls",
+      "sync": false
+    },
+    {
+      "from": "AUTH_SESSION",
+      "to": "COOKIE",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "AUTH_UNLOCK",
+      "to": "COOKIE",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "BB",
+      "to": "HOME",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "BEARER",
+      "to": "REQ",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "CC",
+      "to": "BB",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "CCP",
+      "to": "SID",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "CH",
+      "to": "BB",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "CHAIN",
+      "to": "CCP",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "CHAIN",
+      "to": "PY_CHAIN",
+      "type": "async_calls",
+      "sync": false
+    },
+    {
+      "from": "CHAT",
+      "to": "CP",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "COOKIE",
+      "to": "REQ",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "COOKIE",
+      "to": "SESSION_UI",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "CP",
+      "to": "G_API",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "CP",
+      "to": "HISTORY",
+      "type": "async_calls",
+      "sync": false
+    },
+    {
+      "from": "CP",
+      "to": "MD",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "CP",
+      "to": "PY_CHAT",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "CP",
+      "to": "PY_CHAT_HIS",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "CP",
+      "to": "SC",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "CP",
+      "to": "SID",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "CP",
+      "to": "STREAM",
+      "type": "async_calls",
+      "sync": false
+    },
+    {
+      "from": "EC",
+      "to": "SC",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "EC",
+      "to": "SQLT",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "ENV",
+      "to": "TSE",
+      "type": "condition",
+      "sync": true
+    },
+    {
+      "from": "FILTER",
+      "to": "HIDE",
+      "type": "condition",
+      "sync": true
+    },
+    {
+      "from": "FILTER",
+      "to": "N_CHAIN",
+      "type": "condition",
+      "sync": true
+    },
+    {
+      "from": "FILTER",
+      "to": "N_CHAT",
+      "type": "condition",
+      "sync": true
+    },
+    {
+      "from": "FILTER",
+      "to": "N_T2S",
+      "type": "condition",
+      "sync": true
+    },
+    {
+      "from": "FILTER",
+      "to": "N_UNIFIED",
+      "type": "condition",
+      "sync": true
+    },
+    {
+      "from": "HM",
+      "to": "HOME_LINKS",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "HOME",
+      "to": "G_ROUTE",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "HOME",
+      "to": "HM",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "HOME_LINKS",
+      "to": "L_ABOUT",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "HOME_LINKS",
+      "to": "L_ADMIN",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "HOME_LINKS",
+      "to": "L_BLOG",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "HOME_LINKS",
+      "to": "L_DIARY",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "HOME_LINKS",
+      "to": "L_LEARNING",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "HOME_LINKS",
+      "to": "L_TASKS",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "L",
+      "to": "NAV",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "L",
+      "to": "ROUTER",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "LS",
+      "to": "TOKEN",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "NAV",
+      "to": "ADMINS",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "NAV",
+      "to": "NAV_ITEMS",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "NAVFILTER",
+      "to": "ROUTER",
+      "type": "condition",
+      "sync": true
+    },
+    {
+      "from": "NAV_ITEMS",
+      "to": "N_ABOUT",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "NAV_ITEMS",
+      "to": "N_BLOG",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "NAV_ITEMS",
+      "to": "N_CHAIN",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "NAV_ITEMS",
+      "to": "N_CHAT",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "NAV_ITEMS",
+      "to": "N_LEARNING",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "NAV_ITEMS",
+      "to": "N_T2S",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "NAV_ITEMS",
+      "to": "N_TASKS",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "NAV_ITEMS",
+      "to": "N_UNIFIED",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "PARSE",
+      "to": "TSE",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "PY_CHAIN",
+      "to": "AUTH",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "PY_CHAIN",
+      "to": "REQ",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "PY_CHAT",
+      "to": "AUTH",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "PY_CHAT",
+      "to": "REQ",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "PY_CHAT_HIS",
+      "to": "REQ",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "PY_T2S",
+      "to": "AUTH",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "PY_T2S",
+      "to": "REQ",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "PY_UNIFIED",
+      "to": "AUTH",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "PY_UNIFIED",
+      "to": "REQ",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "PY_UNIFIED_SSE",
+      "to": "AUTH",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "PY_UNIFIED_SSE",
+      "to": "REQ",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "P_CHAT",
+      "to": "XS",
+      "type": "yields",
+      "sync": true
+    },
+    {
+      "from": "REQ",
+      "to": "DENY",
+      "type": "condition",
+      "sync": true
+    },
+    {
+      "from": "REQ",
+      "to": "P_CHAIN",
+      "type": "async_calls",
+      "sync": false
+    },
+    {
+      "from": "REQ",
+      "to": "P_CHAT",
+      "type": "async_calls",
+      "sync": false
+    },
+    {
+      "from": "REQ",
+      "to": "P_HIS",
+      "type": "async_calls",
+      "sync": false
+    },
+    {
+      "from": "REQ",
+      "to": "P_T2S",
+      "type": "async_calls",
+      "sync": false
+    },
+    {
+      "from": "REQ",
+      "to": "P_UNI",
+      "type": "async_calls",
+      "sync": false
+    },
+    {
+      "from": "REQ",
+      "to": "P_UNI_SSE",
+      "type": "async_calls",
+      "sync": false
+    },
+    {
+      "from": "REQ",
+      "to": "UPSTREAM",
+      "type": "condition",
+      "sync": true
+    },
+    {
+      "from": "REQ",
+      "to": "VALIDATE",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "ROOT",
+      "to": "HOME",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "ROOT",
+      "to": "NAV",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "ROUTER",
+      "to": "ABOUT",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "ROUTER",
+      "to": "BLOG",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "ROUTER",
+      "to": "BLOGSLUG",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "ROUTER",
+      "to": "CHAIN",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "ROUTER",
+      "to": "CHAT",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "ROUTER",
+      "to": "DIARY",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "ROUTER",
+      "to": "G_STRUCT",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "ROUTER",
+      "to": "HOME",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "ROUTER",
+      "to": "LEARNING",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "ROUTER",
+      "to": "PROJECTS",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "ROUTER",
+      "to": "T2S",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "ROUTER",
+      "to": "UNIFIED",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "SESSION_UI",
+      "to": "API_SESSION",
+      "type": "async_calls",
+      "sync": false
+    },
+    {
+      "from": "T2",
+      "to": "BB",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "T2P",
+      "to": "SID",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "T2S",
+      "to": "PY_T2S",
+      "type": "async_calls",
+      "sync": false
+    },
+    {
+      "from": "T2S",
+      "to": "T2P",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "TL",
+      "to": "EC",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "TOKEN",
+      "to": "API_PY",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "TSE",
+      "to": "COOKIE",
+      "type": "condition",
+      "sync": true
+    },
+    {
+      "from": "TSE",
+      "to": "ENV",
+      "type": "condition",
+      "sync": true
+    },
+    {
+      "from": "UC",
+      "to": "BB",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "UCP",
+      "to": "G_COMP",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "UCP",
+      "to": "SID",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "UCP",
+      "to": "UC_DBG",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "UCP",
+      "to": "UC_HIST",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "UCP",
+      "to": "UC_MID",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "UCP",
+      "to": "UC_MSG",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "UCP",
+      "to": "UC_RIGHT",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "UCP",
+      "to": "UC_TOP",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "UC_MID",
+      "to": "TL",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "UNIFIED",
+      "to": "AUTH_UNLOCK",
+      "type": "async_calls",
+      "sync": false
+    },
+    {
+      "from": "UNIFIED",
+      "to": "PY_UNIFIED",
+      "type": "async_calls",
+      "sync": false
+    },
+    {
+      "from": "UNIFIED",
+      "to": "PY_UNIFIED_SSE",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "UNIFIED",
+      "to": "UCP",
+      "type": "depends_on",
+      "sync": true
+    },
+    {
+      "from": "UNLOCK_UI",
+      "to": "API_UNLOCK",
+      "type": "async_calls",
+      "sync": false
+    },
+    {
+      "from": "VALIDATE",
+      "to": "COOKIE",
+      "type": "condition",
+      "sync": true
+    },
+    {
+      "from": "VALIDATE",
+      "to": "PARSE",
+      "type": "condition",
+      "sync": true
+    }
+  ]
+}

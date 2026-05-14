@@ -16,7 +16,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:ci": "vitest run"
+    "test:ci": "vitest run",
+    "tech-graph:graph-check": "python3 tools/export_graph_json.py --input docs/_tech_graph --output docs/_tech_graph/graph.json --check"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.52",

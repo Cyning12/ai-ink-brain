@@ -23,7 +23,9 @@ content/tasks/
   _views/                  # 状态视图索引（聚合链接）
   active/                  # 设计中 / 待开始 / 进行中（task_*.md）
   done/                    # 已完成（归档目录）
+  specs/                   # 规格文档（SPEC-*.md）；可被多个 task 引用
   templates/               # 任务模板（TASK_TEMPLATE.md）
+  legacy/                  # 历史命名 / 缺少状态 / 待补齐字段
   review_results/          # 审查帽输出归档（见该目录 README）；可交需求帽回填 SPEC/task
   reinspect_results/       # 独立复检帽输出归档（见该目录 README）；必要时交需求帽回填
 ```
@@ -34,6 +36,13 @@ content/tasks/
 - **`reinspect_results/`**：**独立复检帽** 结论归档；详见 [`reinspect_results/README.md`](reinspect_results/README.md)。  
 
 二者均可将「回填清单」交给工作区 **需求帽**（工作区根 **`docs/harness/prompts/10-requirements.md`**；同上，仅 `Projects/` 聚合布局下存在）以更新本仓或后端仓的 task / SPEC（按清单内路径执行）。
+
+### `specs/` 与 `legacy/` 的边界
+
+与后端 `ai-ink-brain-api-python/docs/tasks/README.md` **对齐**：
+
+- **`specs/`**：只放规格（`SPEC-*.md`），可被多个 task 引用。
+- **`legacy/`**：只放历史遗留（命名不规范 / 缺少状态 / 待补齐字段）；整理应通过独立 task 执行，避免一次性大改造成漂移。
 
 ---
 
