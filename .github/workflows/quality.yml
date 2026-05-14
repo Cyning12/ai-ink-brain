@@ -30,6 +30,15 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      # scheme_1 graph.json：与 docs/_tech_graph/*.ai.md 一致（--check 忽略 generated_at）；见 content/tasks/active/task_engineering_tech_graph_graph_json_export_v1.md
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Tech graph graph.json (--check)
+        run: python3 tools/export_graph_json.py --input docs/_tech_graph --output docs/_tech_graph/graph.json --check
+
       - name: Lint
         run: pnpm lint
 

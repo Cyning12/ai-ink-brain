@@ -47,10 +47,10 @@
 
 ## 4. 验收标准
 
-- [ ] **`ai-ink-brain/docs/_tech_graph/graph.json`** 存在且与解析器输出一致。  
-- [ ] 文档化的一键检查命令在 **PR CI** 通过（与 **`pnpm lint` / `pnpm test` / `pnpm build`** 的先后关系见本仓 **quality** 与 `PROJECT_CONFIG` 既有约定）。  
-- [ ] 若走 **独立前端解析** 路径：须有 **Vitest** 或与后端对称的 **最小自动化**。  
-- [ ] 若仅 **shell 调用 Python**：在「实现备忘」写明 **以前端 CI 调用为真**；`test_strategy` 仍为 `required`，理由为 **门禁命令在 CI 必跑**。
+- [x] **`ai-ink-brain/docs/_tech_graph/graph.json`** 存在且与解析器输出一致。  
+- [x] 文档化的一键检查命令在 **PR CI** 通过（与 **`pnpm lint` / `pnpm test` / `pnpm build`** 的先后关系见本仓 **quality** 与 `PROJECT_CONFIG` 既有约定）。  
+- [ ] 若走 **独立前端解析** 路径：须有 **Vitest** 或与后端对称的 **最小自动化**。（本实现未选此路径）  
+- [x] 若仅 **shell 调用 Python**：在「实现备忘」写明 **以前端 CI 调用为真**；`test_strategy` 仍为 `required`，理由为 **门禁命令在 CI 必跑**。
 
 ---
 
@@ -90,9 +90,11 @@
 
 | 项 | 内容 |
 |----|------|
-| CI 接入方式 | `<待回填>` |
-| 闸口 A 文档链接 | `<待回填>` |
-| 与后端脚本复用关系 | `<待回填>` |
+| CI 接入方式 | **(A) 仅前端仓 CI checkout**：`.github/workflows/quality.yml` → job `lint-and-build` → 在 `pnpm install` **之后**、`pnpm lint` **之前** 增加 `actions/setup-python@v5`（`python-version: "3.11"`）与一步 `python3 tools/export_graph_json.py --input docs/_tech_graph --output docs/_tech_graph/graph.json --check`（**cwd** = `ai-ink-brain` 仓根）。与 `pnpm lint` / `pnpm test` / `pnpm build` 顺序仍为本仓 quality 既有链。 |
+| 闸口 A 文档链接 | 闸口 A（现状 vs 方案1）最低要求见工作区规划 `docs/tech_graph/改进方向.md`「对比实验门闸」表；本 PR 未新增独立对比实验 md 时以该节为权威指针。 |
+| 与后端脚本复用关系 | **不复用**：本仓独立脚本 `tools/export_graph_json.py`（CLI 与规划示例一致：`--input` / `--output` / `--check`）；与后端 task 建议脚本名对齐便于人工对照，待后端落地后可再评估 golden 对齐或抽共享包（当前非范围）。 |
+| test_strategy / required 落实 | **以前端 CI 必跑的 `python3 … --check` 为真**（quality workflow 与 `pnpm test` 同 PR 必绿）；未另加 Vitest 覆盖解析器，理由同本 task §4「若仅 shell 调用 Python…在备忘写明理由」。 |
+| 一键命令（本地） | 检查：`pnpm tech-graph:graph-check` 或 `python3 tools/export_graph_json.py --input docs/_tech_graph --output docs/_tech_graph/graph.json --check`；再生成提交：`python3 tools/export_graph_json.py --input docs/_tech_graph --output docs/_tech_graph/graph.json` |
 | 契约变更后 freeze_id | 若 bump 规划 / SPEC，须与后端 task **同一行**更新 **freeze_id**；实现 PR 可将 **短 commit hash** 记入 PR 描述（**不**写入本行 `freeze_id`，以免破坏机械比对） |
 
 ---
