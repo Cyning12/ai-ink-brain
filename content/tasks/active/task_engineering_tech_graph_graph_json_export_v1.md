@@ -1,11 +1,11 @@
 # Task：技术图谱 — 方案1 静态 `graph.json` 导出与 CI 门禁（前端仓）
 
 > **状态**：`draft`  
-> **关联规划**：`docs/tech_graph/改进方向.md` v1.1（方案1 + **R1**）；`docs/tech_graph/SPEC/json_graph/scheme_1_graph_json.md`  
-> **invoke_snapshot**：`docs/tech_graph/invokes/invoke_20260514_0000_10_tech-graph-scheme1-dual-task-draft.md`  
+> **关联规划**：`docs/tech_graph/改进方向.md` **v1.1.3**（方案1 + **R1** + 前端 graph CI 消歧）；`docs/tech_graph/SPEC/json_graph/scheme_1_graph_json.md`  
+> **invoke_snapshot**：`docs/tech_graph/invokes/invoke_20260514_0000_10_tech-graph-scheme1-dual-task-draft.md`；`docs/harness/invokes/invoke_20260514_0031_10_tech-graph-scheme1-exec-converge.md`（链上一节：`docs/harness/invokes/invoke_20260514_20_tech-graph-scheme1-review-hat20.md`）  
 > **test_strategy**：`required`  
-> **test_strategy_note**：方案1 价值在 **可 diff 的 `graph.json` + CI**；无自动化则图谱与 JSON 易脱节。与本工作区复检一致：**R1 物理条件已满足**（仅 `docs/_tech_graph/`、仓根无 `_tech_graph/`），**应**将 graph 门禁纳入 PR 必绿路径（与 SPEC「未完成 R1 勿标必绿」区分）。  
-> **freeze_id（建议）**：同后端 — `docs/tech_graph/改进方向.md` **v1.1** + `docs/tech_graph/SPEC/json_graph/scheme_1_graph_json.md`。
+> **test_strategy_note**：方案1 价值在 **可 diff 的 `graph.json` + CI**；无自动化则图谱与 JSON 易脱节。与 **改进方向** v1.1.1 / v1.1.3 及 **SPEC scheme_1** 一致：**R1 物理条件已满足**（仅 `docs/_tech_graph/`、仓根无 `_tech_graph/`）时，**应**将 graph 门禁纳入 PR **必绿**；异构克隆仍须先完成 R1 迁移再绑 CI。  
+> **freeze_id**：`TECH_GRAPH_S1_FREEZE_20260514_V1_1_3`
 
 ---
 
@@ -93,6 +93,7 @@
 | CI 接入方式 | `<待回填>` |
 | 闸口 A 文档链接 | `<待回填>` |
 | 与后端脚本复用关系 | `<待回填>` |
+| 契约变更后 freeze_id | 若 bump 规划 / SPEC，须与后端 task **同一行**更新 **freeze_id**；实现 PR 可将 **短 commit hash** 记入 PR 描述（**不**写入本行 `freeze_id`，以免破坏机械比对） |
 
 ---
 
