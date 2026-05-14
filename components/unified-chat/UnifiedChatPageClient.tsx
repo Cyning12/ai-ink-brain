@@ -1221,7 +1221,7 @@ export function UnifiedChatPageClient() {
       void sendRef.current(q);
     }, 1000);
     return () => window.clearInterval(id);
-  }, [pendingPlanConfirm?.token]);
+  }, [pendingPlanConfirm]);
 
   if (!mounted) {
     return (

@@ -1,5 +1,6 @@
-# Harness V2 · Verify：PR/push 上 lint + test + build（与 docs/harness/HARNESS_V2_PLAN.md §4 P0/P1 对齐）
-name: quality
+# Harness V2 · P2 可选：独立 Verification（仅 lint + test，无 build）
+# 真值与计费说明：见工作区 docs/harness/VERIFICATION_CI_PATTERN.md
+name: verify-fast
 
 on:
   pull_request:
@@ -9,14 +10,13 @@ on:
       - production
 
 jobs:
-  lint-and-build:
+  verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
-      # 版本以 package.json 的 packageManager（pnpm@x.y.z）为唯一真源，勿在此再写 version，否则与 action-setup 冲突报 ERR_PNPM_BAD_PM_VERSION
       - name: Setup pnpm
         uses: pnpm/action-setup@v5
 
@@ -35,6 +35,3 @@ jobs:
 
       - name: Test
         run: pnpm test
-
-      - name: Build
-        run: pnpm build
