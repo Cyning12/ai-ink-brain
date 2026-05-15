@@ -93,10 +93,10 @@
 
 | 项 | 内容 |
 |----|------|
-| 采用 CI 模式 | A / B（与 §7 一致） |
-| 导出 / 校验命令 | （回填） |
-| workflow 文件与 job 名 | （回填） |
-| 闸口 A 链接 | （回填） |
+| 采用 CI 模式 | **A**（`quality` 单仓：额外 `checkout` `Cyning12/ai-ink-brain-api-python` 至 `ai-ink-brain-api-python/`，与 §7 一致） |
+| 导出 / 校验命令 | **cwd** = `ai-ink-brain` 仓根。复用后端脚本时 `--input` / `--output` 须为**绝对路径**（`tech_graph_graph_export.py` 内 `REPO_ROOT` 为 api-python 根，相对路径会解析错）。**CI**：`python3 ai-ink-brain-api-python/tools/tech_graph_graph_export.py --input "${GITHUB_WORKSPACE}/docs/_tech_graph" --output "${GITHUB_WORKSPACE}/docs/_tech_graph/graph.json" --check`。**本地再生成**：`python3 ../ai-ink-brain-api-python/tools/tech_graph_graph_export.py --input "$(pwd)/docs/_tech_graph" --output "$(pwd)/docs/_tech_graph/graph.json"`（工作区下后端仓为 `../ai-ink-brain-api-python`）。**本地校验**：`pnpm tech-graph:graph-check`（`package.json` 已封装 `sh -c` + 绝对路径）。 |
+| workflow 文件与 job 名 | `.github/workflows/quality.yml` → job **`lint-and-build`**：步骤 **`Tech graph graph.json (--check)`** 位于 **`Install`** 之后、**`Lint`** 之前；与 **`tech_graph_contract_check`** 不同脚本、未合并。 |
+| 闸口 A 链接 | 与后端同 freeze 对齐：`ai-ink-brain-api-python/docs/tech_graph/gate_a_scheme1_backend.md`（详：`gate_a_scheme1_perf_compare_backend_detail.md`） |
 
 ---
 

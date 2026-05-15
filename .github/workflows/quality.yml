@@ -16,6 +16,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      # 模式 A：复用后端同源导出脚本（路径相对 GITHUB_WORKSPACE）；--input/--output 须为绝对路径（脚本内 REPO_ROOT 为 api-python 仓根）
+      - name: Checkout backend (tech graph graph export)
+        uses: actions/checkout@v5
+        with:
+          repository: Cyning12/ai-ink-brain-api-python
+          path: ai-ink-brain-api-python
+
       # 版本以 package.json 的 packageManager（pnpm@x.y.z）为唯一真源，勿在此再写 version，否则与 action-setup 冲突报 ERR_PNPM_BAD_PM_VERSION
       - name: Setup pnpm
         uses: pnpm/action-setup@v5
@@ -30,14 +37,14 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      # scheme_1 graph.json：与 docs/_tech_graph/*.ai.md 一致（--check 忽略 generated_at）；见 content/tasks/done/task_engineering_tech_graph_graph_json_export_v1.md
+      # scheme_1 graph.json：cwd=本仓根；与 `tech_graph_contract_check` 独立（契约真值在后端仓）
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       - name: Tech graph graph.json (--check)
-        run: python3 tools/export_graph_json.py --input docs/_tech_graph --output docs/_tech_graph/graph.json --check
+        run: python3 ai-ink-brain-api-python/tools/tech_graph_graph_export.py --input "${GITHUB_WORKSPACE}/docs/_tech_graph" --output "${GITHUB_WORKSPACE}/docs/_tech_graph/graph.json" --check
 
       - name: Lint
         run: pnpm lint
