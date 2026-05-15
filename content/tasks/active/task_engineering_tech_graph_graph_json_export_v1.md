@@ -43,7 +43,9 @@
 |----|------|
 | 规划 | `docs/tech_graph/改进方向.md` |
 | SPEC 方案1 | `docs/tech_graph/SPEC/json_graph/scheme_1_graph_json.md` |
-| 配对后端 task | `ai-ink-brain-api-python/docs/tasks/active/task_engineering_tech_graph_graph_json_export_v1.md` |
+| 配对后端 task | `ai-ink-brain-api-python/docs/tasks/active/task_engineering_tech_graph_graph_json_export_v1.md`（若已归档则改链 `docs/tasks/done/…`） |
+| 闸口 A（总览 + 性能对比叙事） | `ai-ink-brain-api-python/docs/tech_graph/gate_a_scheme1_backend.md` |
+| 闸口 A 性能 SOP（后端子集） | `ai-ink-brain-api-python/docs/tech_graph/gate_a_scheme1_perf_compare_backend_detail.md` |
 | 契约门禁（真值在后端仓） | `ai-ink-brain-api-python/tools/tech_graph_contract_check.py` |
 | 契约真值 | `ai-ink-brain-api-python/docs/_tech_graph/_contract_manifest.json` |
 | 拓扑协议 | `ai-ink-brain/docs/_tech_graph/99_mermaid_protocol.md`（若存在） |
@@ -74,7 +76,7 @@
 
 ## 6. 闸口 A（方案1 后）
 
-与后端 task 配对：对比实验 **现状 vs 方案1** 可在任一侧子仓或工作区 `docs/tech_graph/` 归档；本前端 task 须在「实现备忘」链到最终 md 与 **同一 `freeze_id`** 行（与后端 **逐字一致**，便于机械比对）。
+与后端 task 配对：对比实验 **现状 vs 方案1** 可在任一侧子仓或工作区 `docs/tech_graph/` 归档；**性能对比书面结论**以 **`ai-ink-brain-api-python/docs/tech_graph/gate_a_scheme1_backend.md`** 为总览真值，后端采集 SOP 见 **`gate_a_scheme1_perf_compare_backend_detail.md`**。本 task 须在「实现备忘」链到最终 md 与 **同一 `freeze_id`** 行（与后端 **逐字一致**）；前端 §3.2 数据回填后须在父文档 **「仓库或 CI 快照引用」** 回链路径。
 
 ---
 
