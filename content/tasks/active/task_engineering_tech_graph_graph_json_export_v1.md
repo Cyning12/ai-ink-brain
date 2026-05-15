@@ -1,19 +1,21 @@
 # Task：技术图谱 — 方案1 静态 `graph.json` 导出与 CI 门禁（前端仓）
 
 > **状态**：`draft`  
-> **关联规划**：`docs/tech_graph/改进方向.md` **v1.1.3**（方案1 + **R1** + 前端 graph CI 消歧）；`docs/tech_graph/SPEC/json_graph/scheme_1_graph_json.md`  
-> **invoke_snapshot**：`docs/tech_graph/invokes/invoke_20260514_0000_10_tech-graph-scheme1-dual-task-draft.md`；`docs/harness/invokes/invoke_20260514_0031_10_tech-graph-scheme1-exec-converge.md`（链上一节：`docs/harness/invokes/invoke_20260514_20_tech-graph-scheme1-review-hat20.md`）  
+> **关联规划**：`docs/tech_graph/改进方向.md` **v1.1.3**（含 **2026-05-15** 勘误行：R1 与 scheme_1「PR 必绿」一致）；`docs/tech_graph/SPEC/json_graph/scheme_1_graph_json.md`  
+> **invoke_snapshot**：`docs/tech_graph/invokes/invoke_20260514_0000_10_tech-graph-scheme1-dual-task-draft.md`；`docs/harness/invokes/invoke_20260514_0031_10_tech-graph-scheme1-exec-converge.md`；`docs/harness/invokes/invoke_20260515_0000_10_tech-graph-scheme1-exec-converge-hat10.md`（链：`docs/harness/invokes/invoke_20260514_20_tech-graph-scheme1-review-hat20.md`）  
 > **test_strategy**：`required`  
-> **test_strategy_note**：方案1 价值在 **可 diff 的 `graph.json` + CI**；无自动化则图谱与 JSON 易脱节。与 **改进方向** v1.1.1 / v1.1.3 及 **SPEC scheme_1** 一致：**R1 物理条件已满足**（仅 `docs/_tech_graph/`、仓根无 `_tech_graph/`）时，**应**将 graph 门禁纳入 PR **必绿**；异构克隆仍须先完成 R1 迁移再绑 CI。  
+> **test_strategy_note**：与后端同源：确定性解析 + 无漂移门禁；若无可失败自动化（`pnpm`/`node` 或复用 Python 的 `--check` + 最小 golden），PR 易静默破坏图语义。  
 > **freeze_id**：`TECH_GRAPH_S1_FREEZE_20260514_V1_1_3`
 
 ---
 
 ## 1. 背景与目标
 
-在 **`ai-ink-brain/docs/_tech_graph/`** 生成 **`graph.json`**，与 `.ai.md` 双轨及 **`99_mermaid_protocol.md`**（若存在）对齐；CI 上 **`--check`** 防止漂移。
+从本仓 **`docs/_tech_graph/*.ai.md`** 解析 Mermaid **flowchart** / **classDiagram** 边，生成 **`docs/_tech_graph/graph.json`**，与 [`scheme_1_graph_json.md`](../../../../docs/tech_graph/SPEC/json_graph/scheme_1_graph_json.md) 及 **R1**（[`改进方向.md`](../../../../docs/tech_graph/改进方向.md) v1.1.3 表「R1」）一致。
 
-前端 **不承担** `_contract_manifest` 真值（契约仍在后端仓）；若工作区 CI **复用后端解析脚本**，须在 task / PR 中固定 **cwd、Python 版本、相对路径**（见 §7）。
+**R1 物理条件已满足**（聚合仓复检：仅有 `docs/_tech_graph/`、仓根无 `_tech_graph/`）时，本 task 落地后 **`graph.json` 导出 / `--check` 须纳入 `quality` 等 PR 必绿**（与后端 task、scheme_1「已定稿」一致）。
+
+与 **`tech_graph_contract_check.py`** + **`_contract_manifest.json`** **并行互补**：**不得**把契约校验合并进 graph 导出脚本；CI 中 **顺序执行、各自独立失败**（仅前端单仓 CI 时，若未检出后端工具，contract 门禁可留在后端 workflow 或聚合 CI 另步——见 §7）。
 
 ---
 
@@ -21,14 +23,17 @@
 
 **范围**
 
-- 本仓 **`graph.json`** 路径、门禁命令、与 **quality workflow** 对齐的接入方式（执行帽改 YAML；本初稿 **不**贴 YAML 正文）。  
-- 若复用后端脚本：写明从工作区根 **`Projects/`** 维度的调用方式（例如在本仓 job 中 `working-directory` + `python ../ai-ink-brain-api-python/tools/... --graph-root docs/_tech_graph` 等，**以最终实现为准**）。
+- 导出 / `--check` 落点：`docs/_tech_graph/graph.json`。  
+- **cwd**：执行任何导出或校验命令时，**当前工作目录须为 `ai-ink-brain` 子仓根**（与 `scheme_1` 输入根 `docs/_tech_graph` 相对本仓根一致）。  
+- 在 **`.github/workflows/quality.yml`**（或等效 PR 必绿 workflow）接入步骤；与 **quality** 其余 step 的先后由实现 PR 定稿并写入「实现备忘」。  
+- 若 **复用** 后端仓脚本：在 task / PR 中写清 **checkout 路径**（例如工作区布局下相对路径 `../ai-ink-brain-api-python/tools/<export_script>.py`）及 **Python 版本**；**不得**改脚本内契约校验逻辑。
 
 **非范围**
 
-- 后端契约 manifest 维护。  
-- Snail / secondCar。  
-- 方案2 / 方案3。
+- 方案2 / 方案3。  
+- 跨仓合并 `graph.json`。  
+- 改写 **`99_mermaid_protocol.md`** 语义（仅遵守）。  
+- 在本仓内用单脚本 **替代** `_contract_manifest` / `tech_graph_contract_check`。
 
 ---
 
@@ -38,19 +43,23 @@
 |----|------|
 | 规划 | `docs/tech_graph/改进方向.md` |
 | SPEC 方案1 | `docs/tech_graph/SPEC/json_graph/scheme_1_graph_json.md` |
-| 前端 AGENTS | `ai-ink-brain/AGENTS.md` |
-| 图谱真值目录 | `ai-ink-brain/docs/_tech_graph/`（现网文件集） |
-| 可选复用脚本 | `ai-ink-brain-api-python/tools/<export_script>.py`（与后端 task 同 PR 或先行定名） |
-| 配对后端 task | `ai-ink-brain-api-python/docs/tasks/active/task_engineering_tech_graph_graph_json_export_v1.md` |
+| 配对后端 task | `ai-ink-brain-api-python/docs/tasks/active/task_engineering_tech_graph_graph_json_export_v1.md`（若已归档则改链 `docs/tasks/done/…`） |
+| 闸口 A（总览 + 性能对比叙事） | `ai-ink-brain-api-python/docs/tech_graph/gate_a_scheme1_backend.md` |
+| 闸口 A 性能 SOP（后端子集） | `ai-ink-brain-api-python/docs/tech_graph/gate_a_scheme1_perf_compare_backend_detail.md` |
+| 契约门禁（真值在后端仓） | `ai-ink-brain-api-python/tools/tech_graph_contract_check.py` |
+| 契约真值 | `ai-ink-brain-api-python/docs/_tech_graph/_contract_manifest.json` |
+| 拓扑协议 | `ai-ink-brain/docs/_tech_graph/99_mermaid_protocol.md`（若存在） |
+| 工作区双轨 | 工作区根 `AGENTS.md`（§7） |
 
 ---
 
-## 4. 验收标准
+## 4. 验收标准（可勾选 / 可命令）
 
-- [x] **`ai-ink-brain/docs/_tech_graph/graph.json`** 存在且与解析器输出一致。  
-- [x] 文档化的一键检查命令在 **PR CI** 通过（与 **`pnpm lint` / `pnpm test` / `pnpm build`** 的先后关系见本仓 **quality** 与 `PROJECT_CONFIG` 既有约定）。  
-- [ ] 若走 **独立前端解析** 路径：须有 **Vitest** 或与后端对称的 **最小自动化**。（本实现未选此路径）  
-- [x] 若仅 **shell 调用 Python**：在「实现备忘」写明 **以前端 CI 调用为真**；`test_strategy` 仍为 `required`，理由为 **门禁命令在 CI 必跑**。
+- [ ] 在 **`ai-ink-brain` 仓根**（cwd）执行约定命令后，`docs/_tech_graph/graph.json` 与 `.ai.md` 一致且已提交。  
+- [ ] `--check`（或等价）失败时 **非 0**，stderr 可定位到文件 / 差异类型。  
+- [ ] **PR 必绿**：修改 `.ai.md` 未更新 `graph.json` 时 CI **失败**（与 scheme_1 §CI 门禁一致）。  
+- [ ] 自动化最小集：`pnpm test` / 专用脚本 / 或调用 Python `--check` 之一，具备 **可失败** 断言（与 `test_strategy: required` 一致）。  
+- [ ] PR 说明写清：**graph 门禁** 与 **contract 门禁**（若同 pipeline）两条命令及顺序；**未**合并为一脚本。
 
 ---
 
@@ -58,47 +67,41 @@
 
 | ID | 触发 | 行为（退出码/日志） | 可重试 | 用户可见类型 |
 |----|------|---------------------|--------|----------------|
-| FP-1 | `.ai.md` 解析失败 | 非 0；stderr 含路径提示 | 修图后重试 | CI 失败 |
-| FP-2 | `--check` 下 `graph.json` 漂移 | 非 0；diff 摘要 | 重生成并提交或修图 | CI 失败 |
-| FP-3 | monorepo 相对路径错误（找不到 `../ai-ink-brain-api-python`） | 非 0 | 修正 workflow 或 clone 布局 | CI 失败 |
+| FP-1 | `.ai.md` 不符合解析子集 | 非 0；stderr 含路径与行级提示 | 修图后重跑 | CI / 本地失败 |
+| FP-2 | `--check` 下 `graph.json` 漂移 | 非 0；diff 摘要 | 重新生成并提交 | 同上 |
+| FP-3 | cwd 非本仓根导致扫错目录 | 非 0 或生成空图 | 修正 CI `working-directory` | CI 配置错误 |
+| FP-4 | 聚合 CI 未 checkout 后端脚本却配置复用路径 | import / 文件不存在 | 改路径或改为单仓自带脚本 | CI |
 
 ---
 
 ## 6. 闸口 A（方案1 后）
 
-与后端 **共用同一对比实验文档**，或在本仓 **小节 + 链接** 指向总文档（避免两份矛盾）；最低字段与后端 task **闸口 A** 表一致（现状 vs 方案1、指标、复现命令、快照 id、结论）。
+与后端 task 配对：对比实验 **现状 vs 方案1** 可在任一侧子仓或工作区 `docs/tech_graph/` 归档；**性能对比书面结论**以 **`ai-ink-brain-api-python/docs/tech_graph/gate_a_scheme1_backend.md`** 为总览真值，后端采集 SOP 见 **`gate_a_scheme1_perf_compare_backend_detail.md`**。本 task 须在「实现备忘」链到最终 md 与 **同一 `freeze_id`** 行（与后端 **逐字一致**）；前端 §3.2 数据回填后须在父文档 **「仓库或 CI 快照引用」** 回链路径。
 
 ---
 
-## 7. 给执行帽的必读列表
+## 7. CI 布局二选一（须定稿其一并在 PR 描述写明）
 
-1. 确认 **`docs/_tech_graph/`** 为唯一输入根（SPEC）。  
-2. 复用后端脚本时：**cwd**、参数 **`--graph-root`**（或等价）、**两仓在 CI 中均可检出**（工作区聚合 vs 分仓 CI **二选一**写清）。  
-3. **勿**与 `tech_graph_contract_check` 混为一谈；前端 **quality** 仅增加 **graph** 一步或独立 job。
-
----
-
-## 8. 矛盾与前提（R1）
-
-| 结论 | 说明 |
+| 模式 | 说明 |
 |------|------|
-| 本工作区 | `改进方向.md` v1.1：**R1 物理条件已满足**；若某克隆仍见仓根 `_tech_graph/`，须先按规划完成 **迁移 task** 再绑本单 CI。 |
+| **A. 单仓 CI** | 仅 `ai-ink-brain` 被 checkout：`cwd` = 该仓根；graph 步骤只校验本仓 `docs/_tech_graph/graph.json`。若复用后端 Python 脚本，须在 workflow 中 **额外 checkout** 后端路径或 **vendored 拷贝**（实现择一），并固定相对路径。 |
+| **B. 工作区聚合 CI** | 工作区根 checkout：`cwd` 在 graph step 中 **`cd ai-ink-brain`**（或 `working-directory`），再调用 `python ../ai-ink-brain-api-python/tools/<export_script>.py --input docs/_tech_graph ...`；contract 与 graph **同 job 可顺序跑、独立失败**，**不**合并脚本。 |
+
+**默认推荐**：在 **`ai-ink-brain` 自有 `quality`** 中采用 **模式 A**，避免上层 monorepo 与单独克隆前端仓行为分叉。
 
 ---
 
-## 9. 实现备忘（由执行帽回填）
+## 8. 实现备忘（由执行帽回填）
 
 | 项 | 内容 |
 |----|------|
-| CI 接入方式 | **(A) 仅前端仓 CI checkout**：`.github/workflows/quality.yml` → job `lint-and-build` → 在 `pnpm install` **之后**、`pnpm lint` **之前** 增加 `actions/setup-python@v5`（`python-version: "3.11"`）与一步 `python3 tools/export_graph_json.py --input docs/_tech_graph --output docs/_tech_graph/graph.json --check`（**cwd** = `ai-ink-brain` 仓根）。与 `pnpm lint` / `pnpm test` / `pnpm build` 顺序仍为本仓 quality 既有链。 |
-| 闸口 A 文档链接 | 闸口 A（现状 vs 方案1）最低要求见工作区规划 `docs/tech_graph/改进方向.md`「对比实验门闸」表；本 PR 未新增独立对比实验 md 时以该节为权威指针。 |
-| 与后端脚本复用关系 | **不复用**：本仓独立脚本 `tools/export_graph_json.py`（CLI 与规划示例一致：`--input` / `--output` / `--check`）；与后端 task 建议脚本名对齐便于人工对照，待后端落地后可再评估 golden 对齐或抽共享包（当前非范围）。 |
-| test_strategy / required 落实 | **以前端 CI 必跑的 `python3 … --check` 为真**（quality workflow 与 `pnpm test` 同 PR 必绿）；未另加 Vitest 覆盖解析器，理由同本 task §4「若仅 shell 调用 Python…在备忘写明理由」。 |
-| 一键命令（本地） | 检查：`pnpm tech-graph:graph-check` 或 `python3 tools/export_graph_json.py --input docs/_tech_graph --output docs/_tech_graph/graph.json --check`；再生成提交：`python3 tools/export_graph_json.py --input docs/_tech_graph --output docs/_tech_graph/graph.json` |
-| 契约变更后 freeze_id | 若 bump 规划 / SPEC，须与后端 task **同一行**更新 **freeze_id**；实现 PR 可将 **短 commit hash** 记入 PR 描述（**不**写入本行 `freeze_id`，以免破坏机械比对） |
+| 采用 CI 模式 | **A**（`quality` 单仓：额外 `checkout` `Cyning12/ai-ink-brain-api-python` 至 `ai-ink-brain-api-python/`，与 §7 一致） |
+| 导出 / 校验命令 | **cwd** = `ai-ink-brain` 仓根。复用后端脚本时 `--input` / `--output` 须为**绝对路径**（`tech_graph_graph_export.py` 内 `REPO_ROOT` 为 api-python 根，相对路径会解析错）。**CI**：`python3 ai-ink-brain-api-python/tools/tech_graph_graph_export.py --input "${GITHUB_WORKSPACE}/docs/_tech_graph" --output "${GITHUB_WORKSPACE}/docs/_tech_graph/graph.json" --check`。**本地再生成**：`python3 ../ai-ink-brain-api-python/tools/tech_graph_graph_export.py --input "$(pwd)/docs/_tech_graph" --output "$(pwd)/docs/_tech_graph/graph.json"`（工作区下后端仓为 `../ai-ink-brain-api-python`）。**本地校验**：`pnpm tech-graph:graph-check`（`package.json` 已封装 `sh -c` + 绝对路径）。 |
+| workflow 文件与 job 名 | `.github/workflows/quality.yml` → job **`lint-and-build`**：步骤 **`Tech graph graph.json (--check)`** 位于 **`Install`** 之后、**`Lint`** 之前；与 **`tech_graph_contract_check`** 不同脚本、未合并。 |
+| 闸口 A 链接 | 与后端同 freeze 对齐：`ai-ink-brain-api-python/docs/tech_graph/gate_a_scheme1_backend.md`（详：`gate_a_scheme1_perf_compare_backend_detail.md`） |
 
 ---
 
 ## 给 Cursor
 
-`graph.json`、`docs/_tech_graph`、`quality`、`--check`、`scheme_1`、`failure_paths`、`test_strategy`、`task_engineering_tech_graph_graph_json_export_v1`
+`graph.json`、`tech_graph_contract_check`、`_contract_manifest`、`--check`、`cwd`、`quality`、`scheme_1`、`failure_paths`、`test_strategy`、`freeze_id`、`docs/_tech_graph`
