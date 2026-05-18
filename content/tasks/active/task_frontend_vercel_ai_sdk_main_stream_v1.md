@@ -1,6 +1,6 @@
 # Task：主流程流式体验 — 迁移 Vercel AI SDK（面试演示核心路径）
 
-> **状态**：`active`（**PR1+PR2 Phase 1 已落盘**；待 PR3 Timeline hook 化）  
+> **状态**：`active`（**PR1+PR2 已合并 `main`** @ `4752f17` · [PR #32](https://github.com/Cyning12/ai-ink-brain/pull/32)；待 PR3 Timeline hook 化）  
 > **执行帽 invoke（30）**：`content/harness/invokes/invoke_20260520_30_frontend-vercel-ai-sdk-main-stream-execute.md`  
 > **登记日期**：2026-05-20  
 > **需求帽回填**：2026-05-20  
@@ -252,7 +252,7 @@
 
 - **需求帽（2026-05-20）**：默认 **方案 A**；PR1–PR4；`lib/unified-chat/` 目录树见 §7。  
 - 选型记录（T0，落盘于本小节）：默认 **方案 A**；B 仅 spike 备选。对比：A 低延迟/BFF 无转码、Timeline 沿用 chain parser；B 需 UI Stream 转码与双协议维护。  
-- 主要 PR：**PR1** @ `4e0789e`（`lib/unified-chat/sse/`）；**PR2 Phase 1** @ `feat/unified-chat-ai-sdk-stream-v1`（`chatbiSseTransport` + `useUnifiedChat` + `UnifiedChatPageClient` adapter 双写）  
+- 主要 PR：**PR1** @ `4e0789e`（`lib/unified-chat/sse/`）；**PR2 Phase 1** 已合 **`main`** @ `4752f17`（[PR #32](https://github.com/Cyning12/ai-ink-brain/pull/32)）：`chatbiSseTransport` + `useUnifiedChat` + adapter 双写  
 - **Phase 1 说明**：正文经 SDK `text-delta`（`agent.llm.delta` / `assistant.message`）；Timeline 仍 `setEvents` + `buildExecutionTraceSections`（PR3 收敛）  
 - 演示录屏 / 脚本路径：**待 PR4**
 
@@ -303,7 +303,7 @@
 | ID | 结果 | 备注 |
 | --- | --- | --- |
 | V-NET / V-RAG / V-SQL / V-DONE-FAIL / V-ABORT | **pass** | `localhost:3000/unified-chat?debug=1`；流式中 **发送 disabled**（防连点，保留） |
-| **PR2 合并 `main`** | **准许** | 与 50 帽复检 + 本表一致；**母单**仍 open（PR3 Timeline hook、PR4 演示/CI 对齐） |
+| **PR2 合并 `main`** | **已完成** | `4752f17` · PR #32 merged 2026-05-18；**母单**仍 open（PR3 Timeline hook、PR4 演示/CI 对齐） |
 
 #### 已知未测 / 阻塞
 
