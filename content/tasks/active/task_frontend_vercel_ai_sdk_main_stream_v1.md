@@ -262,18 +262,18 @@
 | --- | --- |
 | 工作目录 | `ai-ink-brain` |
 | 分支 | `feat/unified-chat-ai-sdk-stream-v1` |
-| HEAD（R2 自检时） | `393f877`（PR2 @ `4ea7cef` + Auth 修复） |
-| 本轮范围 | **PR2（T2 Phase 1）** |
-| 自检帽 | **40 · R2**（`content/harness/invokes/invoke_20260520_40_frontend-vercel-ai-sdk-main-stream-self-check-pr2.md`） |
+| HEAD（执行帽 V-BUILD 修复后） | `149379e` |
+| 本轮范围 | **PR2（T2 Phase 1）· V-BUILD 阻塞修复** |
+| 自检帽 | **40 · R3**（待 `invoke_*_40_*-vbuild-fix`） |
 
-#### 命令与退出码（R2 · 2026-05-18 重跑）
+#### 命令与退出码（执行帽 · 2026-05-18 · V-BUILD 修复）
 
 | 命令 | cwd | 退出码 | 要点 |
 | --- | --- | ---: | --- |
 | `pnpm lint` | `ai-ink-brain` | **0** | eslint 无 error；Node v25.9.0（engines 24.x 告警，非阻塞） |
 | `pnpm test` | `ai-ink-brain` | **0** | 6 files / **20** tests passed |
 | `vitest run lib/unified-chat/sse lib/unified-chat/transport` | `ai-ink-brain` | **0** | 3 files / **12** tests（transport：≥2 `text-delta`、abort、契约头） |
-| `pnpm build` | `ai-ink-brain` | **1** | TS：`chatbiSseTransport.ts:37` — `normalizeRequestHeaders` 对 `HeadersInit` 不可 `{ ...headers }` → `Record<string, string>` |
+| `pnpm build` | `ai-ink-brain` | **0** | TS 通过；`normalizeRequestHeaders` 分支处理 `Headers` / `[string,string][]` / `Record` |
 
 #### 验收项（§9 · PR2 子集）
 
@@ -281,7 +281,7 @@
 | --- | --- | --- |
 | V-LINT | **pass** | `pnpm lint` exit 0 |
 | V-TEST | **pass** | `pnpm test` exit 0 |
-| V-BUILD | **fail** | `pnpm build` exit 1（阻塞合并） |
+| V-BUILD | **pass** | `pnpm build` exit 0 |
 | V-PARSER | **pass** | `vitest run lib/unified-chat/sse` |
 | V-TRANSPORT | **pass** | `vitest run lib/unified-chat/transport`；单测含 `X-ChatBI-Sse-Contract: 2` |
 | V-NET | **未测** | 人测 DevTools Network |
@@ -290,15 +290,15 @@
 | V-ABORT | **未测** | `unifiedChat.stop()` 已接；无独立停止 UI |
 | 母单 §8 / T3 行数 | **未测** | `UnifiedChatPageClient.tsx` ≈1908 行 |
 
-#### R2 核对（相对执行帽初填）
+#### R2→执行帽（V-BUILD）
 
-- 执行帽 **V-BUILD pass** → R2 **推翻**（非 flaky）。  
+- R2 记录 **V-BUILD fail**（`HeadersInit` 数组形态不可 spread）→ 执行帽修复 `chatbiSseTransport.ts` 后 **全绿**。  
 - V-TRANSPORT 单测覆盖契约头；V-NET 仍须人测 Network。  
 - T2 与落盘一致；T3/T4/T5 仍 open。
 
 #### 已知未测 / 阻塞
 
-- **阻塞**：修复 `normalizeRequestHeaders` 后重跑 `pnpm build`。  
+- **无 CI 阻塞**（lint/test/build 已绿）。  
 - Timeline adapter 双写（PR3）。  
 - 人测 V-NET / V-RAG / V-ABORT（PR 描述可写「待补」，签收前须证据）。
 

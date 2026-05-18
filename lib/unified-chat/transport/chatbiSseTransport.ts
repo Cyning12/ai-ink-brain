@@ -34,7 +34,24 @@ function normalizeRequestHeaders(
     });
     return out;
   }
-  return { ...headers };
+  if (Array.isArray(headers)) {
+    const out: Record<string, string> = {};
+    for (const pair of headers) {
+      if (!Array.isArray(pair) || pair.length < 2) continue;
+      const [key, value] = pair;
+      if (typeof key === "string" && value !== undefined) {
+        out[key] = String(value);
+      }
+    }
+    return out;
+  }
+  const out: Record<string, string> = {};
+  for (const [key, value] of Object.entries(headers)) {
+    if (typeof value === "string") {
+      out[key] = value;
+    }
+  }
+  return out;
 }
 
 function lastUserTextFromMessages(messages: UIMessage[]): string {
