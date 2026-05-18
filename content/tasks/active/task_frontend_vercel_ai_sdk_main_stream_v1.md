@@ -262,18 +262,20 @@
 | --- | --- |
 | 工作目录 | `ai-ink-brain` |
 | 分支 | `feat/unified-chat-ai-sdk-stream-v1` |
-| HEAD（执行帽 V-BUILD 修复后） | `23a053b` |
-| 本轮范围 | **PR2（T2 Phase 1）· V-BUILD 阻塞修复** |
-| 自检帽 | **40 · R3**（待 `invoke_*_40_*-vbuild-fix`） |
+| HEAD（R3 自检时） | **`906a062`**（与分支 tip 一致） |
+| 实现修复 commit | `23a053b`（`normalizeRequestHeaders` · V-BUILD） |
+| 变更范围 | `git diff 393f877..HEAD`（transport TS + task/invoke 文档） |
+| 本轮范围 | **PR2（T2 Phase 1）· R3 执行者自检** |
+| 自检帽 invoke | `content/harness/invokes/invoke_20260520_40_frontend-vercel-ai-sdk-main-stream-self-check-r3.md` |
 
-#### 命令与退出码（执行帽 · 2026-05-18 · V-BUILD 修复）
+#### 命令与退出码（40 · R3 · 2026-05-18）
 
 | 命令 | cwd | 退出码 | 要点 |
 | --- | --- | ---: | --- |
 | `pnpm lint` | `ai-ink-brain` | **0** | eslint 无 error；Node v25.9.0（engines 24.x 告警，非阻塞） |
 | `pnpm test` | `ai-ink-brain` | **0** | 6 files / **20** tests passed |
-| `vitest run lib/unified-chat/sse lib/unified-chat/transport` | `ai-ink-brain` | **0** | 3 files / **12** tests（transport：≥2 `text-delta`、abort、契约头） |
-| `pnpm build` | `ai-ink-brain` | **0** | TS 通过；`normalizeRequestHeaders` 分支处理 `Headers` / `[string,string][]` / `Record` |
+| `pnpm exec vitest run lib/unified-chat/sse lib/unified-chat/transport` | `ai-ink-brain` | **0** | 3 files / **12** tests；`ChatbiSseTransport` 断言契约头 + ≥2 `text-delta`；abort 后无后续 delta |
+| `pnpm build` | `ai-ink-brain` | **0** | Next 16.2.3 webpack build；TS 通过（**R3 在 HEAD `906a062` 复跑，非 flaky**） |
 
 #### 验收项（§9 · PR2 子集）
 
@@ -281,26 +283,26 @@
 | --- | --- | --- |
 | V-LINT | **pass** | `pnpm lint` exit 0 |
 | V-TEST | **pass** | `pnpm test` exit 0 |
-| V-BUILD | **pass** | `pnpm build` exit 0 |
-| V-PARSER | **pass** | `vitest run lib/unified-chat/sse` |
-| V-TRANSPORT | **pass** | `vitest run lib/unified-chat/transport`；单测含 `X-ChatBI-Sse-Contract: 2` |
-| V-NET | **未测** | 人测 DevTools Network |
-| V-RAG | **未测** | 人测 `prefer=rag` |
+| V-BUILD | **pass** | `pnpm build` exit 0（R2 修复后 R3 二次全绿） |
+| V-PARSER | **pass** | vitest `lib/unified-chat/sse`（含坏 JSON / token 忽略 / done） |
+| V-TRANSPORT | **pass** | vitest `lib/unified-chat/transport`；`chatbiSseTransport.test.ts` 捕获 `X-ChatBI-Sse-Contract: 2` |
+| V-NET | **未测** | 人测 DevTools → `/api/py/unified/chat/stream` 请求头 |
+| V-RAG | **未测** | 人测 `prefer=rag`：Timeline + 主区流式 |
 | V-SQL / V-DONE-FAIL | **未测** | 人测 |
-| V-ABORT | **未测** | `unifiedChat.stop()` 已接；无独立停止 UI |
-| 母单 §8 / T3 行数 | **未测** | `UnifiedChatPageClient.tsx` ≈1908 行 |
+| V-ABORT | **未测** | Transport 单测 abort；页面停止 UI / ghost 回归待人测 |
+| 母单 §8 / T3 行数 | **未测** | `UnifiedChatPageClient.tsx` **1908** 行（PR3 目标） |
 
-#### R2→执行帽（V-BUILD）
+#### R3 结论（PR2 · 可否进 PR 描述 / 50 帽）
 
-- R2 记录 **V-BUILD fail**（`HeadersInit` 数组形态不可 spread）→ 执行帽修复 `chatbiSseTransport.ts` 后 **全绿**。  
-- V-TRANSPORT 单测覆盖契约头；V-NET 仍须人测 Network。  
-- T2 与落盘一致；T3/T4/T5 仍 open。
+- **PR 描述可写**：PR2 Phase 1 交付（`chatbiSseTransport` + `useUnifiedChat` + adapter 双写）；**CI 子集全绿**（V-LINT / V-TEST / V-BUILD / V-PARSER / V-TRANSPORT）。  
+- **PR 描述须标注「待人测」**：V-NET、V-RAG、V-ABORT（及 V-SQL / V-DONE-FAIL 若演示需要）。单测已证契约头，**不等价** DevTools 实网。  
+- **建议开 50 独立复检**：`audit_profile: full` + `test_strategy: required`；R2 曾 V-BUILD 阻塞，合并 `main` 前宜由复检帽核对 diff `393f877..906a062` 与人测缺口，**非**替代签收前人测证据。
 
 #### 已知未测 / 阻塞
 
-- **无 CI 阻塞**（lint/test/build 已绿）。  
-- Timeline adapter 双写（PR3）。  
-- 人测 V-NET / V-RAG / V-ABORT（PR 描述可写「待补」，签收前须证据）。
+- **无 CI 阻塞**。  
+- Timeline adapter 双写 → **PR3**；T3/T4/T5 仍 open。  
+- 人测（非阻塞建议）：Network 头 `X-ChatBI-Sse-Contract: 2`；RAG 一问见 Timeline + 主区流式增长。
 
 ---
 
