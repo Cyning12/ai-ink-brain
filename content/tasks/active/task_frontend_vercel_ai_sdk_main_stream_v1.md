@@ -254,7 +254,8 @@
 - 选型记录（T0，落盘于本小节）：默认 **方案 A**；B 仅 spike 备选。对比：A 低延迟/BFF 无转码、Timeline 沿用 chain parser；B 需 UI Stream 转码与双协议维护。  
 - 主要 PR：**PR1** @ `4e0789e`（`lib/unified-chat/sse/`）；**PR2 Phase 1** 已合 **`main`** @ `4752f17`（[PR #32](https://github.com/Cyning12/ai-ink-brain/pull/32)）：`chatbiSseTransport` + `useUnifiedChat` + adapter 双写  
 - **Phase 1 说明**：正文经 SDK `text-delta`（`agent.llm.delta` / `assistant.message`）；Timeline 仍 `setEvents` + `buildExecutionTraceSections`（PR3 收敛）  
-- 演示录屏 / 脚本路径：**待 PR4**
+- 演示录屏 / 脚本路径：**待 PR4**  
+- **打字机 v0**（子 task，非阻塞母单）：[`task_frontend_unified_chat_typewriter_v0.md`](task_frontend_unified_chat_typewriter_v0.md) · 分支 `feat/unified-chat-typewriter-v0` · 维护者初步验收通过 · 待 PR 合 `main`
 
 ### 自检结论（执行者）
 
