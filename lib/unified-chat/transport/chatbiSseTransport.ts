@@ -16,10 +16,26 @@ import type { ChatbiSseStreamCallbacks } from "@/lib/unified-chat/transport/chat
 export type ChatbiSseTransportOptions = {
   api?: string;
   fetch?: FetchLike;
-  /** 鉴权头等（如 Authorization） */
+  /** 鉴权头等（如 Authorization）；静态快照，优先用 getHeaders */
   headers?: Record<string, string>;
+  /** 每次请求读取最新头（避免 useChat 首渲固定 transport 导致 token 为空） */
+  getHeaders?: () => Record<string, string>;
   callbacks?: ChatbiSseStreamCallbacks;
 };
+
+function normalizeRequestHeaders(
+  headers: HeadersInit | Record<string, string> | undefined,
+): Record<string, string> {
+  if (!headers) return {};
+  if (headers instanceof Headers) {
+    const out: Record<string, string> = {};
+    headers.forEach((value, key) => {
+      out[key] = value;
+    });
+    return out;
+  }
+  return { ...headers };
+}
 
 function lastUserTextFromMessages(messages: UIMessage[]): string {
   for (let i = messages.length - 1; i >= 0; i -= 1) {
@@ -71,12 +87,14 @@ export class ChatbiSseTransport implements ChatTransport<UIMessage> {
   private readonly api: string;
   private readonly fetchImpl: FetchLike;
   private readonly headers: Record<string, string>;
+  private readonly getHeaders?: () => Record<string, string>;
   private readonly callbacks: ChatbiSseStreamCallbacks;
 
   constructor(options: ChatbiSseTransportOptions = {}) {
     this.api = options.api ?? CHATBI_UNIFIED_STREAM_API;
     this.fetchImpl = options.fetch ?? fetchWithAuthRecovery;
     this.headers = options.headers ?? {};
+    this.getHeaders = options.getHeaders;
     this.callbacks = options.callbacks ?? {};
   }
 
@@ -91,7 +109,8 @@ export class ChatbiSseTransport implements ChatTransport<UIMessage> {
       "Content-Type": "application/json",
       [CHATBI_SSE_CONTRACT_HEADER]: CHATBI_SSE_CONTRACT_V2,
       ...this.headers,
-      ...(options.headers as Record<string, string> | undefined),
+      ...(this.getHeaders?.() ?? {}),
+      ...normalizeRequestHeaders(options.headers),
     };
 
     const res = await this.fetchImpl(this.api, {

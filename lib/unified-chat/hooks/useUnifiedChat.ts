@@ -46,17 +46,26 @@ export function useUnifiedChat(options: UseUnifiedChatOptions) {
     callbackBridge.handlers = options.callbacks;
   }, [callbackBridge, options.callbacks]);
 
+  const headersBridge = useMemo(
+    () => ({ value: options.headers }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 桥对象须稳定
+    [],
+  );
+  useEffect(() => {
+    headersBridge.value = options.headers;
+  }, [headersBridge, options.headers]);
+
   const transport = useMemo(
     () =>
       new ChatbiSseTransport({
-        headers: options.headers,
+        getHeaders: () => headersBridge.value,
         callbacks: {
           onChainEvent: (args) => callbackBridge.handlers?.onChainEvent?.(args),
           onParseError: () => callbackBridge.handlers?.onParseError?.(),
           onDone: (done) => callbackBridge.handlers?.onDone?.(done),
         },
       }),
-    [callbackBridge, options.headers],
+    [callbackBridge, headersBridge],
   );
 
   const chat = useChat({
@@ -88,12 +97,13 @@ export function useUnifiedChat(options: UseUnifiedChatOptions) {
           : {}),
       };
 
-      await chat.sendMessage({ text: trimmed }, { body });
+      await chat.sendMessage({ text: trimmed }, { body, headers: options.headers });
     },
     [
       chat,
       options.debugLlmPrompts,
       options.debugRouter,
+      options.headers,
       options.prefer,
       options.sessionId,
     ],

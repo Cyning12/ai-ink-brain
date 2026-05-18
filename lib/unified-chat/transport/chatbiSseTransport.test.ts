@@ -91,6 +91,7 @@ describe("ChatbiSseTransport", () => {
     let capturedBody: string | undefined;
 
     const transport = new ChatbiSseTransport({
+      getHeaders: () => ({ Authorization: "Bearer test-token" }),
       fetch: async (_url, init) => {
         capturedHeaders = init?.headers;
         capturedBody = typeof init?.body === "string" ? init.body : undefined;
@@ -119,6 +120,7 @@ describe("ChatbiSseTransport", () => {
 
     const headers = capturedHeaders as Record<string, string>;
     expect(headers[CHATBI_SSE_CONTRACT_HEADER]).toBe(CHATBI_SSE_CONTRACT_V2);
+    expect(headers.Authorization).toBe("Bearer test-token");
     const parsed = JSON.parse(capturedBody ?? "{}") as Record<string, unknown>;
     expect(parsed.session_id).toBe("sess-1");
     expect(parsed.query).toBe("hi");
