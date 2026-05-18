@@ -14,6 +14,7 @@ import { useSessionId } from "@/lib/hooks/useSessionId";
 import type { ChainEvent } from "@/components/chain-chat/types";
 import { ChainTimeline, chainTimelineExpandBtnClass } from "@/components/chain-chat/ChainTimeline";
 import { isValidAgentPlanPreviewPayload } from "@/lib/unified-chat/sse";
+import { useTypewriterReveal } from "@/lib/unified-chat/hooks/useTypewriterReveal";
 import { useUnifiedChat } from "@/lib/unified-chat/hooks/useUnifiedChat";
 import type { ChatbiDonePayload } from "@/lib/unified-chat/transport/types";
 import { extractText2sqlPhasesMsFromToolOutput } from "@/lib/unified-chat/text2sqlPhaseSse";
@@ -665,11 +666,14 @@ export function UnifiedChatPageClient() {
   const [timelineBatchOpen, setTimelineBatchOpen] = useState(false);
 
   const [debugFromUrl, setDebugFromUrl] = useState(false);
+  const [typewriterFromUrl, setTypewriterFromUrl] = useState(true);
   useEffect(() => {
     if (typeof window === "undefined") return;
     const read = () => {
       const sp = new URLSearchParams(window.location.search);
       setDebugFromUrl(sp.get("debug") === "1" || sp.get("debug") === "true");
+      const tw = sp.get("typewriter");
+      setTypewriterFromUrl(tw !== "0" && tw !== "false");
     };
     read();
     window.addEventListener("popstate", read);
@@ -742,11 +746,16 @@ export function UnifiedChatPageClient() {
     loadingRef.current = loading;
   }, [loading]);
 
-  useEffect(() => {
-    if (unifiedChat.streamingText.trim()) {
-      setFinalAnswer(unifiedChat.streamingText);
-    }
-  }, [unifiedChat.streamingText]);
+  const typewriterActive = typewriterFromUrl && loading;
+  const revealedAnswer = useTypewriterReveal(unifiedChat.streamingText, {
+    active: typewriterActive,
+    charsPerTick: 2,
+    tickMs: 20,
+  });
+
+  const displayAnswer = loading
+    ? revealedAnswer
+    : finalAnswer.trim() || unifiedChat.streamingText;
 
   useEffect(() => {
     if (debugEnabled) return;
@@ -1519,14 +1528,30 @@ export function UnifiedChatPageClient() {
             <div className="border-b border-[color:var(--color-border)] px-4 py-3">
               <div className="font-serif text-sm text-[#2c2c2c]">消息</div>
               <div className="mt-0.5 text-[11px] text-slate-500">
-                最终答案以 <span className="font-mono">assistant.message</span> 为准（vNext §8.4）
+                最终答案以 <span className="font-mono">assistant.message</span> 为准
+                {typewriterFromUrl ? (
+                  <span className="text-slate-400">
+                    {" "}
+                    · 打字机 v0（<span className="font-mono">?typewriter=0</span> 关闭）
+                  </span>
+                ) : (
+                  <span className="text-slate-400">
+                    {" "}
+                    · 块级直出（<span className="font-mono">?typewriter=1</span> 开启）
+                  </span>
+                )}
               </div>
             </div>
             <div className="max-h-[50vh] overflow-auto px-4 py-4">
-              {finalAnswer.trim() ? (
+              {displayAnswer.trim() ? (
                 <div className="mb-4 rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/90 px-3 py-2">
                   <div className="text-[10px] text-slate-400">最终答案</div>
-                  <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{finalAnswer}</div>
+                  <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">
+                    {displayAnswer}
+                    {typewriterActive && displayAnswer.length < unifiedChat.streamingText.length ? (
+                      <span className="ml-0.5 inline-block animate-pulse text-slate-500">▍</span>
+                    ) : null}
+                  </div>
                 </div>
               ) : null}
               {messages.length === 0 ? (
