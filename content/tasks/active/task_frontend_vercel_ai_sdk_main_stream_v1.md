@@ -262,33 +262,45 @@
 | --- | --- |
 | 工作目录 | `ai-ink-brain` |
 | 分支 | `feat/unified-chat-ai-sdk-stream-v1` |
+| HEAD（R2 自检时） | `393f877`（PR2 @ `4ea7cef` + Auth 修复） |
 | 本轮范围 | **PR2（T2 Phase 1）** |
+| 自检帽 | **40 · R2**（`content/harness/invokes/invoke_20260520_40_frontend-vercel-ai-sdk-main-stream-self-check-pr2.md`） |
 
-#### 命令与退出码
+#### 命令与退出码（R2 · 2026-05-18 重跑）
 
-| 命令 | 退出码 | 要点 |
-| --- | ---: | --- |
-| `pnpm lint` | 0 | eslint 无 error |
-| `pnpm test` | 0 | 6 files / 20 tests；含 `lib/unified-chat/transport/chatbiSseTransport.test.ts`（≥2 `text-delta`、abort 后无后续 delta） |
-| `pnpm build` | 0 | `next build --webpack` + TS 通过 |
+| 命令 | cwd | 退出码 | 要点 |
+| --- | --- | ---: | --- |
+| `pnpm lint` | `ai-ink-brain` | **0** | eslint 无 error；Node v25.9.0（engines 24.x 告警，非阻塞） |
+| `pnpm test` | `ai-ink-brain` | **0** | 6 files / **20** tests passed |
+| `vitest run lib/unified-chat/sse lib/unified-chat/transport` | `ai-ink-brain` | **0** | 3 files / **12** tests（transport：≥2 `text-delta`、abort、契约头） |
+| `pnpm build` | `ai-ink-brain` | **1** | TS：`chatbiSseTransport.ts:37` — `normalizeRequestHeaders` 对 `HeadersInit` 不可 `{ ...headers }` → `Record<string, string>` |
 
-#### 验收项（母单 · PR2 子集）
+#### 验收项（§9 · PR2 子集）
 
-| ID | 结果 | 说明 |
+| ID | 结果 | 证据 |
 | --- | --- | --- |
-| V-LINT | pass | |
-| V-TEST | pass | |
-| V-BUILD | pass | |
-| V-PARSER | pass | PR1 回归 |
-| V-TRANSPORT | pass | mock fetch + ReadableStream |
-| V-NET / V-RAG / V-SQL / V-DONE-FAIL / V-ABORT | **未测** | PR2+ 人测 / DevTools |
-| 母单 §8 演示 / 行数瘦身 | **未测** | PR3–PR4 |
+| V-LINT | **pass** | `pnpm lint` exit 0 |
+| V-TEST | **pass** | `pnpm test` exit 0 |
+| V-BUILD | **fail** | `pnpm build` exit 1（阻塞合并） |
+| V-PARSER | **pass** | `vitest run lib/unified-chat/sse` |
+| V-TRANSPORT | **pass** | `vitest run lib/unified-chat/transport`；单测含 `X-ChatBI-Sse-Contract: 2` |
+| V-NET | **未测** | 人测 DevTools Network |
+| V-RAG | **未测** | 人测 `prefer=rag` |
+| V-SQL / V-DONE-FAIL | **未测** | 人测 |
+| V-ABORT | **未测** | `unifiedChat.stop()` 已接；无独立停止 UI |
+| 母单 §8 / T3 行数 | **未测** | `UnifiedChatPageClient.tsx` ≈1908 行 |
 
-#### 已知未测项
+#### R2 核对（相对执行帽初填）
 
-- Timeline 仍 adapter 双写（非 PR3 hook 化）。  
-- 无独立 UI「停止」按钮（`unifiedChat.stop()` 已接；人测 V-ABORT 待补）。  
-- Node 本地 v25.9.0（engines 24.x）— CI 以 workflow 为准。
+- 执行帽 **V-BUILD pass** → R2 **推翻**（非 flaky）。  
+- V-TRANSPORT 单测覆盖契约头；V-NET 仍须人测 Network。  
+- T2 与落盘一致；T3/T4/T5 仍 open。
+
+#### 已知未测 / 阻塞
+
+- **阻塞**：修复 `normalizeRequestHeaders` 后重跑 `pnpm build`。  
+- Timeline adapter 双写（PR3）。  
+- 人测 V-NET / V-RAG / V-ABORT（PR 描述可写「待补」，签收前须证据）。
 
 ---
 
