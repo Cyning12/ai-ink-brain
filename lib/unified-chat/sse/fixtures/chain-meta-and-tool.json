@@ -1,0 +1,23 @@
+{
+  "meta": {
+    "type": "meta",
+    "ts": 1000,
+    "payload": { "run_id": "server-run-abc" }
+  },
+  "toolStart": {
+    "type": "tool.call.start",
+    "ts": 1001,
+    "step_id": "t1",
+    "payload": { "tool": "rag" }
+  },
+  "unknownType": {
+    "type": "not.in.whitelist",
+    "ts": 1002,
+    "payload": {}
+  },
+  "badDelta": {
+    "type": "agent.llm.delta",
+    "ts": 1003,
+    "payload": {}
+  }
+}

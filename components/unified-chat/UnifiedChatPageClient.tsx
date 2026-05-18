@@ -12,13 +12,15 @@ import {
   writeChatbiToken,
 } from "@/lib/chatbi-client";
 import { useSessionId } from "@/lib/hooks/useSessionId";
-import { type ChainEvent, UNIFIED_SSE_CHAIN_TYPE_WHITELIST } from "@/components/chain-chat/types";
+import type { ChainEvent } from "@/components/chain-chat/types";
 import { ChainTimeline, chainTimelineExpandBtnClass } from "@/components/chain-chat/ChainTimeline";
 import {
-  extractText2sqlPhasesMsFromToolOutput,
-  isValidText2SqlPhaseEndPayload,
-  isValidText2SqlPhaseStartPayload,
-} from "@/lib/unified-chat/text2sqlPhaseSse";
+  applyChainSseFrame,
+  isValidAgentPlanPreviewPayload,
+  parseSseBlocks,
+  safeJson,
+} from "@/lib/unified-chat/sse";
+import { extractText2sqlPhasesMsFromToolOutput } from "@/lib/unified-chat/text2sqlPhaseSse";
 
 /** Unified Chat 增量 SSE 契约版本（须与 BFF / Python 一致） */
 const SSE_CONTRACT_HEADER = "X-ChatBI-Sse-Contract";
@@ -57,14 +59,6 @@ function mapHistoryRowsToTranscript(messages: ChatHistoryRow[] | undefined): Tra
     });
   }
   return out;
-}
-
-function safeJson(text: string): unknown {
-  try {
-    return JSON.parse(text) as unknown;
-  } catch {
-    return null;
-  }
 }
 
 function safeStringify(v: unknown): string {
@@ -478,112 +472,6 @@ function extractFinalAnswer(args: {
   }
 
   return "";
-}
-
-type SseBlock = { event: string; data: string };
-
-/** manifest `agent.clarify` 最小键校验；缺字段则整帧丢弃（策略 B） */
-function isValidAgentClarifyPayload(p: Record<string, unknown>): boolean {
-  const sn = p.step_number;
-  if (typeof sn !== "number" || !Number.isFinite(sn)) return false;
-  if (typeof p.message !== "string") return false;
-  if (typeof p.prompt_for_user !== "string") return false;
-  return true;
-}
-
-/** manifest `agent.plan.preview` 最小键校验；缺字段则整帧丢弃（策略 B） */
-function isValidAgentPlanPreviewPayload(p: Record<string, unknown>): boolean {
-  if (typeof p.plan_id !== "string" || !p.plan_id.trim()) return false;
-  if (typeof p.tool !== "string") return false;
-  if (typeof p.sql_draft !== "string") return false;
-  if (!Array.isArray(p.warnings)) return false;
-  if (typeof p.plan_execution_token !== "string" || !p.plan_execution_token.trim()) return false;
-  const exp = p.expires_in_sec;
-  if (typeof exp !== "number" || !Number.isFinite(exp) || exp < 0) return false;
-  return true;
-}
-
-function parseSseBlocks(chunkText: string): SseBlock[] {
-  // 这里只做“块级解析”；事件的组包（跨 chunk）由外层 buffer 处理
-  const blocks: SseBlock[] = [];
-  const parts = chunkText.split("\n\n").filter((p) => p.trim());
-  for (const part of parts) {
-    let eventName = "message";
-    const dataLines: string[] = [];
-    for (const rawLine of part.split("\n")) {
-      const line = rawLine.trimEnd();
-      if (!line) continue;
-      if (line.startsWith("event:")) {
-        eventName = line.slice("event:".length).trim() || "message";
-        continue;
-      }
-      if (line.startsWith("data:")) {
-        dataLines.push(line.slice("data:".length).trimStart());
-        continue;
-      }
-      // 忽略 id/retry 等
-    }
-    blocks.push({ event: eventName, data: dataLines.join("\n") });
-  }
-  return blocks;
-}
-
-function chainEventFromSse(args: {
-  runId: string;
-  raw: unknown;
-  fallbackStepId: string;
-}): ChainEvent | null {
-  if (!args.raw || typeof args.raw !== "object") return null;
-  const obj = args.raw as Record<string, unknown>;
-
-  const type = typeof obj.type === "string" ? obj.type : "";
-  if (!type) return null;
-
-  if (!UNIFIED_SSE_CHAIN_TYPE_WHITELIST.has(type)) {
-    console.debug("[UnifiedChat SSE] 未知 chain.type，策略 B 跳过", type);
-    return null;
-  }
-
-  // vNext §5.4：delta 缺 text 则跳过该帧
-  if (type === "agent.llm.delta") {
-    const pl = obj.payload;
-    if (!pl || typeof pl !== "object") return null;
-    const rec = pl as Record<string, unknown>;
-    if (typeof rec.text !== "string") return null;
-  }
-
-  const ts = typeof obj.ts === "number" && Number.isFinite(obj.ts) ? obj.ts : Date.now();
-  const stepId =
-    typeof obj.step_id === "string" && obj.step_id
-      ? obj.step_id
-      : typeof obj.step === "string" && obj.step
-        ? obj.step
-        : args.fallbackStepId;
-  const payload =
-    obj.payload && typeof obj.payload === "object"
-      ? (obj.payload as Record<string, unknown>)
-      : {};
-
-  if (type === "text2sql.phase.start" && !isValidText2SqlPhaseStartPayload(payload)) {
-    return null;
-  }
-  if (type === "text2sql.phase.end" && !isValidText2SqlPhaseEndPayload(payload)) {
-    return null;
-  }
-  if (type === "agent.clarify" && !isValidAgentClarifyPayload(payload)) {
-    return null;
-  }
-  if (type === "agent.plan.preview" && !isValidAgentPlanPreviewPayload(payload)) {
-    return null;
-  }
-
-  return {
-    type: type as ChainEvent["type"],
-    ts,
-    run_id: args.runId,
-    step_id: stepId,
-    payload,
-  } as ChainEvent;
 }
 
 type RouterDecision = {
@@ -1046,37 +934,17 @@ export function UnifiedChatPageClient() {
         for (const b of blocks) {
           const j = safeJson(b.data);
           if (b.event === "chain") {
-            if (j == null) {
-              parseErrorCountRef.current += 1;
-              console.debug("[UnifiedChat SSE] chain JSON 跳过", parseErrorCountRef.current);
-              continue;
-            }
-            const rawObj = j as Record<string, unknown>;
-            const chainType = typeof rawObj.type === "string" ? rawObj.type : "";
-            let serverRunFromMeta: string | null = null;
-            if (chainType === "meta") {
-              const pl = rawObj.payload;
-              if (pl && typeof pl === "object") {
-                const rid = (pl as Record<string, unknown>).run_id;
-                if (typeof rid === "string" && rid.trim()) {
-                  serverRunFromMeta = rid.trim();
-                }
-              }
-            }
-            const srvMeta = serverRunFromMeta;
-            if (srvMeta) {
-              currentRunId = srvMeta;
-            }
-            const ev = chainEventFromSse({
-              runId: currentRunId,
-              raw: j,
-              fallbackStepId: "chain",
-            });
-            if (!ev) {
+            const applied = applyChainSseFrame({ dataJson: j, currentRunId });
+            if (applied.kind === "parse_error") {
               parseErrorCountRef.current += 1;
               console.debug("[UnifiedChat SSE] chain 帧跳过", parseErrorCountRef.current);
               continue;
             }
+            const srvMeta = applied.serverRunFromMeta;
+            if (srvMeta) {
+              currentRunId = srvMeta;
+            }
+            const ev = applied.event;
             setEvents((prev) => {
               const base =
                 srvMeta && srvMeta !== runId
