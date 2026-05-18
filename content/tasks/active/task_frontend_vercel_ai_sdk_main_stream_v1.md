@@ -286,23 +286,30 @@
 | V-BUILD | **pass** | `pnpm build` exit 0（R2 修复后 R3 二次全绿） |
 | V-PARSER | **pass** | vitest `lib/unified-chat/sse`（含坏 JSON / token 忽略 / done） |
 | V-TRANSPORT | **pass** | vitest `lib/unified-chat/transport`；`chatbiSseTransport.test.ts` 捕获 `X-ChatBI-Sse-Contract: 2` |
-| V-NET | **未测** | 人测 DevTools → `/api/py/unified/chat/stream` 请求头 |
-| V-RAG | **未测** | 人测 `prefer=rag`：Timeline + 主区流式 |
-| V-SQL / V-DONE-FAIL | **未测** | 人测 |
-| V-ABORT | **未测** | Transport 单测 abort；页面停止 UI / ghost 回归待人测 |
+| V-NET | **pass** | 人测 DevTools：`X-ChatBI-Sse-Contract: 2`；SSE `chain`/`done` |
+| V-RAG | **pass** | 人测 `prefer=rag`：UI 流式 + `rag.sources` / `agent.llm.delta` |
+| V-SQL | **pass** | 人测 `prefer=text2sql`：`sql.result`（`agent_info` count=13） |
+| V-DONE-FAIL | **pass** | 人测：可读错误条；结束后输入/发送可恢复 |
+| V-ABORT | **pass** | 人测 **方式 B（新会话）**；无 ghost；结束后可再发 |
 | 母单 §8 / T3 行数 | **未测** | `UnifiedChatPageClient.tsx` **1908** 行（PR3 目标） |
 
 #### R3 结论（PR2 · 可否进 PR 描述 / 50 帽）
 
 - **PR 描述可写**：PR2 Phase 1 交付（`chatbiSseTransport` + `useUnifiedChat` + adapter 双写）；**CI 子集全绿**（V-LINT / V-TEST / V-BUILD / V-PARSER / V-TRANSPORT）。  
-- **PR 描述须标注「待人测」**：V-NET、V-RAG、V-ABORT（及 V-SQL / V-DONE-FAIL 若演示需要）。单测已证契约头，**不等价** DevTools 实网。  
-- **建议开 50 独立复检**：`audit_profile: full` + `test_strategy: required`；R2 曾 V-BUILD 阻塞，合并 `main` 前宜由复检帽核对 diff `393f877..906a062` 与人测缺口，**非**替代签收前人测证据。
+- **50 独立复检**：`content/harness/reviews/task_frontend_vercel_ai_sdk_main_stream_v1_reinspect_R1_20260520.md`（`393f877..906a062`）。
+
+#### 人测签收（维护者 · 2026-05-18）
+
+| ID | 结果 | 备注 |
+| --- | --- | --- |
+| V-NET / V-RAG / V-SQL / V-DONE-FAIL / V-ABORT | **pass** | `localhost:3000/unified-chat?debug=1`；流式中 **发送 disabled**（防连点，保留） |
+| **PR2 合并 `main`** | **准许** | 与 50 帽复检 + 本表一致；**母单**仍 open（PR3 Timeline hook、PR4 演示/CI 对齐） |
 
 #### 已知未测 / 阻塞
 
-- **无 CI 阻塞**。  
+- **无 PR2 CI / 人测阻塞**。  
 - Timeline adapter 双写 → **PR3**；T3/T4/T5 仍 open。  
-- 人测（非阻塞建议）：Network 头 `X-ChatBI-Sse-Contract: 2`；RAG 一问见 Timeline + 主区流式增长。
+- **后续提案**（非 PR2）：报错后确保 `loading` 解除；可选流式「停止」按钮（`unifiedChat.stop()` 已接）。
 
 ---
 
