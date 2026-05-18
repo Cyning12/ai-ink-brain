@@ -1,6 +1,6 @@
 # Task：主流程流式体验 — 迁移 Vercel AI SDK（面试演示核心路径）
 
-> **状态**：`active`（**PR1 已落盘**；待 PR2 `useChat` + Transport）  
+> **状态**：`active`（**PR1+PR2 Phase 1 已落盘**；待 PR3 Timeline hook 化）  
 > **执行帽 invoke（30）**：`content/harness/invokes/invoke_20260520_30_frontend-vercel-ai-sdk-main-stream-execute.md`  
 > **登记日期**：2026-05-20  
 > **需求帽回填**：2026-05-20  
@@ -74,11 +74,11 @@
 
 ### T2 — AI SDK 接入（核心）
 
-- [ ] 新增 `lib/unified-chat/transport/chatbiSseTransport.ts`：`fetch` → `/api/py/unified/chat/stream`，带头 **`X-ChatBI-Sse-Contract: 2`**，解析 SSE → SDK 消息流（`text-delta` + 可选 `data` 供 Timeline）。  
-- [ ] 新增 `lib/unified-chat/hooks/useUnifiedChat.ts`（或薄封装 `@ai-sdk/react` `useChat`）：`status`（`submitted` / `streaming` / `ready` / `error`）、`stop()`、`messages`。  
-- [ ] **AbortSignal**：`stop()` / 卸载 / 新发送前 abort；与现网 `streamAbortRef` 语义一致。  
-- [ ] **发送中禁用**、**重复发送防抖**：连点发送仅 **一轮** in-flight（对齐现网 loading 门闩）。  
-- [ ] 错误展示：复用 `fetchWithAuthRecovery` + `pickErrorMessage` 路径。
+- [x] 新增 `lib/unified-chat/transport/chatbiSseTransport.ts`：`fetch` → `/api/py/unified/chat/stream`，带头 **`X-ChatBI-Sse-Contract: 2`**，解析 SSE → SDK 消息流（`text-delta` + 可选 `data` 供 Timeline）。  
+- [x] 新增 `lib/unified-chat/hooks/useUnifiedChat.ts`（或薄封装 `@ai-sdk/react` `useChat`）：`status`（`submitted` / `streaming` / `ready` / `error`）、`stop()`、`messages`。  
+- [x] **AbortSignal**：`stop()` / 卸载 / 新发送前 abort；与现网 `streamAbortRef` 语义一致。  
+- [x] **发送中禁用**、**重复发送防抖**：连点发送仅 **一轮** in-flight（对齐现网 loading 门闩）。  
+- [x] 错误展示：复用 `fetchWithAuthRecovery` + `pickErrorMessage` 路径。
 
 ### T3 — Timeline 解耦
 
@@ -252,7 +252,8 @@
 
 - **需求帽（2026-05-20）**：默认 **方案 A**；PR1–PR4；`lib/unified-chat/` 目录树见 §7。  
 - 选型记录（T0，落盘于本小节）：默认 **方案 A**；B 仅 spike 备选。对比：A 低延迟/BFF 无转码、Timeline 沿用 chain parser；B 需 UI Stream 转码与双协议维护。  
-- 主要 PR：**PR1** @ `feat/unified-chat-ai-sdk-stream-v1`（`lib/unified-chat/sse/` + `vitest.config.ts`；**未** 接 `useChat`）  
+- 主要 PR：**PR1** @ `4e0789e`（`lib/unified-chat/sse/`）；**PR2 Phase 1** @ `feat/unified-chat-ai-sdk-stream-v1`（`chatbiSseTransport` + `useUnifiedChat` + `UnifiedChatPageClient` adapter 双写）  
+- **Phase 1 说明**：正文经 SDK `text-delta`（`agent.llm.delta` / `assistant.message`）；Timeline 仍 `setEvents` + `buildExecutionTraceSections`（PR3 收敛）  
 - 演示录屏 / 脚本路径：**待 PR4**
 
 ### 自检结论（执行者）
@@ -261,32 +262,33 @@
 | --- | --- |
 | 工作目录 | `ai-ink-brain` |
 | 分支 | `feat/unified-chat-ai-sdk-stream-v1` |
-| 本轮范围 | **PR1（T0+T1）** |
+| 本轮范围 | **PR2（T2 Phase 1）** |
 
 #### 命令与退出码
 
 | 命令 | 退出码 | 要点 |
 | --- | ---: | --- |
 | `pnpm lint` | 0 | eslint 无 error |
-| `pnpm test` | 0 | 5 files / 17 tests；含 `lib/unified-chat/sse/parseSseBlocks.test.ts`、`chainEventFromSse.test.ts` |
-| `pnpm build` | 0 | `next build --webpack` 成功 |
+| `pnpm test` | 0 | 6 files / 20 tests；含 `lib/unified-chat/transport/chatbiSseTransport.test.ts`（≥2 `text-delta`、abort 后无后续 delta） |
+| `pnpm build` | 0 | `next build --webpack` + TS 通过 |
 
-#### 验收项（母单 · PR1 子集）
+#### 验收项（母单 · PR2 子集）
 
 | ID | 结果 | 说明 |
 | --- | --- | --- |
 | V-LINT | pass | |
 | V-TEST | pass | |
 | V-BUILD | pass | |
-| V-PARSER | pass | `vitest` → `lib/unified-chat/sse` |
-| V-TRANSPORT | **未测** | PR2 |
-| V-NET / V-RAG / V-SQL / V-DONE-FAIL / V-ABORT | **未测** | PR2+ 人测 |
-| 母单 §8 演示 / Timeline SDK 化 | **未测** | PR2–PR4 |
+| V-PARSER | pass | PR1 回归 |
+| V-TRANSPORT | pass | mock fetch + ReadableStream |
+| V-NET / V-RAG / V-SQL / V-DONE-FAIL / V-ABORT | **未测** | PR2+ 人测 / DevTools |
+| 母单 §8 演示 / 行数瘦身 | **未测** | PR3–PR4 |
 
 #### 已知未测项
 
-- 未接入 `useChat` / `chatbiSseTransport`（符合 PR1 禁令）。  
-- Node 本地为 v25.9.0（`package.json` engines 声明 24.x）— CI 以 workflow 为准。
+- Timeline 仍 adapter 双写（非 PR3 hook 化）。  
+- 无独立 UI「停止」按钮（`unifiedChat.stop()` 已接；人测 V-ABORT 待补）。  
+- Node 本地 v25.9.0（engines 24.x）— CI 以 workflow 为准。
 
 ---
 

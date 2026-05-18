@@ -1,0 +1,8 @@
+event: chain
+data: {"type":"agent.llm.delta","ts":1,"step_id":"s1","payload":{"text":"Hello"}}
+
+event: chain
+data: {"type":"agent.llm.delta","ts":2,"step_id":"s1","payload":{"text":" world"}}
+
+event: done
+data: {"ok":true,"run_id":"run-1","mode":"rag","session_id":"sess","request_id":"req-1"}

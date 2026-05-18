@@ -6,7 +6,6 @@ import { flushSync } from "react-dom";
 import type { ChatHistoryRow } from "@/lib/chat/chatApi";
 import { fetchChatHistory } from "@/lib/chat/chatApi";
 import {
-  fetchWithAuthRecovery,
   readChatbiToken,
   requestChatbiAccessVerify,
   writeChatbiToken,
@@ -14,17 +13,10 @@ import {
 import { useSessionId } from "@/lib/hooks/useSessionId";
 import type { ChainEvent } from "@/components/chain-chat/types";
 import { ChainTimeline, chainTimelineExpandBtnClass } from "@/components/chain-chat/ChainTimeline";
-import {
-  applyChainSseFrame,
-  isValidAgentPlanPreviewPayload,
-  parseSseBlocks,
-  safeJson,
-} from "@/lib/unified-chat/sse";
+import { isValidAgentPlanPreviewPayload } from "@/lib/unified-chat/sse";
+import { useUnifiedChat } from "@/lib/unified-chat/hooks/useUnifiedChat";
+import type { ChatbiDonePayload } from "@/lib/unified-chat/transport/types";
 import { extractText2sqlPhasesMsFromToolOutput } from "@/lib/unified-chat/text2sqlPhaseSse";
-
-/** Unified Chat 增量 SSE 契约版本（须与 BFF / Python 一致） */
-const SSE_CONTRACT_HEADER = "X-ChatBI-Sse-Contract";
-const SSE_CONTRACT_V2 = "2";
 
 type PreferMode = "auto" | "rag" | "text2sql";
 
@@ -404,17 +396,6 @@ function extractUserQueryText(events: ChainEvent[]): string {
   return t.trim();
 }
 
-function pickErrorMessage(raw: string, status: number, statusText: string): string {
-  const t = raw.trim();
-  const j = safeJson(raw);
-  if (j && typeof j === "object") {
-    const obj = j as { detail?: unknown; error?: unknown };
-    if (typeof obj.detail === "string" && obj.detail.trim()) return obj.detail.trim();
-    if (typeof obj.error === "string" && obj.error.trim()) return obj.error.trim();
-  }
-  return t || `${status} ${statusText}`;
-}
-
 function extractTextFromPayload(payload: Record<string, unknown>): string {
   const direct = typeof payload.text === "string" ? payload.text : "";
   if (direct.trim()) return direct;
@@ -594,8 +575,17 @@ export function UnifiedChatPageClient() {
   const [unlockBusy, setUnlockBusy] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
   const tokenInputRef = useRef<HTMLInputElement | null>(null);
-  const streamAbortRef = useRef<AbortController | null>(null);
   const lastQueryRef = useRef<string>("");
+  /** 本轮 send 占位 run_id（meta 切换前） */
+  const roundRunIdRef = useRef<string>("");
+  const streamLastDoneRef = useRef<ChatbiDonePayload | null>(null);
+  const handleChainSseRef = useRef<
+    (args: {
+      event: ChainEvent;
+      serverRunFromMeta: string | null;
+      currentRunId: string;
+    }) => void
+  >(() => {});
   /** 本轮 SSE 累积事件（与 React state 同步，供流结束后 extractFinalAnswer / transcript 钉死 D2） */
   const roundEventsRef = useRef<ChainEvent[]>([]);
   /** vNext §5.4：坏帧计数，默认不对用户展示 */
@@ -630,9 +620,6 @@ export function UnifiedChatPageClient() {
 
   const [loading, setLoading] = useState(false);
   const loadingRef = useRef(false);
-  useEffect(() => {
-    loadingRef.current = loading;
-  }, [loading]);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [events, setEvents] = useState<ChainEvent[]>([]);
   const [finalAnswer, setFinalAnswer] = useState<string>("");
@@ -705,6 +692,61 @@ export function UnifiedChatPageClient() {
   }, []);
 
   const debugEnabled = debugFromUrl;
+
+  const unifiedChat = useUnifiedChat({
+    sessionId,
+    prefer,
+    debugRouter,
+    debugLlmPrompts,
+    headers,
+    onError: (error) => {
+      if (error.name === "AbortError") return;
+      setErrorText(error.message);
+    },
+    callbacks: {
+      onChainEvent: (args) => handleChainSseRef.current(args),
+      onParseError: () => {
+        parseErrorCountRef.current += 1;
+        console.debug("[UnifiedChat SSE] chain 帧跳过", parseErrorCountRef.current);
+      },
+      onDone: (done) => {
+        if (!done) return;
+        streamLastDoneRef.current = done;
+        if (done.request_id.trim()) setActiveRequestId(done.request_id.trim());
+        setLastDone({
+          ok: done.ok,
+          mode: done.mode,
+          run_id: done.run_id,
+          session_id: done.session_id,
+          request_id: done.request_id,
+          ...(done.persist ? { persist: done.persist } : {}),
+        });
+        if (debugEnabled) {
+          console.debug("[UnifiedChat SSE done]", {
+            request_id: done.request_id,
+            run_id: done.run_id,
+            session_id: done.session_id,
+            ok: done.ok,
+            mode: done.mode,
+          });
+        }
+      },
+    },
+  });
+
+  useEffect(() => {
+    setLoading(unifiedChat.isLoading);
+  }, [unifiedChat.isLoading]);
+
+  useEffect(() => {
+    loadingRef.current = loading;
+  }, [loading]);
+
+  useEffect(() => {
+    if (unifiedChat.streamingText.trim()) {
+      setFinalAnswer(unifiedChat.streamingText);
+    }
+  }, [unifiedChat.streamingText]);
 
   useEffect(() => {
     if (debugEnabled) return;
@@ -849,19 +891,18 @@ export function UnifiedChatPageClient() {
     const usedPlanTokenAtSend = sendingWithPlanToken;
 
     lastQueryRef.current = trimmed;
-    // 取消上一次 SSE
-    streamAbortRef.current?.abort();
-    streamAbortRef.current = null;
+    unifiedChat.stop();
+    unifiedChat.clearError();
 
-    setLoading(true);
     setErrorText(null);
     setFinalAnswer("");
     parseErrorCountRef.current = 0;
     setActiveRequestId("");
     setLastDone(null);
 
-    // 先把 user.message 放进 timeline，保证左栏/中栏立即有反馈
     const runId = crypto.randomUUID();
+    roundRunIdRef.current = runId;
+
     const userEvent: ChainEvent = {
       type: "user.message",
       ts: Date.now(),
@@ -874,171 +915,51 @@ export function UnifiedChatPageClient() {
     setTimelineBatchOpen(false);
     setTimelineBatchNonce((n) => n + 1);
 
-    try {
-      const ac = new AbortController();
-      streamAbortRef.current = ac;
-
-      const res = await fetchWithAuthRecovery("/api/py/unified/chat/stream", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          [SSE_CONTRACT_HEADER]: SSE_CONTRACT_V2,
-          ...headers,
-        },
-        credentials: "include",
-        signal: ac.signal,
-        body: JSON.stringify({
-          session_id: sessionId,
-          query: trimmed,
-          prefer,
-          debug_router: debugRouter,
-          ...(debugLlmPrompts ? { debug_llm_prompts: true } : {}),
-          ...(sendingWithPlanToken ? { plan_execution_token: planToken } : {}),
-        }),
+    handleChainSseRef.current = ({ event: ev, serverRunFromMeta: srvMeta }) => {
+      setEvents((prev) => {
+        const base =
+          srvMeta && srvMeta !== runId
+            ? prev.map((e) => (e.run_id === runId ? { ...e, run_id: srvMeta } : e))
+            : prev;
+        const next = [...base, ev];
+        roundEventsRef.current = next;
+        return next;
       });
-      if (!res.ok) {
-        const raw = await res.text().catch(() => "");
-        throw new Error(pickErrorMessage(raw, res.status, res.statusText));
-      }
-      if (!res.body) throw new Error("SSE 响应无 body（ReadableStream 不可用）");
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder("utf-8");
-      let buffer = "";
-
-      // 先用本地 runId 占位；首帧 **meta.payload.run_id** 为服务端 canonical（与 JSON 日志 / done 一致），须立即切换并回填已入列事件，否则 tool.call.end 等与后端 run_id 对不齐
-      let currentRunId = runId;
-      let donePayload: unknown = null;
-      /** 本轮 SSE 是否收到 done（与 lastDone 同源，供 transcript 判定） */
-      let streamLastDone: {
-        ok: boolean;
-        mode: string;
-        run_id: string;
-        session_id: string;
-        request_id: string;
-        persist?: Record<string, unknown>;
-      } | null = null;
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        // 按 SSE block 分割（\n\n），保留最后一个不完整块到 buffer
-        const idx = buffer.lastIndexOf("\n\n");
-        if (idx < 0) continue;
-        const ready = buffer.slice(0, idx);
-        buffer = buffer.slice(idx + 2);
-
-        const blocks = parseSseBlocks(ready);
-        for (const b of blocks) {
-          const j = safeJson(b.data);
-          if (b.event === "chain") {
-            const applied = applyChainSseFrame({ dataJson: j, currentRunId });
-            if (applied.kind === "parse_error") {
-              parseErrorCountRef.current += 1;
-              console.debug("[UnifiedChat SSE] chain 帧跳过", parseErrorCountRef.current);
-              continue;
-            }
-            const srvMeta = applied.serverRunFromMeta;
-            if (srvMeta) {
-              currentRunId = srvMeta;
-            }
-            const ev = applied.event;
-            setEvents((prev) => {
-              const base =
-                srvMeta && srvMeta !== runId
-                  ? prev.map((e) => (e.run_id === runId ? { ...e, run_id: srvMeta } : e))
-                  : prev;
-              const next = [...base, ev];
-              roundEventsRef.current = next;
-              return next;
-            });
-            if (ev.type === "agent.plan.preview") {
-              const pl = ev.payload;
-              if (pl && typeof pl === "object" && !Array.isArray(pl)) {
-                const rec = pl as Record<string, unknown>;
-                if (isValidAgentPlanPreviewPayload(rec)) {
-                  const token =
-                    typeof rec.plan_execution_token === "string" ? rec.plan_execution_token.trim() : "";
-                  if (token && dismissedPlanTokenRef.current !== token) {
-                    const boundQuery = extractUserQueryText(roundEventsRef.current);
-                    if (boundQuery.trim()) {
-                      const ex = rec.expires_in_sec;
-                      setPendingPlanConfirm({
-                        token,
-                        boundQuery: boundQuery.trim(),
-                        sessionId: sessionIdRef.current,
-                        expiresInSec:
-                          typeof ex === "number" && Number.isFinite(ex) && ex >= 0 ? Math.floor(ex) : 0,
-                        receivedAtMs: Date.now(),
-                        sqlDraft: typeof rec.sql_draft === "string" ? rec.sql_draft : "",
-                        warnings: Array.isArray(rec.warnings) ? [...rec.warnings] : [],
-                        planId: typeof rec.plan_id === "string" ? rec.plan_id : "",
-                        tool: typeof rec.tool === "string" ? rec.tool : "",
-                      });
-                    }
-                  }
-                }
-              }
-            }
-            continue;
-          }
-          if (b.event === "token") {
-            // vNext：Unified 增量路径不以顶层 token 作为子步 LLM；最终答案见 assistant.message
-            continue;
-          }
-          if (b.event === "done") {
-            donePayload = j;
-            if (j && typeof j === "object") {
-              const obj = j as Record<string, unknown>;
-              const rid = typeof obj.run_id === "string" ? obj.run_id : "";
-              if (rid.trim()) currentRunId = rid.trim();
-
-              // request_id：跨端链路追踪 id（v1：与 run_id 等价；仅记录/展示，不参与主流程判断）
-              const requestId = typeof obj.request_id === "string" ? obj.request_id : "";
-              if (requestId.trim()) setActiveRequestId(requestId.trim());
-
-              const ok = typeof obj.ok === "boolean" ? obj.ok : false;
-              const mode = typeof obj.mode === "string" ? obj.mode : "";
-              const session = typeof obj.session_id === "string" ? obj.session_id : "";
-              const persistRaw = obj.persist;
-              const persist =
-                persistRaw && typeof persistRaw === "object" && !Array.isArray(persistRaw)
-                  ? (persistRaw as Record<string, unknown>)
-                  : undefined;
-              const doneSnap = {
-                ok,
-                mode,
-                run_id: rid.trim(),
-                session_id: session,
-                request_id: requestId.trim(),
-                ...(persist ? { persist } : {}),
-              };
-              streamLastDone = doneSnap;
-              setLastDone(doneSnap);
-
-              if (debugEnabled) {
-                console.debug("[UnifiedChat SSE done]", {
-                  request_id: requestId.trim(),
-                  run_id: rid.trim(),
-                  session_id: session,
-                  ok,
-                  mode,
+      if (ev.type === "agent.plan.preview") {
+        const pl = ev.payload;
+        if (pl && typeof pl === "object" && !Array.isArray(pl)) {
+          const rec = pl as Record<string, unknown>;
+          if (isValidAgentPlanPreviewPayload(rec)) {
+            const token =
+              typeof rec.plan_execution_token === "string" ? rec.plan_execution_token.trim() : "";
+            if (token && dismissedPlanTokenRef.current !== token) {
+              const boundQuery = extractUserQueryText(roundEventsRef.current);
+              if (boundQuery.trim()) {
+                const ex = rec.expires_in_sec;
+                setPendingPlanConfirm({
+                  token,
+                  boundQuery: boundQuery.trim(),
+                  sessionId: sessionIdRef.current,
+                  expiresInSec:
+                    typeof ex === "number" && Number.isFinite(ex) && ex >= 0 ? Math.floor(ex) : 0,
+                  receivedAtMs: Date.now(),
+                  sqlDraft: typeof rec.sql_draft === "string" ? rec.sql_draft : "",
+                  warnings: Array.isArray(rec.warnings) ? [...rec.warnings] : [],
+                  planId: typeof rec.plan_id === "string" ? rec.plan_id : "",
+                  tool: typeof rec.tool === "string" ? rec.tool : "",
                 });
               }
-
-              // P7_NEG_TEST（production 用例3）：已完成验证并移除越界读取
             }
-            continue;
           }
         }
       }
+    };
 
-      // done 后收尾：先 flushSync 读到与 DOM 一致的 events（await 循环末尾可能尚有未提交的 setEvents）
-      // 再在 updater 外 setFinalAnswer / setTranscript，避免 Strict Mode 重复执行 updater 导致 transcript 双写、key 重复。
-      // D2：仅当收到 done 且 ok、且有非空最终答时追加 transcript；流失败路径不追加（与 PR 说明一致）
-      void donePayload;
+    try {
+      await unifiedChat.sendQuery(trimmed, {
+        plan_execution_token: sendingWithPlanToken ? planToken : undefined,
+      });
+
       let latestEvents: ChainEvent[] = [];
       flushSync(() => {
         setEvents((prev) => {
@@ -1047,10 +968,14 @@ export function UnifiedChatPageClient() {
         });
       });
       roundEventsRef.current = latestEvents;
-      const inferred = extractFinalAnswer({ answer: undefined, events: latestEvents });
+      const inferred = extractFinalAnswer({
+        answer: unifiedChat.streamingText || undefined,
+        events: latestEvents,
+      });
       if (inferred.trim()) {
         setFinalAnswer((fa) => (fa.trim() ? fa : inferred));
       }
+      const streamLastDone = streamLastDoneRef.current;
       if (streamLastDone?.ok && lastQueryRef.current.trim() && inferred.trim()) {
         const uid = lastQueryRef.current.trim();
         const aid = inferred.trim();
@@ -1062,11 +987,9 @@ export function UnifiedChatPageClient() {
         dismissedPlanTokenRef.current = null;
       }
     } catch (e) {
+      if (e instanceof Error && e.name === "AbortError") return;
       const msg = e instanceof Error ? e.message : String(e);
       setErrorText(msg);
-    } finally {
-      setLoading(false);
-      streamAbortRef.current = null;
     }
   };
 
@@ -1643,8 +1566,7 @@ export function UnifiedChatPageClient() {
                     const next = !debugRouter;
                     setDebugRouter(next);
                     if (loading && lastQueryRef.current.trim()) {
-                      streamAbortRef.current?.abort();
-                      streamAbortRef.current = null;
+                      unifiedChat.stop();
                       await send(lastQueryRef.current.trim());
                     }
                   }}
@@ -1681,8 +1603,7 @@ export function UnifiedChatPageClient() {
                       const next = !debugLlmPrompts;
                       setDebugLlmPrompts(next);
                       if (loading && lastQueryRef.current.trim()) {
-                        streamAbortRef.current?.abort();
-                        streamAbortRef.current = null;
+                        unifiedChat.stop();
                         await send(lastQueryRef.current.trim());
                       }
                     }}
@@ -1954,8 +1875,7 @@ export function UnifiedChatPageClient() {
                 <button
                   type="button"
                   onClick={() => {
-                    streamAbortRef.current?.abort();
-                    streamAbortRef.current = null;
+                    unifiedChat.stop();
                     resetSession();
                     setTranscript([]);
                     setEvents([]);
