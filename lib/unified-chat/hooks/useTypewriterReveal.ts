@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 export type UseTypewriterRevealOptions = {
   /** 为 true 时按 tick 揭开；为 false 时立即展示全文 */
@@ -21,6 +21,16 @@ export function nextTypewriterVisibleLen(
   return Math.min(targetLen, prev + charsPerTick);
 }
 
+/** 目标变短（新一轮）时从 0 重新揭开 */
+export function nextTypewriterVisibleLenWithReset(
+  prev: number,
+  targetLen: number,
+  charsPerTick: number,
+): number {
+  const base = targetLen < prev ? 0 : prev;
+  return nextTypewriterVisibleLen(base, targetLen, charsPerTick);
+}
+
 /**
  * 将单调增长的 target 以打字机速度展示；流结束（active=false）时对齐全文。
  */
@@ -30,29 +40,22 @@ export function useTypewriterReveal(
 ): string {
   const { active, charsPerTick = 2, tickMs = 20 } = options;
   const [visibleLen, setVisibleLen] = useState(0);
-  const targetRef = useRef(target);
-  targetRef.current = target;
 
   useEffect(() => {
-    if (target.length < visibleLen) {
-      setVisibleLen(0);
-    }
-  }, [target, visibleLen]);
-
-  useEffect(() => {
-    if (!active) {
-      setVisibleLen(target.length);
-      return;
-    }
+    if (!active) return;
 
     const id = window.setInterval(() => {
       setVisibleLen((prev) =>
-        nextTypewriterVisibleLen(prev, targetRef.current.length, charsPerTick),
+        nextTypewriterVisibleLenWithReset(prev, target.length, charsPerTick),
       );
     }, tickMs);
 
     return () => window.clearInterval(id);
   }, [active, target, charsPerTick, tickMs]);
+
+  if (!active) {
+    return target;
+  }
 
   return target.slice(0, visibleLen);
 }

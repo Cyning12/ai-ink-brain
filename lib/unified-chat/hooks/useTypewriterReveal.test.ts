@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { nextTypewriterVisibleLen } from "@/lib/unified-chat/hooks/useTypewriterReveal";
+import {
+  nextTypewriterVisibleLen,
+  nextTypewriterVisibleLenWithReset,
+} from "@/lib/unified-chat/hooks/useTypewriterReveal";
 
 describe("nextTypewriterVisibleLen", () => {
   it("increases by charsPerTick until target length", () => {
@@ -13,5 +16,11 @@ describe("nextTypewriterVisibleLen", () => {
   it("handles target growth in subsequent ticks", () => {
     expect(nextTypewriterVisibleLen(5, 11, 3)).toBe(8);
     expect(nextTypewriterVisibleLen(8, 11, 3)).toBe(11);
+  });
+});
+
+describe("nextTypewriterVisibleLenWithReset", () => {
+  it("resets base when target shrinks", () => {
+    expect(nextTypewriterVisibleLenWithReset(10, 3, 2)).toBe(2);
   });
 });
