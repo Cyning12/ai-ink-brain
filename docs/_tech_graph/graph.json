@@ -1,890 +1,2169 @@
 {
   "edges": [
     {
-      "from": "ADMINHOOK",
-      "sync": false,
-      "to": "AUTH_SESSION",
-      "type": "async_calls"
-    },
-    {
+      "anchors": [],
       "from": "ADMINS",
-      "sync": true,
-      "to": "FILTER",
-      "type": "depends_on"
-    },
-    {
-      "from": "ADMINS",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "NAVFILTER",
       "type": "depends_on"
     },
     {
-      "from": "API_PY",
-      "sync": true,
-      "to": "REQ",
-      "type": "depends_on"
-    },
-    {
-      "from": "API_SESSION",
-      "sync": true,
-      "to": "COOKIE",
-      "type": "depends_on"
-    },
-    {
-      "from": "API_SESSION",
-      "sync": true,
-      "to": "ENV",
-      "type": "depends_on"
-    },
-    {
-      "from": "API_UNLOCK",
-      "sync": true,
-      "to": "ENV",
-      "type": "depends_on"
-    },
-    {
+      "anchors": [],
       "from": "APP",
+      "graph_id": "00_main",
+      "label": "加载",
+      "mark": "->",
       "sync": true,
       "to": "G_SPEC",
       "type": "depends_on"
     },
     {
+      "anchors": [],
       "from": "APP",
+      "graph_id": "00_main",
+      "label": "加载",
+      "mark": "->",
       "sync": true,
       "to": "G_VER",
       "type": "depends_on"
     },
     {
+      "anchors": [],
       "from": "AUTH",
+      "graph_id": "00_main",
+      "label": "加载",
+      "mark": "->",
       "sync": true,
       "to": "G_AUTH",
       "type": "depends_on"
     },
     {
+      "anchors": [
+        {
+          "path": "PY_API_URL",
+          "symbol": ""
+        }
+      ],
       "from": "AUTH",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "~>",
       "sync": false,
       "to": "PY",
       "type": "async_calls"
     },
     {
-      "from": "AUTH_SESSION",
-      "sync": true,
-      "to": "COOKIE",
-      "type": "depends_on"
-    },
-    {
-      "from": "AUTH_UNLOCK",
-      "sync": true,
-      "to": "COOKIE",
-      "type": "depends_on"
-    },
-    {
-      "from": "BB",
-      "sync": true,
-      "to": "HOME",
-      "type": "depends_on"
-    },
-    {
-      "from": "BEARER",
-      "sync": true,
-      "to": "REQ",
-      "type": "depends_on"
-    },
-    {
-      "from": "CC",
-      "sync": true,
-      "to": "BB",
-      "type": "depends_on"
-    },
-    {
-      "from": "CCP",
-      "sync": true,
-      "to": "SID",
-      "type": "depends_on"
-    },
-    {
-      "from": "CH",
-      "sync": true,
-      "to": "BB",
-      "type": "depends_on"
-    },
-    {
+      "anchors": [
+        {
+          "path": "components/chain-chat/ChainChatPageClient.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "CHAIN",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "CCP",
       "type": "depends_on"
     },
     {
-      "from": "CHAIN",
-      "sync": true,
-      "to": "CCP",
-      "type": "depends_on"
-    },
-    {
-      "from": "CHAIN",
-      "sync": false,
-      "to": "PY_CHAIN",
-      "type": "async_calls"
-    },
-    {
+      "anchors": [
+        {
+          "path": "components/ChatPanel.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "CHAT",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "CP",
       "type": "depends_on"
     },
     {
-      "from": "CHAT",
-      "sync": true,
-      "to": "CP",
-      "type": "depends_on"
-    },
-    {
-      "from": "COOKIE",
-      "sync": true,
-      "to": "REQ",
-      "type": "depends_on"
-    },
-    {
-      "from": "COOKIE",
-      "sync": true,
-      "to": "SESSION_UI",
-      "type": "depends_on"
-    },
-    {
+      "anchors": [],
       "from": "CP",
+      "graph_id": "00_main",
+      "label": "加载",
+      "mark": "->",
       "sync": true,
       "to": "G_API",
       "type": "depends_on"
     },
     {
-      "from": "CP",
-      "sync": false,
-      "to": "HISTORY",
-      "type": "async_calls"
-    },
-    {
-      "from": "CP",
-      "sync": true,
-      "to": "MD",
-      "type": "depends_on"
-    },
-    {
-      "from": "CP",
-      "sync": true,
-      "to": "PY_CHAT",
-      "type": "depends_on"
-    },
-    {
-      "from": "CP",
-      "sync": true,
-      "to": "PY_CHAT_HIS",
-      "type": "depends_on"
-    },
-    {
-      "from": "CP",
-      "sync": true,
-      "to": "SC",
-      "type": "depends_on"
-    },
-    {
-      "from": "CP",
-      "sync": true,
-      "to": "SID",
-      "type": "depends_on"
-    },
-    {
-      "from": "CP",
-      "sync": false,
-      "to": "STREAM",
-      "type": "async_calls"
-    },
-    {
-      "from": "EC",
-      "sync": true,
-      "to": "SC",
-      "type": "depends_on"
-    },
-    {
-      "from": "EC",
-      "sync": true,
-      "to": "SQLT",
-      "type": "depends_on"
-    },
-    {
-      "from": "ENV",
-      "sync": true,
-      "to": "TSE",
-      "type": "depends_on"
-    },
-    {
-      "from": "FILTER",
-      "sync": true,
-      "to": "HIDE",
-      "type": "depends_on"
-    },
-    {
-      "from": "FILTER",
-      "sync": true,
-      "to": "N_CHAIN",
-      "type": "depends_on"
-    },
-    {
-      "from": "FILTER",
-      "sync": true,
-      "to": "N_CHAT",
-      "type": "depends_on"
-    },
-    {
-      "from": "FILTER",
-      "sync": true,
-      "to": "N_T2S",
-      "type": "depends_on"
-    },
-    {
-      "from": "FILTER",
-      "sync": true,
-      "to": "N_UNIFIED",
-      "type": "depends_on"
-    },
-    {
-      "from": "HM",
-      "sync": true,
-      "to": "HOME_LINKS",
-      "type": "depends_on"
-    },
-    {
+      "anchors": [],
       "from": "HOME",
+      "graph_id": "00_main",
+      "label": "加载",
+      "mark": "->",
       "sync": true,
       "to": "G_ROUTE",
       "type": "depends_on"
     },
     {
-      "from": "HOME",
-      "sync": true,
-      "to": "HM",
-      "type": "depends_on"
-    },
-    {
-      "from": "HOME_LINKS",
-      "sync": true,
-      "to": "L_ABOUT",
-      "type": "depends_on"
-    },
-    {
-      "from": "HOME_LINKS",
-      "sync": true,
-      "to": "L_ADMIN",
-      "type": "depends_on"
-    },
-    {
-      "from": "HOME_LINKS",
-      "sync": true,
-      "to": "L_BLOG",
-      "type": "depends_on"
-    },
-    {
-      "from": "HOME_LINKS",
-      "sync": true,
-      "to": "L_DIARY",
-      "type": "depends_on"
-    },
-    {
-      "from": "HOME_LINKS",
-      "sync": true,
-      "to": "L_LEARNING",
-      "type": "depends_on"
-    },
-    {
-      "from": "HOME_LINKS",
-      "sync": true,
-      "to": "L_TASKS",
-      "type": "depends_on"
-    },
-    {
+      "anchors": [
+        {
+          "path": "app/layout.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "L",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "NAV",
       "type": "depends_on"
     },
     {
+      "anchors": [
+        {
+          "path": "app/**/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "L",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "ROUTER",
       "type": "depends_on"
     },
     {
-      "from": "LS",
-      "sync": true,
-      "to": "TOKEN",
-      "type": "depends_on"
-    },
-    {
+      "anchors": [
+        {
+          "path": "lib/hooks/useAdminSession.ts",
+          "symbol": ""
+        }
+      ],
       "from": "NAV",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "ADMINS",
       "type": "depends_on"
     },
     {
-      "from": "NAV",
-      "sync": true,
-      "to": "ADMINS",
-      "type": "depends_on"
-    },
-    {
-      "from": "NAV",
-      "sync": true,
-      "to": "NAV_ITEMS",
-      "type": "depends_on"
-    },
-    {
+      "anchors": [],
       "from": "NAVFILTER",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "[admin]",
       "sync": true,
       "to": "ROUTER",
       "type": "depends_on"
     },
     {
+      "anchors": [],
       "from": "NAVFILTER",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "[non-admin]",
       "sync": true,
       "to": "ROUTER",
       "type": "depends_on"
     },
     {
-      "from": "NAV_ITEMS",
-      "sync": true,
-      "to": "N_ABOUT",
-      "type": "depends_on"
-    },
-    {
-      "from": "NAV_ITEMS",
-      "sync": true,
-      "to": "N_BLOG",
-      "type": "depends_on"
-    },
-    {
-      "from": "NAV_ITEMS",
-      "sync": true,
-      "to": "N_CHAIN",
-      "type": "depends_on"
-    },
-    {
-      "from": "NAV_ITEMS",
-      "sync": true,
-      "to": "N_CHAT",
-      "type": "depends_on"
-    },
-    {
-      "from": "NAV_ITEMS",
-      "sync": true,
-      "to": "N_LEARNING",
-      "type": "depends_on"
-    },
-    {
-      "from": "NAV_ITEMS",
-      "sync": true,
-      "to": "N_T2S",
-      "type": "depends_on"
-    },
-    {
-      "from": "NAV_ITEMS",
-      "sync": true,
-      "to": "N_TASKS",
-      "type": "depends_on"
-    },
-    {
-      "from": "NAV_ITEMS",
-      "sync": true,
-      "to": "N_UNIFIED",
-      "type": "depends_on"
-    },
-    {
-      "from": "PARSE",
-      "sync": true,
-      "to": "TSE",
-      "type": "depends_on"
-    },
-    {
+      "anchors": [],
       "from": "PY_CHAIN",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "AUTH",
       "type": "depends_on"
     },
     {
-      "from": "PY_CHAIN",
-      "sync": true,
-      "to": "REQ",
-      "type": "depends_on"
-    },
-    {
+      "anchors": [
+        {
+          "path": "lib/auth.ts",
+          "symbol": ""
+        }
+      ],
       "from": "PY_CHAT",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "AUTH",
       "type": "depends_on"
     },
     {
-      "from": "PY_CHAT",
-      "sync": true,
-      "to": "REQ",
-      "type": "depends_on"
-    },
-    {
-      "from": "PY_CHAT_HIS",
-      "sync": true,
-      "to": "REQ",
-      "type": "depends_on"
-    },
-    {
+      "anchors": [],
       "from": "PY_T2S",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "AUTH",
       "type": "depends_on"
     },
     {
-      "from": "PY_T2S",
-      "sync": true,
-      "to": "REQ",
-      "type": "depends_on"
-    },
-    {
+      "anchors": [],
       "from": "PY_UNIFIED",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "AUTH",
       "type": "depends_on"
     },
     {
-      "from": "PY_UNIFIED",
-      "sync": true,
-      "to": "REQ",
-      "type": "depends_on"
-    },
-    {
+      "anchors": [],
       "from": "PY_UNIFIED_SSE",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "AUTH",
       "type": "depends_on"
     },
     {
-      "from": "PY_UNIFIED_SSE",
-      "sync": true,
-      "to": "REQ",
-      "type": "depends_on"
-    },
-    {
-      "from": "P_CHAT",
-      "sync": true,
-      "to": "XS",
-      "type": "yields"
-    },
-    {
-      "from": "REQ",
-      "sync": true,
-      "to": "DENY",
-      "type": "depends_on"
-    },
-    {
-      "from": "REQ",
-      "sync": false,
-      "to": "P_CHAIN",
-      "type": "async_calls"
-    },
-    {
-      "from": "REQ",
-      "sync": false,
-      "to": "P_CHAT",
-      "type": "async_calls"
-    },
-    {
-      "from": "REQ",
-      "sync": false,
-      "to": "P_HIS",
-      "type": "async_calls"
-    },
-    {
-      "from": "REQ",
-      "sync": false,
-      "to": "P_T2S",
-      "type": "async_calls"
-    },
-    {
-      "from": "REQ",
-      "sync": false,
-      "to": "P_UNI",
-      "type": "async_calls"
-    },
-    {
-      "from": "REQ",
-      "sync": false,
-      "to": "P_UNI_SSE",
-      "type": "async_calls"
-    },
-    {
-      "from": "REQ",
-      "sync": true,
-      "to": "UPSTREAM",
-      "type": "depends_on"
-    },
-    {
-      "from": "REQ",
-      "sync": true,
-      "to": "VALIDATE",
-      "type": "depends_on"
-    },
-    {
-      "from": "ROOT",
-      "sync": true,
-      "to": "HOME",
-      "type": "depends_on"
-    },
-    {
-      "from": "ROOT",
-      "sync": true,
-      "to": "NAV",
-      "type": "depends_on"
-    },
-    {
+      "anchors": [
+        {
+          "path": "app/about/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "ROUTER",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "ABOUT",
       "type": "depends_on"
     },
     {
+      "anchors": [
+        {
+          "path": "app/blog/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "ROUTER",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "BLOG",
       "type": "depends_on"
     },
     {
+      "anchors": [
+        {
+          "path": "app/blog/[...slug]/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "ROUTER",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "BLOGSLUG",
       "type": "depends_on"
     },
     {
+      "anchors": [
+        {
+          "path": "app/chain-chat/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "ROUTER",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "CHAIN",
       "type": "depends_on"
     },
     {
+      "anchors": [
+        {
+          "path": "app/chat/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "ROUTER",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "CHAT",
       "type": "depends_on"
     },
     {
+      "anchors": [
+        {
+          "path": "app/diary/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "ROUTER",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "DIARY",
       "type": "depends_on"
     },
     {
+      "anchors": [],
       "from": "ROUTER",
+      "graph_id": "00_main",
+      "label": "加载",
+      "mark": "->",
       "sync": true,
       "to": "G_STRUCT",
       "type": "depends_on"
     },
     {
+      "anchors": [
+        {
+          "path": "app/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "ROUTER",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "HOME",
       "type": "depends_on"
     },
     {
+      "anchors": [
+        {
+          "path": "app/learning/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "ROUTER",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "LEARNING",
       "type": "depends_on"
     },
     {
+      "anchors": [
+        {
+          "path": "app/projects/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "ROUTER",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "PROJECTS",
       "type": "depends_on"
     },
     {
+      "anchors": [
+        {
+          "path": "app/text2sql/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "ROUTER",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "T2S",
       "type": "depends_on"
     },
     {
+      "anchors": [
+        {
+          "path": "app/unified-chat/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "ROUTER",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "UNIFIED",
       "type": "depends_on"
     },
     {
-      "from": "SESSION_UI",
-      "sync": false,
-      "to": "API_SESSION",
-      "type": "async_calls"
-    },
-    {
-      "from": "T2",
-      "sync": true,
-      "to": "BB",
-      "type": "depends_on"
-    },
-    {
-      "from": "T2P",
-      "sync": true,
-      "to": "SID",
-      "type": "depends_on"
-    },
-    {
+      "anchors": [
+        {
+          "path": "components/Text2SqlChatPanel.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "T2S",
-      "sync": false,
-      "to": "PY_T2S",
-      "type": "async_calls"
-    },
-    {
-      "from": "T2S",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "T2P",
       "type": "depends_on"
     },
     {
-      "from": "T2S",
-      "sync": true,
-      "to": "T2P",
-      "type": "depends_on"
-    },
-    {
-      "from": "TL",
-      "sync": true,
-      "to": "EC",
-      "type": "depends_on"
-    },
-    {
-      "from": "TOKEN",
-      "sync": true,
-      "to": "API_PY",
-      "type": "depends_on"
-    },
-    {
-      "from": "TSE",
-      "sync": true,
-      "to": "COOKIE",
-      "type": "depends_on"
-    },
-    {
-      "from": "TSE",
-      "sync": true,
-      "to": "ENV",
-      "type": "depends_on"
-    },
-    {
-      "from": "UC",
-      "sync": true,
-      "to": "BB",
-      "type": "depends_on"
-    },
-    {
+      "anchors": [],
       "from": "UCP",
+      "graph_id": "00_main",
+      "label": "加载",
+      "mark": "->",
       "sync": true,
       "to": "G_COMP",
       "type": "depends_on"
     },
     {
-      "from": "UCP",
-      "sync": true,
-      "to": "SID",
-      "type": "depends_on"
-    },
-    {
-      "from": "UCP",
-      "sync": true,
-      "to": "UC_DBG",
-      "type": "depends_on"
-    },
-    {
-      "from": "UCP",
-      "sync": true,
-      "to": "UC_HIST",
-      "type": "depends_on"
-    },
-    {
-      "from": "UCP",
-      "sync": true,
-      "to": "UC_MID",
-      "type": "depends_on"
-    },
-    {
-      "from": "UCP",
-      "sync": true,
-      "to": "UC_MSG",
-      "type": "depends_on"
-    },
-    {
-      "from": "UCP",
-      "sync": true,
-      "to": "UC_RIGHT",
-      "type": "depends_on"
-    },
-    {
-      "from": "UCP",
-      "sync": true,
-      "to": "UC_TOP",
-      "type": "depends_on"
-    },
-    {
-      "from": "UC_MID",
-      "sync": true,
-      "to": "TL",
-      "type": "depends_on"
-    },
-    {
+      "anchors": [
+        {
+          "path": "components/unified-chat/UnifiedChatPageClient.tsx",
+          "symbol": ""
+        },
+        {
+          "path": "app/api/auth/session/route.ts",
+          "symbol": ""
+        },
+        {
+          "path": "app/api/auth/unlock/route.ts",
+          "symbol": ""
+        },
+        {
+          "path": "app/api/py/chat/route.ts",
+          "symbol": ""
+        },
+        {
+          "path": "app/api/py/chat/history/route.ts",
+          "symbol": ""
+        },
+        {
+          "path": "app/api/py/text2sql/chat/route.ts",
+          "symbol": ""
+        },
+        {
+          "path": "app/api/py/chain/chat/route.ts",
+          "symbol": ""
+        },
+        {
+          "path": "app/api/py/unified/chat/route.ts",
+          "symbol": ""
+        },
+        {
+          "path": "app/api/py/unified/chat/stream/route.ts",
+          "symbol": ""
+        },
+        {
+          "path": "app/api/system/status/route.ts",
+          "symbol": ""
+        }
+      ],
       "from": "UNIFIED",
-      "sync": false,
-      "to": "AUTH_UNLOCK",
-      "type": "async_calls"
-    },
-    {
-      "from": "UNIFIED",
-      "sync": false,
-      "to": "PY_UNIFIED",
-      "type": "async_calls"
-    },
-    {
-      "from": "UNIFIED",
-      "sync": true,
-      "to": "PY_UNIFIED_SSE",
-      "type": "depends_on"
-    },
-    {
-      "from": "UNIFIED",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "UCP",
       "type": "depends_on"
     },
     {
-      "from": "UNIFIED",
+      "anchors": [],
+      "from": "ADMINS",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
       "sync": true,
-      "to": "UCP",
+      "to": "FILTER",
       "type": "depends_on"
     },
     {
-      "from": "UNLOCK_UI",
+      "anchors": [],
+      "from": "BB",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "HOME",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "CC",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "BB",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "CH",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "BB",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "FILTER",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "[false]",
+      "sync": true,
+      "to": "HIDE",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "FILTER",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "[true]",
+      "sync": true,
+      "to": "N_CHAIN",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "FILTER",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "[true]",
+      "sync": true,
+      "to": "N_CHAT",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "FILTER",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "[true]",
+      "sync": true,
+      "to": "N_T2S",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "FILTER",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "[true]",
+      "sync": true,
+      "to": "N_UNIFIED",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "HM",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "HOME_LINKS",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "app/_components/home-modules.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "HOME",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "HM",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "HOME_LINKS",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "L_ABOUT",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "HOME_LINKS",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "L_ADMIN",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "HOME_LINKS",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "L_BLOG",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "HOME_LINKS",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "L_DIARY",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "HOME_LINKS",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "L_LEARNING",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "HOME_LINKS",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "L_TASKS",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "lib/hooks/useAdminSession.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "NAV",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "ADMINS",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "NAV",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "NAV_ITEMS",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "NAV_ITEMS",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "N_ABOUT",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "NAV_ITEMS",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "N_BLOG",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "NAV_ITEMS",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "N_CHAIN",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "NAV_ITEMS",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "N_CHAT",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "NAV_ITEMS",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "N_LEARNING",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "NAV_ITEMS",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "N_T2S",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "NAV_ITEMS",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "N_TASKS",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "NAV_ITEMS",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "N_UNIFIED",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "app/page.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "ROOT",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "HOME",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "app/_components/site-nav.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "ROOT",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "NAV",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "T2",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "BB",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "app/_components/back-button.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "UC",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "BB",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "components/ChatPanel.tsx",
+          "symbol": ""
+        },
+        {
+          "path": "components/Text2SqlChatPanel.tsx",
+          "symbol": ""
+        },
+        {
+          "path": "components/chain-chat/ChainChatPageClient.tsx",
+          "symbol": ""
+        },
+        {
+          "path": "components/unified-chat/UnifiedChatPageClient.tsx",
+          "symbol": ""
+        },
+        {
+          "path": "lib/hooks/useAdminSession.ts",
+          "symbol": ""
+        },
+        {
+          "path": "app/api/auth/session/route.ts",
+          "symbol": ""
+        },
+        {
+          "path": "app/api/auth/unlock/route.ts",
+          "symbol": ""
+        },
+        {
+          "path": "app/api/py/chat/route.ts",
+          "symbol": ""
+        },
+        {
+          "path": "app/api/py/chat/history/route.ts",
+          "symbol": ""
+        },
+        {
+          "path": "app/api/py/text2sql/chat/route.ts",
+          "symbol": ""
+        },
+        {
+          "path": "app/api/py/chain/chat/route.ts",
+          "symbol": ""
+        },
+        {
+          "path": "app/api/py/unified/chat/route.ts",
+          "symbol": ""
+        },
+        {
+          "path": "app/api/py/unified/chat/stream/route.ts",
+          "symbol": ""
+        },
+        {
+          "path": "lib/auth.ts",
+          "symbol": ""
+        },
+        {
+          "path": "lib/auth/admin-cookie.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "ADMINHOOK",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "~>",
       "sync": false,
-      "to": "API_UNLOCK",
+      "to": "AUTH_SESSION",
       "type": "async_calls"
     },
     {
-      "from": "VALIDATE",
+      "anchors": [],
+      "from": "AUTH_SESSION",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "->",
       "sync": true,
       "to": "COOKIE",
       "type": "depends_on"
     },
     {
+      "anchors": [],
+      "from": "AUTH_UNLOCK",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "COOKIE",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "BEARER",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "REQ",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "CHAIN",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "PY_CHAIN",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
+      "from": "COOKIE",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "REQ",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "CP",
+      "graph_id": "11_flow_api",
+      "label": "streamChat",
+      "mark": "->",
+      "sync": true,
+      "to": "PY_CHAT",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "CP",
+      "graph_id": "11_flow_api",
+      "label": "fetchChatHistory",
+      "mark": "->",
+      "sync": true,
+      "to": "PY_CHAT_HIS",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "PY_CHAIN",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "REQ",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "PY_CHAT",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "REQ",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "PY_CHAT_HIS",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "REQ",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "PY_T2S",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "REQ",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "PY_UNIFIED",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "REQ",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "PY_UNIFIED_SSE",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "REQ",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "lib/chat/chatApi.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "P_CHAT",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "::yields",
+      "sync": true,
+      "to": "XS",
+      "type": "yields"
+    },
+    {
+      "anchors": [],
+      "from": "REQ",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "P_CHAIN",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
+      "from": "REQ",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "P_CHAT",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
+      "from": "REQ",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "P_HIS",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
+      "from": "REQ",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "P_T2S",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
+      "from": "REQ",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "P_UNI",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
+      "from": "REQ",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "P_UNI_SSE",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
+      "from": "T2S",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "PY_T2S",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
+      "from": "UNIFIED",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "AUTH_UNLOCK",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
+      "from": "UNIFIED",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "PY_UNIFIED",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
+      "from": "UNIFIED",
+      "graph_id": "11_flow_api",
+      "label": "fetch POST + ReadableStream",
+      "mark": "->",
+      "sync": true,
+      "to": "PY_UNIFIED_SSE",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "API_PY",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "REQ",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "API_SESSION",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "COOKIE",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "API_SESSION",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "ENV",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "API_UNLOCK",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "ENV",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "COOKIE",
+      "graph_id": "12_flow_auth",
+      "label": "Set-Cookie HttpOnly",
+      "mark": "->",
+      "sync": true,
+      "to": "SESSION_UI",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "ENV",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "[secret configured]",
+      "sync": true,
+      "to": "TSE",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "LS",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "TOKEN",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "PARSE",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "TSE",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "REQ",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "[401]",
+      "sync": true,
+      "to": "DENY",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "PY_API_URL",
+          "symbol": ""
+        }
+      ],
+      "from": "REQ",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "[pass]",
+      "sync": true,
+      "to": "UPSTREAM",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "REQ",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "VALIDATE",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "SESSION_UI",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "API_SESSION",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
+      "from": "TOKEN",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "API_PY",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "TSE",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "[ok]",
+      "sync": true,
+      "to": "COOKIE",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "TSE",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "[match]",
+      "sync": true,
+      "to": "ENV",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "components/ChatPanel.tsx",
+          "symbol": ""
+        },
+        {
+          "path": "app/api/auth/unlock/route.ts",
+          "symbol": ""
+        },
+        {
+          "path": "app/api/auth/session/route.ts",
+          "symbol": ""
+        },
+        {
+          "path": "app/api/py/**/route.ts",
+          "symbol": ""
+        },
+        {
+          "path": "lib/auth/admin-env.ts",
+          "symbol": ""
+        },
+        {
+          "path": "lib/auth/parse-admin-token.ts",
+          "symbol": ""
+        },
+        {
+          "path": "lib/auth/admin-cookie.ts",
+          "symbol": ""
+        },
+        {
+          "path": "lib/auth.ts",
+          "symbol": ""
+        },
+        {
+          "path": "lib/auth.ts",
+          "symbol": ""
+        },
+        {
+          "path": "node:crypto",
+          "symbol": ""
+        }
+      ],
+      "from": "UNLOCK_UI",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "API_UNLOCK",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
       "from": "VALIDATE",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "[cookie ok]",
+      "sync": true,
+      "to": "COOKIE",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "VALIDATE",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "[else]",
       "sync": true,
       "to": "PARSE",
       "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "CCP",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "SID",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "components/chain-chat/ChainChatPageClient.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "CHAIN",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "CCP",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "components/ChatPanel.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "CHAT",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "CP",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "lib/chat/chatApi.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "CP",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "HISTORY",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
+      "from": "CP",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "MD",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "CP",
+      "graph_id": "13_flow_components",
+      "label": "sources",
+      "mark": "->",
+      "sync": true,
+      "to": "SC",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "CP",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "SID",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "lib/chat/chatApi.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "CP",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "STREAM",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [
+        {
+          "path": "components/SourceCitations.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "EC",
+      "graph_id": "13_flow_components",
+      "label": "type=rag.sources",
+      "mark": "->",
+      "sync": true,
+      "to": "SC",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "components/chain-chat/SqlResultTable.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "EC",
+      "graph_id": "13_flow_components",
+      "label": "type=sql.result",
+      "mark": "->",
+      "sync": true,
+      "to": "SQLT",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "T2P",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "SID",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "components/Text2SqlChatPanel.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "T2S",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "T2P",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "components/chain-chat/ChainEventCard.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "TL",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "EC",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "lib/hooks/useSessionId.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "UCP",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "SID",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "UCP",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "UC_DBG",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "UCP",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "UC_HIST",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "UCP",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "UC_MID",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "UCP",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "UC_MSG",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "UCP",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "UC_RIGHT",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "UCP",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "UC_TOP",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "components/chain-chat/ChainTimeline.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "UC_MID",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "TL",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "components/unified-chat/UnifiedChatPageClient.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "UNIFIED",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "UCP",
+      "type": "depends_on"
     }
   ],
-  "freeze_id": "TECH_GRAPH_S1_FREEZE_20260514_V1_1_3",
-  "generated_at": "2026-05-15T02:50:36Z",
-  "nodes": [
-    "ABOUT",
-    "ADMINHOOK",
-    "ADMINS",
-    "API_PY",
-    "API_SESSION",
-    "API_UNLOCK",
-    "APP",
-    "AUTH",
-    "AUTH_SESSION",
-    "AUTH_UNLOCK",
-    "BB",
-    "BEARER",
-    "BLOG",
-    "BLOGSLUG",
-    "CC",
-    "CCP",
-    "CH",
-    "CHAIN",
-    "CHAT",
-    "COOKIE",
-    "CP",
-    "DENY",
-    "DIARY",
-    "EC",
-    "ENV",
-    "FILTER",
-    "G_API",
-    "G_AUTH",
-    "G_COMP",
-    "G_ROUTE",
-    "G_SPEC",
-    "G_STRUCT",
-    "G_VER",
-    "HIDE",
-    "HISTORY",
-    "HM",
-    "HOME",
-    "HOME_LINKS",
-    "L",
-    "LEARNING",
-    "LS",
-    "L_ABOUT",
-    "L_ADMIN",
-    "L_BLOG",
-    "L_DIARY",
-    "L_LEARNING",
-    "L_TASKS",
-    "MD",
-    "NAV",
-    "NAVFILTER",
-    "NAV_ITEMS",
-    "N_ABOUT",
-    "N_BLOG",
-    "N_CHAIN",
-    "N_CHAT",
-    "N_LEARNING",
-    "N_T2S",
-    "N_TASKS",
-    "N_UNIFIED",
-    "PARSE",
-    "PROJECTS",
-    "PY",
-    "PY_CHAIN",
-    "PY_CHAT",
-    "PY_CHAT_HIS",
-    "PY_T2S",
-    "PY_UNIFIED",
-    "PY_UNIFIED_SSE",
-    "P_CHAIN",
-    "P_CHAT",
-    "P_HIS",
-    "P_T2S",
-    "P_UNI",
-    "P_UNI_SSE",
-    "REQ",
-    "ROOT",
-    "ROUTER",
-    "SC",
-    "SESSION_UI",
-    "SID",
-    "SQLT",
-    "STREAM",
-    "T2",
-    "T2P",
-    "T2S",
-    "TL",
-    "TOKEN",
-    "TSE",
-    "UC",
-    "UCP",
-    "UC_DBG",
-    "UC_HIST",
-    "UC_MID",
-    "UC_MSG",
-    "UC_RIGHT",
-    "UC_TOP",
-    "UNIFIED",
-    "UNLOCK_UI",
-    "UPSTREAM",
-    "VALIDATE",
-    "XS"
+  "freeze_id": "TECH_GRAPH_S2_FREEZE_20260519_V2_3",
+  "generated_at": "2026-05-18T07:49:59Z",
+  "graphs": [
+    {
+      "id": "00_main",
+      "source_ai_path": "/Users/cyning/Desktop/Projects/ai-ink-brain/docs/_tech_graph/00_main.ai.md",
+      "title": "00_main"
+    },
+    {
+      "id": "10_flow_route",
+      "source_ai_path": "/Users/cyning/Desktop/Projects/ai-ink-brain/docs/_tech_graph/10_flow_route.ai.md",
+      "title": "10_flow_route"
+    },
+    {
+      "id": "11_flow_api",
+      "source_ai_path": "/Users/cyning/Desktop/Projects/ai-ink-brain/docs/_tech_graph/11_flow_api.ai.md",
+      "title": "11_flow_api"
+    },
+    {
+      "id": "12_flow_auth",
+      "source_ai_path": "/Users/cyning/Desktop/Projects/ai-ink-brain/docs/_tech_graph/12_flow_auth.ai.md",
+      "title": "12_flow_auth"
+    },
+    {
+      "id": "13_flow_components",
+      "source_ai_path": "/Users/cyning/Desktop/Projects/ai-ink-brain/docs/_tech_graph/13_flow_components.ai.md",
+      "title": "13_flow_components"
+    }
   ],
-  "schema_version": "graph_v1"
+  "nodes": [
+    {
+      "graph_id": "00_main",
+      "id": "ABOUT",
+      "label": "/about"
+    },
+    {
+      "graph_id": "11_flow_api",
+      "id": "ADMINHOOK",
+      "label": "ADMINHOOK"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "ADMINS",
+      "label": "useAdminSession()"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "API_PY",
+      "label": "API_PY"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "API_SESSION",
+      "label": "API_SESSION"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "API_UNLOCK",
+      "label": "API_UNLOCK"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "APP",
+      "label": "APP"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "AUTH",
+      "label": "requireAdminApiSecret()"
+    },
+    {
+      "graph_id": "11_flow_api",
+      "id": "AUTH_SESSION",
+      "label": "AUTH_SESSION"
+    },
+    {
+      "graph_id": "11_flow_api",
+      "id": "AUTH_UNLOCK",
+      "label": "AUTH_UNLOCK"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "BB",
+      "label": "BackButton"
+    },
+    {
+      "graph_id": "11_flow_api",
+      "id": "BEARER",
+      "label": "BEARER"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "BLOG",
+      "label": "/blog"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "BLOGSLUG",
+      "label": "/blog/[...slug"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "CC",
+      "label": "/chain-chat"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "CCP",
+      "label": "ChainChatPageClient"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "CH",
+      "label": "/chat"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "CHAIN",
+      "label": "/chain-chat"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "CHAT",
+      "label": "/chat"
+    },
+    {
+      "graph_id": "11_flow_api",
+      "id": "COOKIE",
+      "label": "COOKIE"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "CP",
+      "label": "ChatPanel"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "DENY",
+      "label": "Unauthorized"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "DIARY",
+      "label": "/diary"
+    },
+    {
+      "graph_id": "13_flow_components",
+      "id": "EC",
+      "label": "ChainEventCard"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "ENV",
+      "label": "ENV"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "FILTER",
+      "label": "isAdmin?"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "G_API",
+      "label": ">11_flow_api.md"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "G_AUTH",
+      "label": ">12_flow_auth.md"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "G_COMP",
+      "label": ">13_flow_components.md"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "G_ROUTE",
+      "label": ">10_flow_route.md"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "G_SPEC",
+      "label": ">99_spec.md"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "G_STRUCT",
+      "label": ">01_struct.md"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "G_VER",
+      "label": ">02_version.md"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "HIDE",
+      "label": "隐藏入口"
+    },
+    {
+      "graph_id": "13_flow_components",
+      "id": "HISTORY",
+      "label": "fetchChatHistory()"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "HM",
+      "label": "HomeModules"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "HOME",
+      "label": "/ Home"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "HOME_LINKS",
+      "label": "modules[]"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "L",
+      "label": "app/layout.tsx"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "LEARNING",
+      "label": "/learning"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "LS",
+      "label": "LS"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "L_ABOUT",
+      "label": "/about"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "L_ADMIN",
+      "label": "/chat /text2sql /chain-chat /unified-chat"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "L_BLOG",
+      "label": "/blog"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "L_DIARY",
+      "label": "/diary"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "L_LEARNING",
+      "label": "/learning"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "L_TASKS",
+      "label": "/projects"
+    },
+    {
+      "graph_id": "13_flow_components",
+      "id": "MD",
+      "label": "ReactMarkdown + remark/rehype"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "NAV",
+      "label": "SiteNav"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "NAVFILTER",
+      "label": "过滤导航项"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "NAV_ITEMS",
+      "label": "NAV[]"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "N_ABOUT",
+      "label": "/about"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "N_BLOG",
+      "label": "/blog"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "N_CHAIN",
+      "label": "/chain-chat"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "N_CHAT",
+      "label": "/chat"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "N_LEARNING",
+      "label": "/learning"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "N_T2S",
+      "label": "/text2sql"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "N_TASKS",
+      "label": "/projects"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "N_UNIFIED",
+      "label": "/unified-chat"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "PARSE",
+      "label": "PARSE"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "PROJECTS",
+      "label": "/projects"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "PY",
+      "label": "(Python FastAPI)"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "PY_CHAIN",
+      "label": "PY_CHAIN"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "PY_CHAT",
+      "label": "PY_CHAT"
+    },
+    {
+      "graph_id": "11_flow_api",
+      "id": "PY_CHAT_HIS",
+      "label": "PY_CHAT_HIS"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "PY_T2S",
+      "label": "PY_T2S"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "PY_UNIFIED",
+      "label": "PY_UNIFIED"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "PY_UNIFIED_SSE",
+      "label": "PY_UNIFIED_SSE"
+    },
+    {
+      "graph_id": "11_flow_api",
+      "id": "P_CHAIN",
+      "label": "P_CHAIN"
+    },
+    {
+      "graph_id": "11_flow_api",
+      "id": "P_CHAT",
+      "label": "P_CHAT"
+    },
+    {
+      "graph_id": "11_flow_api",
+      "id": "P_HIS",
+      "label": "P_HIS"
+    },
+    {
+      "graph_id": "11_flow_api",
+      "id": "P_T2S",
+      "label": "P_T2S"
+    },
+    {
+      "graph_id": "11_flow_api",
+      "id": "P_UNI",
+      "label": "P_UNI"
+    },
+    {
+      "graph_id": "11_flow_api",
+      "id": "P_UNI_SSE",
+      "label": "P_UNI_SSE"
+    },
+    {
+      "graph_id": "11_flow_api",
+      "id": "REQ",
+      "label": "REQ"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "ROOT",
+      "label": "app/layout.tsx"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "ROUTER",
+      "label": "路由匹配"
+    },
+    {
+      "graph_id": "13_flow_components",
+      "id": "SC",
+      "label": "SourceCitations"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "SESSION_UI",
+      "label": "SESSION_UI"
+    },
+    {
+      "graph_id": "13_flow_components",
+      "id": "SID",
+      "label": "useSessionId()"
+    },
+    {
+      "graph_id": "13_flow_components",
+      "id": "SQLT",
+      "label": "SqlResultTable"
+    },
+    {
+      "graph_id": "13_flow_components",
+      "id": "STREAM",
+      "label": "streamChat()"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "T2",
+      "label": "/text2sql"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "T2P",
+      "label": "Text2SqlChatPanel"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "T2S",
+      "label": "/text2sql"
+    },
+    {
+      "graph_id": "13_flow_components",
+      "id": "TL",
+      "label": "ChainTimeline"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "TOKEN",
+      "label": "TOKEN"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "TSE",
+      "label": "TSE"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "UC",
+      "label": "/unified-chat"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "UCP",
+      "label": "UnifiedChatPageClient"
+    },
+    {
+      "graph_id": "13_flow_components",
+      "id": "UC_DBG",
+      "label": "Router Debug 与输入"
+    },
+    {
+      "graph_id": "13_flow_components",
+      "id": "UC_HIST",
+      "label": "历史 transcript 跨轮"
+    },
+    {
+      "graph_id": "13_flow_components",
+      "id": "UC_MID",
+      "label": "左 ChainTimeline 当前轮"
+    },
+    {
+      "graph_id": "13_flow_components",
+      "id": "UC_MSG",
+      "label": "底 消息区 当前轮"
+    },
+    {
+      "graph_id": "13_flow_components",
+      "id": "UC_RIGHT",
+      "label": "右 执行链路 当前轮"
+    },
+    {
+      "graph_id": "13_flow_components",
+      "id": "UC_TOP",
+      "label": "顶栏 prefer + 多轮说明 + debug 短前缀"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "UNIFIED",
+      "label": "/unified-chat"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "UNLOCK_UI",
+      "label": "UNLOCK_UI"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "UPSTREAM",
+      "label": "(Python FastAPI)"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "VALIDATE",
+      "label": "VALIDATE"
+    },
+    {
+      "graph_id": "11_flow_api",
+      "id": "XS",
+      "label": "x-sources header"
+    }
+  ],
+  "schema_version": "graph_v2"
 }
