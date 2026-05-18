@@ -262,7 +262,7 @@
 | --- | --- |
 | 工作目录 | `ai-ink-brain` |
 | 分支 | `feat/unified-chat-ai-sdk-stream-v1` |
-| HEAD（执行帽 V-BUILD 修复后） | `149379e` |
+| HEAD（执行帽 V-BUILD 修复后） | `23a053b` |
 | 本轮范围 | **PR2（T2 Phase 1）· V-BUILD 阻塞修复** |
 | 自检帽 | **40 · R3**（待 `invoke_*_40_*-vbuild-fix`） |
 
