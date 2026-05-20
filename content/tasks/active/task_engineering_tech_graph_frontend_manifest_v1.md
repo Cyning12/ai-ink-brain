@@ -1,6 +1,6 @@
 # Task：技术图谱 v2 — 前端 `_manifest.json` 与 manifest_check（T5 · W6）
 
-> **状态**：`active`（R1 审查通过；30 帽实现中）  
+> **状态**：`active`（40 帽自检通过；待 50 独立复检 / PR CI）  
 > **关联 SPEC**：`content/tasks/specs/SPEC-tech_graph_v2_frontend_parity_v1.md` §4 W6、§8 T5、§11 顺序 6  
 > **关联图谱**：`docs/_tech_graph/99_spec.md`、`00_main.ai.md`、`10_flow_route.ai.md`、`11_flow_api.ai.md`  
 > **invoke_snapshot**：`content/harness/invokes/invoke_20260520_10_tech-graph-v2-frontend-manifest-requirements.md`  
@@ -110,14 +110,14 @@
 
 ## 6. 验收标准
 
-- [ ] `docs/_tech_graph/_manifest.json` 存在；`schema_version`=`tech_graph_manifest_v1`；`repo`=`ai-ink-brain`；`pages`/`routes`/`env` 字段齐全。
-- [ ] 本地：`pnpm tech-graph:manifest-check` → **exit 0**，stdout 含 `OK`（或等价成功语义）。
-- [ ] **负向（required）**：从 manifest **删除** 一条仍存在于仓库的 `route`（例如 `POST /api/py/unified/chat/stream`）→ 同一命令 **exit 1**，stderr 列出 **缺失（truth→manifest）**；测试后 **恢复** manifest 再提交。
-- [ ] **正向漂移**：临时在 manifest **多余** 一条不存在的 API → **exit 1**，stderr 列出 **多余（manifest→truth）**；恢复后 exit 0。
-- [ ] PR **`quality`** workflow 全绿，且日志中存在 **Tech graph manifest check**（或同等 step 名）步骤且 exit 0。
-- [ ] `99_spec.md` / `AGENTS.md` 已文档化 manifest 命令与失败语义（FP-MF-*）。
-- [ ] **未** 修改任何 `docs/_tech_graph/*.ai.md`（除非人工另开 T3；本 task 不计入验收）。
-- [ ] 关账后更新 `PRIORITY_ROADMAP_v1_zh.md` §2.2 **T5** → `done（YYYY-MM-DD）` 并填 **子 task 路径**。
+- [x] `docs/_tech_graph/_manifest.json` 存在；`schema_version`=`tech_graph_manifest_v1`；`repo`=`ai-ink-brain`；`pages`/`routes`/`env` 字段齐全。（40 帽 · 2026-05-20）
+- [x] 本地：`pnpm tech-graph:manifest-check` → **exit 0**，stdout 含 `OK`。（40 帽）
+- [x] **负向（required）**：删 `POST /api/py/unified/chat/stream` → **exit 1**，stderr `Routes 缺失（truth->manifest）`；恢复后 **exit 0**。（40 帽复跑）
+- [x] **正向漂移**：临时 `DELETE /api/__fake__/never` → **exit 1**，stderr `Routes 多余（manifest->truth）`；恢复后 **exit 0**。（40 帽复跑）
+- [ ] PR **`quality`** workflow 全绿，且日志中存在 **Tech graph manifest check** 步骤且 exit 0。（**待 50 / 合并后 CI**；本地 `quality.yml` 已含该 step，后端 main **未**含 `54c976b` 前 CI 将 **exit 2**）
+- [x] `99_spec.md` / `AGENTS.md` 已文档化 manifest 命令与失败语义（FP-MF-*）。（40 帽）
+- [x] **未** 修改任何 `docs/_tech_graph/*.ai.md`。（`git diff origin/main...HEAD` · 0 文件）
+- [ ] 关账后更新 `PRIORITY_ROADMAP_v1_zh.md` §2.2 **T5** → `done（YYYY-MM-DD）` 并填 **子 task 路径**。（关账 / HG-AUDIT-CLOSE 后）
 
 ---
 
@@ -158,35 +158,53 @@
 
 | 项 | 结果 |
 | --- | --- |
-| 执行日期 | 2026-05-20 |
-| 分支 | `task/tech-graph-v2-frontend-manifest-v1`（`ai-ink-brain` + `ai-ink-brain-api-python`） |
+| 执行日期 | 2026-05-20（40 帽复跑；30 帽结论保留在下文） |
+| 分支 | `task/tech-graph-v2-frontend-manifest-v1`（`ai-ink-brain`）；api-python 脚本 **`54c976b`**（`task/tech-graph-v2-frontend-manifest-v1`，**未**合 `main`） |
+| cwd | `Projects/ai-ink-brain` |
+| invoke_snapshot（40） | `content/harness/invokes/invoke_20260520_40_tech-graph-v2-frontend-manifest-self-check.md` |
 | invoke_snapshot（30） | `content/harness/invokes/invoke_20260520_30_tech-graph-v2-frontend-manifest-execute.md` |
 | 审查 R1 | `content/harness/reviews/task_tech_graph_frontend_manifest_v1_audit_R1_20260520.md` |
 
-**VERIFY（本地 · 全链 exit 0）**
+**命令与退出码（40 帽 · cwd=`ai-ink-brain`）**
 
-```text
-pnpm tech-graph:manifest-check && pnpm tech-graph:graph-check && pnpm tech-graph:equivalence-check && pnpm lint && pnpm test && pnpm build
-```
+| 命令 | exit | 关键输出 |
+| --- | ---: | --- |
+| `pnpm tech-graph:manifest-check` | 0 | `OK: frontend manifest matches code truth (pages=11, routes=16, env=20).` |
+| `pnpm tech-graph:graph-check` | 0 | graph.json `--check` 通过 |
+| `pnpm tech-graph:equivalence-check` | 0 | 等价校验通过 |
+| `pnpm lint` | 0 | eslint 无报错 |
+| `pnpm test` | 0 | 7 files / 23 tests passed |
+| `pnpm build` | 0 | Next.js build 成功 |
 
-要点：
+**负向（required · 40 帽复跑）**
 
-- `tech-graph:manifest-check` → **exit 0**；stdout：`OK: frontend manifest matches code truth (pages=11, routes=16, env=20).`
-- `tech-graph:graph-check` / `equivalence-check` → **exit 0**
-- `pnpm lint` / `test`（23 tests）/ `build` → **exit 0**
+| 用例 | exit | 证据 |
+| --- | ---: | --- |
+| 删 manifest 中 `POST /api/py/unified/chat/stream` | 1 | `Routes 缺失（truth->manifest）：` + 该 path |
+| 恢复 manifest | 0 | 同上 OK 行 |
+| manifest 多余 `DELETE /api/__fake__/never` | 1 | `Routes 多余（manifest->truth）：` + 该 path |
+| 恢复 manifest | 0 | 同上 OK 行 |
 
-**负向（required · 删 route）**
+**跨仓（api-python sibling）**
 
-- 操作：从 `_manifest.json` 删除 `POST /api/py/unified/chat/stream` 后执行 `pnpm tech-graph:manifest-check`
-- 结果：**exit 1**；stderr 含 `Routes 缺失（truth->manifest）：` 与 `POST /api/py/unified/chat/stream`
-- 恢复 manifest 后再次 **exit 0**
+- `../ai-ink-brain-api-python/tools/tech_graph_manifest_check.py`：`--repo frontend`（提交 **`54c976b`**）；`main` @ `531ef3c` **不含**该提交；本地 `main` checkout 有同内容 **未提交** 改动，故本地 VERIFY 可用。
+- 默认（无 `--repo`）后端 manifest：**exit 0**（`OK: manifest matches code/SQL truth…`）。
+- **合并阻塞（非本地 fail）**：`quality.yml` checkout 后端 **`main`**；须 **先** 合并 api-python PR（`54c976b`），再合并前端 PR，否则 CI manifest step **exit 2**（未知 `--repo`）或误报。
 
-**跨仓**
+**§6 验收摘要（40 帽）**
 
-- `ai-ink-brain-api-python/tools/tech_graph_manifest_check.py`：新增 `--repo frontend`；默认无 `--repo` 行为未变（本地 api-python manifest **exit 0**）
-- **CI 风险**：`quality.yml` checkout 后端 `main`；须 **先** 合并 api-python PR（含 frontend profile），再合并前端 PR
+| 验收项 | 结果 | 备注 |
+| --- | --- | --- |
+| `_manifest.json` 结构与字段 | pass | `docs/_tech_graph/_manifest.json` |
+| 本地 manifest-check OK | pass | 见上表 |
+| 负向删 route | pass | required |
+| 正向多余 route | pass | 40 帽补跑 |
+| PR `quality` 全绿 + manifest step | **未测** | 待 PR / 50 帽对照 Actions |
+| 99_spec / AGENTS 文档 | pass | manifest 小节 + PR 前三脚本 |
+| 未改 `.ai.md` | pass | diff 0 文件 |
+| 路线图 T5 关账 | **未测** | 关账后人工 |
 
-**待 40 帽 / R2**：§6 勾选、路线图 T5 关账、PR 合并证据。
+**已知未测 / 交 50 帽**：PR CI 日志；独立 diff 走查；`PRIORITY_ROADMAP` §2.2 回填；api-python `main` 合并顺序签收。
 
 ---
 
@@ -217,6 +235,7 @@ pnpm tech-graph:manifest-check && pnpm tech-graph:graph-check && pnpm tech-graph
 | v1.0 | 2026-05-20 | 10 帽需求分析落盘；方案裁定 A + quality CI；Harness 字段齐全 |
 | v1.1 | 2026-05-20 | 30 帽：manifest + script frontend profile + quality step；§9 自检回填 |
 | v1.2 | 2026-05-20 | 30 帽补全：`tech_graph_manifest_check.py` 实装 `--repo frontend`（此前 CLI 被忽略）；负向/全链 VERIFY 复跑 |
+| v1.3 | 2026-05-20 | 40 帽：全链 VERIFY + 正向/负向 manifest 复跑；§6 勾选（CI/路线图除外）；invoke `…_40_…-self-check` |
 
 ---
 
