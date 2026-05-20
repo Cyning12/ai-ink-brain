@@ -249,17 +249,18 @@
 ## 11. 任务执行顺序与工作量（落盘真值）
 
 > **执行顺序**：严格按 Phase 编号；同 Phase 内可并行见「并行」列。  
+> **跨项目优先级真值**：工作区 [`docs/tech_graph/tasks/PRIORITY_ROADMAP_v1_zh.md`](../../../../docs/tech_graph/tasks/PRIORITY_ROADMAP_v1_zh.md) §2；**T1～T5 关账后须同步更新该表 `路线图状态`**（§0 维护纪律）。  
 > **实验**：全部 Phase 2 首波 **完成后** 再开 Playbook §8 效能对比 task（单轮，不重跑 A/B/C）。
 
 | 顺序 | Phase | 子 task | 工作包 | 估 | 并行 | 状态 |
 | ---: | --- | --- | --- | --- | --- | --- |
 | 0 | R1 | — | 目录迁入 | — | — | done |
 | 1 | scheme1 | （done）graph_json_export | export `--check` | S | — | done |
-| **2** | **v2** | **T1** | W1+W3+W7 | S | — | **done（本批）** |
-| **3** | **v2** | **T2** | W4 | M | 与 T1 同 PR | **done（本批）** |
+| **2** | **v2** | **T1** | W1+W3+W7 | S | — | **done（2026-05-20 · 36acb5e）** |
+| **3** | **v2** | **T2** | W4 | M | 与 T1 同 PR | **done（2026-05-20 · 36acb5e）** |
 | 4 | v2 | T4 | W5 | M | 与 T2 | **done（文档）** |
-| 5 | 质量 | T3 | W2 | M | 与 2–4 | pending |
-| 6 | 二期 | T5 | W6 | L | — | pending |
+| 5 | 质量 | T3 | W2 | M | ∥ T5 | **in_progress**（10 帽 invoke 已落盘） |
+| 6 | 二期 | T5 | W6 | L | ∥ T3 | **in_progress**（10 帽 invoke 已落盘） |
 | 7 | 实验 | — | Playbook §8 | M | 依赖 2–4 | pending |
 
 **工作量汇总（人时粗估 · 仅排期参考）**
@@ -292,6 +293,7 @@
 | --- | --- | --- |
 | v0.1 | 2026-05-20 | 初稿：差距统计 + 工作包 + 子 task 建议 |
 | v0.2 | 2026-05-20 | §11 执行顺序与工作量；T1/T2/T4 落地；Playbook 链出 |
+| v0.3 | 2026-05-20 | 同步 PRIORITY_ROADMAP v1.1；T3/T5 in_progress + invoke 路径 |
 
 ---
 
