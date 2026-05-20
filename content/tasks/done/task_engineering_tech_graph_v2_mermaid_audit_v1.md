@@ -140,16 +140,31 @@
 
 ### 自检结论（执行者）
 
-| 命令 | cwd | exit |
+| 命令 | cwd | exit（40 复核 2026-05-20） |
 | --- | --- | ---: |
-| `pnpm tech-graph:graph-export` | `ai-ink-brain-wt-mermaid-audit` | 0 |
-| `pnpm tech-graph:graph-check` | 同上 | 0 |
-| `pnpm tech-graph:equivalence-check` | 同上 | 0 |
-| `pnpm tech-graph:schema-check` | 同上 | 0（`OK: graph_v2 schema`） |
+| `pnpm tech-graph:graph-export` | `ai-ink-brain-wt-mermaid-audit` | **0** |
+| `pnpm tech-graph:graph-check` | 同上 | **0** |
+| `pnpm tech-graph:equivalence-check` | 同上 | **0**（静默通过；无 stderr） |
+| `pnpm tech-graph:schema-check` | 同上 | **0**（stdout：`OK: graph_v2 schema`） |
 
-**指标（修图后）**：anchor_coverage=**1.0000**，edge_label_coverage=**1.0000**，topology_ok=**true**；`freeze_id=TECH_GRAPH_S2_FREEZE_20260519_V2_3`。
+**指标（40 复核复算）**：anchor_coverage=**1.0000**，edge_label_coverage=**1.0000**，topology_ok=**true**；`freeze_id=TECH_GRAPH_S2_FREEZE_20260519_V2_3`（`graph.json` L1802）。
 
-**验收**：§5 全 pass（由 30 帽勾选；40 帽可复核命令输出）。
+**§5 验收（40 证据）**
+
+| 项 | 结论 | 证据摘要 |
+| --- | --- | --- |
+| 5 对 flowchart §2 审计 + 修复摘要 | pass | 实现备忘「每图修复摘要」；`*.ai.md` 无裸 `-->` 边（rg 抽检）；f9f40e6 改 3 个 `.ai.md` + `graph.json`，00_main/11_flow_api 基线已合规 |
+| graph-check | pass | exit 0 |
+| equivalence-check | pass | exit 0；指标 100%/100% |
+| schema-check | pass | `OK: graph_v2 schema` |
+| freeze_id 未 bump | pass | `TECH_GRAPH_S2_FREEZE_20260519_V2_3` |
+| 02_version 里程碑 | pass | `02_version.md` 含 `2026-05-20 : T3 W2 Mermaid…` |
+| PR 范围禁令 | pass | `main...HEAD` 无 `package.json`/`quality.yml`/`_manifest.json`/`app/**` |
+| PRIORITY_ROADMAP T3 | pass | 工作区 `PRIORITY_ROADMAP_v1_zh.md` §2.2 **done（2026-05-20）** |
+
+**40 复核结论**：**pass**（30 帽结论充分；命令链已复跑）。**已知**：`graph-export` 会刷新 `generated_at`；语义以 `graph-check` 为准，勿单独提交仅时间戳 diff。
+
+**实现 commit**：`f9f40e6`（`task/tech-graph-v2-mermaid-audit-v1`）。
 
 ---
 
