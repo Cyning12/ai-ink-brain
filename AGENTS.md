@@ -65,7 +65,7 @@
   - flowchart 流程图维护双轨：`.md`（人类版）+ `.ai.md`（AI 协议版）
   - 修改代码后，优先更新 `.ai.md`，再同步 `.md`
   - 拓扑协议见本仓 `docs/_tech_graph/99_mermaid_protocol.md`（摘要）与后端仓完整版
-  - 变更 `.ai.md` 后：`pnpm tech-graph:graph-export` 并提交 `graph.json`；PR 前 `pnpm tech-graph:graph-check` 与 `pnpm tech-graph:equivalence-check`
+  - 变更 `.ai.md` 后：`pnpm tech-graph:graph-export` 并提交 `graph.json`；PR 前 `pnpm tech-graph:graph-check`、`pnpm tech-graph:equivalence-check` 与 `pnpm tech-graph:manifest-check`
   - 影响分析：`pnpm tech-graph:query describe-impact <node_id> 2`（机器轨默认，见后端闸口 B 结论）
 
 ---

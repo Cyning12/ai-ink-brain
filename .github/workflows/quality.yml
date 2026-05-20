@@ -49,6 +49,9 @@ jobs:
       - name: Tech graph graph_v2 equivalence check
         run: python3 ai-ink-brain-api-python/tools/tech_graph_graph_equivalence_check.py --input "${GITHUB_WORKSPACE}/docs/_tech_graph" --graph "${GITHUB_WORKSPACE}/docs/_tech_graph/graph.json"
 
+      - name: Tech graph manifest check
+        run: python3 ai-ink-brain-api-python/tools/tech_graph_manifest_check.py --repo frontend --repo-root "${GITHUB_WORKSPACE}" --manifest "${GITHUB_WORKSPACE}/docs/_tech_graph/_manifest.json"
+
       - name: Lint
         run: pnpm lint
 

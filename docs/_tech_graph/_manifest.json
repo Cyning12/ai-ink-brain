@@ -1,0 +1,62 @@
+{
+  "schema_version": "tech_graph_manifest_v1",
+  "repo": "ai-ink-brain",
+  "sources": {
+    "pages": "app/**/page.tsx",
+    "routes": "app/api/**/route.ts",
+    "env": "lib/** + app/api/** (process.env + mustGetEnv)"
+  },
+  "pages": [
+    "/",
+    "/about",
+    "/blog",
+    "/blog/[...slug]",
+    "/chain-chat",
+    "/chat",
+    "/diary",
+    "/learning",
+    "/projects",
+    "/text2sql",
+    "/unified-chat"
+  ],
+  "routes": [
+    { "method": "GET", "path": "/api/admin/sync" },
+    { "method": "GET", "path": "/api/auth/session" },
+    { "method": "GET", "path": "/api/py/chat/history" },
+    { "method": "GET", "path": "/api/py/chatbi/access/verify" },
+    { "method": "GET", "path": "/api/system/status" },
+    { "method": "POST", "path": "/api/admin/ingest" },
+    { "method": "POST", "path": "/api/admin/sync" },
+    { "method": "POST", "path": "/api/auth/logout" },
+    { "method": "POST", "path": "/api/auth/unlock" },
+    { "method": "POST", "path": "/api/chat" },
+    { "method": "POST", "path": "/api/ingest" },
+    { "method": "POST", "path": "/api/py/chain/chat" },
+    { "method": "POST", "path": "/api/py/chat" },
+    { "method": "POST", "path": "/api/py/text2sql/chat" },
+    { "method": "POST", "path": "/api/py/unified/chat" },
+    { "method": "POST", "path": "/api/py/unified/chat/stream" }
+  ],
+  "env": [
+    "CHAT_API_SECRET",
+    "DASHSCOPE_API_KEY",
+    "DASHSCOPE_EMBEDDING_BASE_URL",
+    "DASHSCOPE_EMBEDDING_MODEL",
+    "EMBEDDING_DIM",
+    "EMBEDDING_PROVIDER",
+    "NEXT_PUBLIC_ADMIN_SECRET",
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NODE_ENV",
+    "PY_API_URL",
+    "RAG_MATCH_THRESHOLD",
+    "SILICONFLOW_API_KEY",
+    "SILICONFLOW_BASE_URL",
+    "SILICONFLOW_CHAT_MODEL",
+    "SILICONFLOW_EMBEDDING_DIM",
+    "SILICONFLOW_EMBEDDING_ENDPOINT",
+    "SILICONFLOW_EMBEDDING_MODEL",
+    "SUPABASE_SERVICE_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "SUPABASE_URL"
+  ]
+}

@@ -1,6 +1,6 @@
 # Task：技术图谱 v2 — 前端 `_manifest.json` 与 manifest_check（T5 · W6）
 
-> **状态**：`pending`（10 帽需求分析已落盘；待 22 审核 → 30 执行）  
+> **状态**：`active`（R1 审查通过；30 帽实现中）  
 > **关联 SPEC**：`content/tasks/specs/SPEC-tech_graph_v2_frontend_parity_v1.md` §4 W6、§8 T5、§11 顺序 6  
 > **关联图谱**：`docs/_tech_graph/99_spec.md`、`00_main.ai.md`、`10_flow_route.ai.md`、`11_flow_api.ai.md`  
 > **invoke_snapshot**：`content/harness/invokes/invoke_20260520_10_tech-graph-v2-frontend-manifest-requirements.md`  
@@ -155,7 +155,37 @@
 
 ### 自检结论（执行者）
 
-（待 30 帽回填：命令、exit code、负向用例摘要）
+| 项 | 结果 |
+| --- | --- |
+| 执行日期 | 2026-05-20 |
+| 分支 | `task/tech-graph-v2-frontend-manifest-v1`（`ai-ink-brain` + `ai-ink-brain-api-python`） |
+| invoke_snapshot（30） | `content/harness/invokes/invoke_20260520_30_tech-graph-v2-frontend-manifest-execute.md` |
+| 审查 R1 | `content/harness/reviews/task_tech_graph_frontend_manifest_v1_audit_R1_20260520.md` |
+
+**VERIFY（本地 · 全链 exit 0）**
+
+```text
+pnpm tech-graph:manifest-check && pnpm tech-graph:graph-check && pnpm tech-graph:equivalence-check && pnpm lint && pnpm test && pnpm build
+```
+
+要点：
+
+- `tech-graph:manifest-check` → **exit 0**；stdout：`OK: frontend manifest matches code truth (pages=11, routes=16, env=20).`
+- `tech-graph:graph-check` / `equivalence-check` → **exit 0**
+- `pnpm lint` / `test`（23 tests）/ `build` → **exit 0**
+
+**负向（required · 删 route）**
+
+- 操作：从 `_manifest.json` 删除 `POST /api/py/unified/chat/stream` 后执行 `pnpm tech-graph:manifest-check`
+- 结果：**exit 1**；stderr 含 `Routes 缺失（truth->manifest）：` 与 `POST /api/py/unified/chat/stream`
+- 恢复 manifest 后再次 **exit 0**
+
+**跨仓**
+
+- `ai-ink-brain-api-python/tools/tech_graph_manifest_check.py`：新增 `--repo frontend`；默认无 `--repo` 行为未变（本地 api-python manifest **exit 0**）
+- **CI 风险**：`quality.yml` checkout 后端 `main`；须 **先** 合并 api-python PR（含 frontend profile），再合并前端 PR
+
+**待 40 帽 / R2**：§6 勾选、路线图 T5 关账、PR 合并证据。
 
 ---
 
@@ -184,6 +214,7 @@
 | 版本 | 日期 | 说明 |
 | --- | --- | --- |
 | v1.0 | 2026-05-20 | 10 帽需求分析落盘；方案裁定 A + quality CI；Harness 字段齐全 |
+| v1.1 | 2026-05-20 | 30 帽：manifest + script frontend profile + quality step；§9 自检回填 |
 
 ---
 
