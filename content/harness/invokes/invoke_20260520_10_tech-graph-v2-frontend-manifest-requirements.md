@@ -4,7 +4,7 @@
 | --- | --- |
 | hat_id | 10 |
 | template | `docs/harness/prompts/TEMPLATE-requirements-invoke.md` §3 |
-| task_paths | `ai-ink-brain/content/tasks/active/task_engineering_tech_graph_frontend_manifest_v1.md`（由本帽 **新建**） |
+| task_paths | `content/tasks/active/task_engineering_tech_graph_frontend_manifest_v1.md`（v1.0 · 2026-05-20） |
 | related_review_or_none | 无 |
 | priority_roadmap | [`docs/tech_graph/tasks/PRIORITY_ROADMAP_v1_zh.md`](../../../../docs/tech_graph/tasks/PRIORITY_ROADMAP_v1_zh.md) §2 · **T5** · v1.1 |
 | git_branch | **`task/tech-graph-v2-frontend-manifest-v1`**（子 Agent **须自行创建**） |
@@ -12,6 +12,14 @@
 | parity_baseline_commit | `36acb5e` |
 | created | 2026-05-20 |
 | revised | 2026-05-20（对齐 PRIORITY_ROADMAP v1.1） |
+| task_outcome | 2026-05-20：已产出 `content/tasks/active/task_engineering_tech_graph_frontend_manifest_v1.md` v1.0；裁定 **扩展后端 manifest_check + quality CI** |
+
+## 修订记录
+
+| 日期 | 摘要 |
+| --- | --- |
+| 2026-05-20 | 初版 invoke（T5 · PRIORITY_ROADMAP v1.1） |
+| 2026-05-20 | 10 帽完成：task v1.0 落盘；manifest 方案 **A**（`--repo frontend`）；CI **并入 quality**；下一棒 **22** |
 
 ## 分支与并行（子 Agent 必读）
 
