@@ -487,7 +487,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "BB",
       "graph_id": "10_flow_route",
       "label": "",
@@ -497,7 +502,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/chain-chat/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "CC",
       "graph_id": "10_flow_route",
       "label": "",
@@ -507,7 +517,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/chat/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "CH",
       "graph_id": "10_flow_route",
       "label": "",
@@ -527,7 +542,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/chain-chat/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "FILTER",
       "graph_id": "10_flow_route",
       "label": "",
@@ -537,7 +557,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/chat/page.tsx（导航可见）",
+          "symbol": ""
+        }
+      ],
       "from": "FILTER",
       "graph_id": "10_flow_route",
       "label": "",
@@ -547,7 +572,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/text2sql/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "FILTER",
       "graph_id": "10_flow_route",
       "label": "",
@@ -557,7 +587,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/unified-chat/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "FILTER",
       "graph_id": "10_flow_route",
       "label": "",
@@ -592,7 +627,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/about/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "HOME_LINKS",
       "graph_id": "10_flow_route",
       "label": "",
@@ -612,7 +652,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/blog/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "HOME_LINKS",
       "graph_id": "10_flow_route",
       "label": "",
@@ -622,7 +667,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/diary/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "HOME_LINKS",
       "graph_id": "10_flow_route",
       "label": "",
@@ -632,7 +682,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/learning/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "HOME_LINKS",
       "graph_id": "10_flow_route",
       "label": "",
@@ -642,7 +697,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/projects/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "HOME_LINKS",
       "graph_id": "10_flow_route",
       "label": "",
@@ -677,7 +737,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/about/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "NAV_ITEMS",
       "graph_id": "10_flow_route",
       "label": "",
@@ -687,7 +752,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/blog/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "NAV_ITEMS",
       "graph_id": "10_flow_route",
       "label": "",
@@ -697,7 +767,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/chain-chat/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "NAV_ITEMS",
       "graph_id": "10_flow_route",
       "label": "",
@@ -707,7 +782,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/chat/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "NAV_ITEMS",
       "graph_id": "10_flow_route",
       "label": "",
@@ -717,7 +797,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/learning/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "NAV_ITEMS",
       "graph_id": "10_flow_route",
       "label": "",
@@ -727,7 +812,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/text2sql/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "NAV_ITEMS",
       "graph_id": "10_flow_route",
       "label": "",
@@ -737,7 +827,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/projects/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "NAV_ITEMS",
       "graph_id": "10_flow_route",
       "label": "",
@@ -747,7 +842,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/unified-chat/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "NAV_ITEMS",
       "graph_id": "10_flow_route",
       "label": "",
@@ -787,7 +887,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/text2sql/page.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "T2",
       "graph_id": "10_flow_route",
       "label": "",
@@ -1138,7 +1243,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "lib/auth/admin-cookie.ts",
+          "symbol": ""
+        }
+      ],
       "from": "API_SESSION",
       "graph_id": "12_flow_auth",
       "label": "",
@@ -1168,7 +1278,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "lib/hooks/useAdminSession.ts",
+          "symbol": ""
+        }
+      ],
       "from": "COOKIE",
       "graph_id": "12_flow_auth",
       "label": "Set-Cookie HttpOnly",
@@ -1178,7 +1293,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "lib/auth/admin-env.ts",
+          "symbol": ""
+        }
+      ],
       "from": "ENV",
       "graph_id": "12_flow_auth",
       "label": "",
@@ -1208,7 +1328,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "lib/auth.ts",
+          "symbol": ""
+        }
+      ],
       "from": "REQ",
       "graph_id": "12_flow_auth",
       "label": "",
@@ -1253,7 +1378,12 @@
       "type": "async_calls"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/api/py/**/route.ts",
+          "symbol": ""
+        }
+      ],
       "from": "TOKEN",
       "graph_id": "12_flow_auth",
       "label": "",
@@ -1263,7 +1393,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "lib/auth/admin-cookie.ts",
+          "symbol": ""
+        }
+      ],
       "from": "TSE",
       "graph_id": "12_flow_auth",
       "label": "",
@@ -1273,7 +1408,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "lib/auth/parse-admin-token.ts",
+          "symbol": ""
+        }
+      ],
       "from": "TSE",
       "graph_id": "12_flow_auth",
       "label": "",
@@ -1334,7 +1474,12 @@
       "type": "async_calls"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "lib/auth/admin-cookie.ts",
+          "symbol": ""
+        }
+      ],
       "from": "VALIDATE",
       "graph_id": "12_flow_auth",
       "label": "",
@@ -1354,7 +1499,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "lib/hooks/useSessionId.ts",
+          "symbol": ""
+        }
+      ],
       "from": "CCP",
       "graph_id": "13_flow_components",
       "label": "",
@@ -1409,7 +1559,12 @@
       "type": "async_calls"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "components/ChatPanel.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "CP",
       "graph_id": "13_flow_components",
       "label": "",
@@ -1419,7 +1574,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "components/SourceCitations.tsx",
+          "symbol": ""
+        }
+      ],
       "from": "CP",
       "graph_id": "13_flow_components",
       "label": "sources",
@@ -1429,7 +1589,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "lib/hooks/useSessionId.ts",
+          "symbol": ""
+        }
+      ],
       "from": "CP",
       "graph_id": "13_flow_components",
       "label": "",
@@ -1484,7 +1649,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "lib/hooks/useSessionId.ts",
+          "symbol": ""
+        }
+      ],
       "from": "T2P",
       "graph_id": "13_flow_components",
       "label": "",
@@ -1630,7 +1800,7 @@
     }
   ],
   "freeze_id": "TECH_GRAPH_S2_FREEZE_20260519_V2_3",
-  "generated_at": "2026-05-18T07:56:44Z",
+  "generated_at": "2026-05-20T10:08:16Z",
   "graphs": [
     {
       "id": "00_main",

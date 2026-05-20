@@ -1,10 +1,10 @@
 # Task：技术图谱 v2 — Mermaid 双轨拓扑审计（T3 · W2）
 
-> **状态**：`draft`  
+> **状态**：`done（2026-05-20 · T3 W2 Mermaid 审计）`  
 > **类型**：前端图谱质量（`content/tasks/active/`）  
 > **关联 SPEC**：`content/tasks/specs/SPEC-tech_graph_v2_frontend_parity_v1.md` §4 W2、§8 T3、§11 顺序 5  
 > **关联路线图**：`docs/tech_graph/tasks/PRIORITY_ROADMAP_v1_zh.md` §2.2 **T3**（关账后 **必须** 按 §0 回填）  
-> **Invoke**：`content/harness/invokes/invoke_20260520_10_tech-graph-v2-mermaid-audit-requirements.md`  
+> **Invoke**：`content/harness/invokes/invoke_20260520_10_tech-graph-v2-mermaid-audit-requirements.md` · **30 执行**：`invoke_20260520_30_tech-graph-v2-mermaid-audit-execute.md`  
 > **git_branch**：`task/tech-graph-v2-mermaid-audit-v1`（**禁止** 与 T5 共用 `task/tech-graph-v2-frontend-manifest-v1`）  
 > **worktree_root**：`ai-ink-brain-wt-mermaid-audit`（相对 `Projects/`；git worktree；Cursor Open Folder 对准此目录；**禁止**在 `ai-ink-brain` 主 checkout 改图）  
 > **parity 基线**：含 commit `36acb5e`（或已合并 parity 的 `main` / `f4f77b5` 及以后）  
@@ -83,14 +83,14 @@
 
 ## 5. 验收标准（可勾选）
 
-- [ ] **5 对** flowchart 文件均已按 §2 检查表审计；实现备忘列出每文件 **修复摘要**（裸边数、新增锚点数等，可为 0）
-- [ ] `pnpm tech-graph:graph-check` → **exit 0**（`graph.json` 无漂移）
-- [ ] `pnpm tech-graph:equivalence-check` → **exit 0**（锚点 / label 阈值满足 `graph_v2_schema.md` §6）
-- [ ] `pnpm tech-graph:schema-check` → **exit 0**（若 T1 已接入；回归不得回退）
-- [ ] `graph.json` 中 `freeze_id` 仍为 `TECH_GRAPH_S2_FREEZE_20260519_V2_3`（未擅自 bump）
-- [ ] `02_version.md` 已追加本 task 里程碑条目
-- [ ] **PR** 仅含 `docs/_tech_graph/**` 与本 task / invoke（**无** `package.json`、`quality.yml`、`_manifest.json`）
-- [ ] 关账后：`PRIORITY_ROADMAP_v1_zh.md` §2.2 **T3** 行 → `done（YYYY-MM-DD）`；§6 修订记录一行；可选同步 SPEC §11 T3 行
+- [x] **5 对** flowchart 文件均已按 §2 检查表审计；实现备忘列出每文件 **修复摘要**（裸边数、新增锚点数等，可为 0）
+- [x] `pnpm tech-graph:graph-check` → **exit 0**（`graph.json` 无漂移）
+- [x] `pnpm tech-graph:equivalence-check` → **exit 0**（锚点 / label 阈值满足 `graph_v2_schema.md` §6）
+- [x] `pnpm tech-graph:schema-check` → **exit 0**（若 T1 已接入；回归不得回退）
+- [x] `graph.json` 中 `freeze_id` 仍为 `TECH_GRAPH_S2_FREEZE_20260519_V2_3`（未擅自 bump）
+- [x] `02_version.md` 已追加本 task 里程碑条目
+- [x] **PR** 仅含 `docs/_tech_graph/**` 与本 task / invoke（**无** `package.json`、`quality.yml`、`_manifest.json`）
+- [x] 关账后：`PRIORITY_ROADMAP_v1_zh.md` §2.2 **T3** 行 → `done（2026-05-20）`；§6 修订记录一行；可选同步 SPEC §11 T3 行
 
 ---
 
@@ -133,10 +133,23 @@
 
 | 项 | 内容 |
 | --- | --- |
-| 涉及文件 | （待填） |
-| 基线 equivalence | （待填：锚点 %、label %、exit code） |
-| 每图修复摘要 | （待填：5 行） |
-| PR / CI | （待填） |
+| 涉及文件 | `docs/_tech_graph/{00_main,10_flow_route,11_flow_api,12_flow_auth,13_flow_components}.{ai.md,md}`、`02_version.md`、`graph.json`；`content/harness/invokes/invoke_20260520_30_*.md`；本 task → `done/` |
+| 基线 equivalence | 修图前已绿：**anchor 100%**、**label 100%**、topology_ok=true、exit **0**；freeze_id 未变 |
+| 每图修复摘要 | **00_main**：裸边 0，锚点 +0（已合规）。**10_flow_route**：裸边 0，锚点 **+22**（HOME_LINKS/NAV_ITEMS/FILTER/PAGE 分支）。**11_flow_api**：裸边 0，锚点 +0。**12_flow_auth**：裸边 0，锚点 **+8**（Unlock/Session/Gate 主干）。**13_flow_components**：裸边 0，锚点 **+4**（CP→MD/SC、CCP/T2P→SID）。人读轨 `.md` 与 `.ai.md` 语义一致，未改流程 |
+| PR / CI | 分支 `task/tech-graph-v2-mermaid-audit-v1` · worktree `ai-ink-brain-wt-mermaid-audit`；未改 `package.json`/`quality.yml`；`pnpm tech-graph:*` 全绿 |
+
+### 自检结论（执行者）
+
+| 命令 | cwd | exit |
+| --- | --- | ---: |
+| `pnpm tech-graph:graph-export` | `ai-ink-brain-wt-mermaid-audit` | 0 |
+| `pnpm tech-graph:graph-check` | 同上 | 0 |
+| `pnpm tech-graph:equivalence-check` | 同上 | 0 |
+| `pnpm tech-graph:schema-check` | 同上 | 0（`OK: graph_v2 schema`） |
+
+**指标（修图后）**：anchor_coverage=**1.0000**，edge_label_coverage=**1.0000**，topology_ok=**true**；`freeze_id=TECH_GRAPH_S2_FREEZE_20260519_V2_3`。
+
+**验收**：§5 全 pass（由 30 帽勾选；40 帽可复核命令输出）。
 
 ---
 

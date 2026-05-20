@@ -42,14 +42,19 @@ flowchart TB
     CP --"~>"--> HISTORY[[fetchChatHistory()]]
     // → lib/chat/chatApi.ts
     CP --"->"--> MD[[ReactMarkdown + remark/rehype]]
+    // → components/ChatPanel.tsx
     CP --"sources"--> SC
+    // → components/SourceCitations.tsx
 
     %% === SessionId ===
     UCP --"->"--> SID[[useSessionId()]]
     // → lib/hooks/useSessionId.ts
     CP --"->"--> SID
+    // → lib/hooks/useSessionId.ts
     CCP --"->"--> SID
+    // → lib/hooks/useSessionId.ts
     T2P --"->"--> SID
+    // → lib/hooks/useSessionId.ts
 
     %% === 样式 ===
     classDef page fill:#e1f5fe,stroke:#01579b,stroke-width:2px
