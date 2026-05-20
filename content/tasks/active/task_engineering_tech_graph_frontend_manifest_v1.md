@@ -216,6 +216,7 @@ pnpm tech-graph:manifest-check && pnpm tech-graph:graph-check && pnpm tech-graph
 | --- | --- | --- |
 | v1.0 | 2026-05-20 | 10 帽需求分析落盘；方案裁定 A + quality CI；Harness 字段齐全 |
 | v1.1 | 2026-05-20 | 30 帽：manifest + script frontend profile + quality step；§9 自检回填 |
+| v1.2 | 2026-05-20 | 30 帽补全：`tech_graph_manifest_check.py` 实装 `--repo frontend`（此前 CLI 被忽略）；负向/全链 VERIFY 复跑 |
 
 ---
 
