@@ -94,3 +94,14 @@ flowchart LR
 - **状态**：改写输入并发送与绑定问句不同的问题时丢弃令牌；「取消」丢弃并记录令牌以免同帧重复弹出。  
 - **语义真值**：`Projects/ai-ink-brain-api-python/docs/spec/v3-agent/SPEC-ChatBI-V3-LowConfidence-Plan-Confirm.md`；事件字段见 `SPEC-ChatBI-V2-Events.md` §3.2.2。
 
+## 跨仓契约门禁（P6 · manifest 真值在后端）
+
+| 角色 | 路径 |
+| --- | --- |
+| 契约真值 | `ai-ink-brain-api-python/docs/_tech_graph/_contract_manifest.json` |
+| SSE 消费锚点 | `components/unified-chat/UnifiedChatPageClient.tsx` |
+| BFF 透传锚点 | `app/api/py/unified/chat/stream/route.ts` |
+| 校验脚本 | `ai-ink-brain-api-python/tools/tech_graph_contract_check.py` |
+
+工作区 sibling 布局下本地执行：`python3 ../ai-ink-brain-api-python/tools/tech_graph_contract_check.py`。前端 **quality** 默认不阻塞本脚本；详见 `99_spec.md` § 跨仓契约。
+

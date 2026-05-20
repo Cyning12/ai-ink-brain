@@ -1,6 +1,6 @@
 # SPEC：前端技术图谱对齐后端 graph_v2 工程化（parity 初稿）
 
-> **状态**：`draft`  
+> **状态**：`in_progress`（Phase 2 · T1+T2 落地中）  
 > **类型**：规格初稿（`content/tasks/specs/`）；实施时拆为 `content/tasks/active/task_*.md`  
 > **关联图谱**：`docs/_tech_graph/`（全目录）  
 > **配对后端真值**：`ai-ink-brain-api-python/docs/_tech_graph/` + 已归档 task 族（见 §3）  
@@ -24,6 +24,9 @@
 2. 人读轨（`*.md`）与协议轨（`*.ai.md`）继续按前端域维护（route / api / auth / components），并满足 `99_mermaid_protocol` 拓扑约束。
 3. 跨仓 SSE/契约校验 **有明确前端职责**（消费后端 `tech_graph_contract_check.py`，不另造第二份 `_contract_manifest` 真值）。
 4. 拆分为 **可独立验收** 的子 task（§8），避免单次 PR 过大。
+5. **对比实验**：**先落地** §4 首波工程化；**不重跑** 闸口 A/B/C batch。落地后以 Playbook §8 做单轮「落地前 vs 完全改进」效能对比。
+
+**迁移实践（Quickstart 种子）**：`content/tasks/specs/MIGRATION-tech_graph_v2_frontend_playbook_v1_zh.md`。
 
 ---
 
@@ -180,14 +183,14 @@
 
 ## 6. 验收标准（首波 parity · 可勾选）
 
-- [ ] `docs/_tech_graph/graph_v2_schema.md` 存在且与 committed `graph.json` 字段一致。
-- [ ] `99_spec.md` 含 **graph_v2 + CI** 约束；`AGENTS.md` 与 `package.json` 脚本一致。
-- [ ] 5 个 flowchart `.ai.md` 通过拓扑审计（无裸边；抽检 ≥3 文件有 `// →` 锚点）。
-- [ ] `pnpm tech-graph:graph-check` 与 `pnpm tech-graph:equivalence-check`（名可微调）在本地 exit 0。
-- [ ] `quality` workflow：**export `--check` + equivalence** 同 PR 必绿；失败 stderr 可定位文件。
-- [ ] `graph.json` 的 `freeze_id` 与后端 **同一行**；schema bump 时双仓同步更新。
-- [ ] 跨仓契约：文档中存在 **可复现** 的 `tech_graph_contract_check` 命令与前端锚点互引（W5）。
-- [ ] §8 首波子 task（T1–T3）均可独立关账或明确 `pending` 理由。
+- [x] `docs/_tech_graph/graph_v2_schema.md` 存在且与 committed `graph.json` 字段一致。
+- [x] `99_spec.md` 含 **graph_v2 + CI** 约束；`AGENTS.md` 与 `package.json` 脚本一致。
+- [ ] 5 个 flowchart `.ai.md` 通过拓扑审计（无裸边；抽检 ≥3 文件有 `// →` 锚点）— **T3**
+- [x] `pnpm tech-graph:graph-check` 与 `pnpm tech-graph:equivalence-check` 在本地 exit 0。
+- [x] `quality` workflow：**export `--check` + equivalence** 同 PR 必绿；失败 stderr 可定位文件。
+- [x] `graph.json` 的 `freeze_id` 与后端 **同一行**；schema bump 时双仓同步更新。
+- [x] 跨仓契约：文档中存在 **可复现** 的 `tech_graph_contract_check` 命令与前端锚点互引（W5）。
+- [x] T1+T2 落地；T3 可并行跟进（见 §11）。
 
 ---
 
@@ -243,11 +246,52 @@
 
 ---
 
+## 11. 任务执行顺序与工作量（落盘真值）
+
+> **执行顺序**：严格按 Phase 编号；同 Phase 内可并行见「并行」列。  
+> **实验**：全部 Phase 2 首波 **完成后** 再开 Playbook §8 效能对比 task（单轮，不重跑 A/B/C）。
+
+| 顺序 | Phase | 子 task | 工作包 | 估 | 并行 | 状态 |
+| ---: | --- | --- | --- | --- | --- | --- |
+| 0 | R1 | — | 目录迁入 | — | — | done |
+| 1 | scheme1 | （done）graph_json_export | export `--check` | S | — | done |
+| **2** | **v2** | **T1** | W1+W3+W7 | S | — | **done（本批）** |
+| **3** | **v2** | **T2** | W4 | M | 与 T1 同 PR | **done（本批）** |
+| 4 | v2 | T4 | W5 | M | 与 T2 | **done（文档）** |
+| 5 | 质量 | T3 | W2 | M | 与 2–4 | pending |
+| 6 | 二期 | T5 | W6 | L | — | pending |
+| 7 | 实验 | — | Playbook §8 | M | 依赖 2–4 | pending |
+
+**工作量汇总（人时粗估 · 仅排期参考）**
+
+| 工作包 | 子 task | 估 | 首波 | 累计状态 |
+| --- | --- | --- | --- | --- |
+| W1 规约索引 | T1 | S (~0.5d) | 是 | done |
+| W3 工具 DX | T1 | S (~0.25d) | 是 | done |
+| W7 图查询文档 | T1 | S (~0.25d) | 是 | done |
+| W4 CI v2 | T2 | M (~0.5d) | 是 | done |
+| W5 跨仓契约 | T4 | M (~0.5d) | 文档 | done |
+| W2 Mermaid 审计 | T3 | M (~1d) | 建议 | pending |
+| W6 前端 manifest | T5 | L (~2–3d) | 否 | pending |
+| 效能对比实验 | — | M (~1d) | 落地后 | pending |
+
+**依赖图（简）**
+
+```text
+[R1] → [scheme1] → [T1] ─┬→ [T2] → [MVP 可关账]
+                         ├→ [T4]
+                         └→ [T3]（不阻塞 MVP）
+[T2+T4] → [Playbook §8 实验] → [可选 T5]
+```
+
+---
+
 ## 修订记录
 
 | 版本 | 日期 | 说明 |
 | --- | --- | --- |
-| v0.1 | 2026-05-20 | 初稿：差距统计 + 工作包 + 子 task 建议；无代码变更 |
+| v0.1 | 2026-05-20 | 初稿：差距统计 + 工作包 + 子 task 建议 |
+| v0.2 | 2026-05-20 | §11 执行顺序与工作量；T1/T2/T4 落地；Playbook 链出 |
 
 ---
 
