@@ -17,7 +17,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ci": "vitest run",
-    "tech-graph:graph-check": "sh -c 'python3 \"${PWD}/../ai-ink-brain-api-python/tools/tech_graph_graph_export.py\" --input \"${PWD}/docs/_tech_graph\" --output \"${PWD}/docs/_tech_graph/graph.json\" --check'"
+    "tech-graph:graph-export": "sh -c 'python3 \"${PWD}/../ai-ink-brain-api-python/tools/tech_graph_graph_export.py\" --input \"${PWD}/docs/_tech_graph\" --output \"${PWD}/docs/_tech_graph/graph.json\"'",
+    "tech-graph:graph-check": "sh -c 'python3 \"${PWD}/../ai-ink-brain-api-python/tools/tech_graph_graph_export.py\" --input \"${PWD}/docs/_tech_graph\" --output \"${PWD}/docs/_tech_graph/graph.json\" --check'",
+    "tech-graph:equivalence-check": "sh -c 'python3 \"${PWD}/../ai-ink-brain-api-python/tools/tech_graph_graph_equivalence_check.py\" --input \"${PWD}/docs/_tech_graph\" --graph \"${PWD}/docs/_tech_graph/graph.json\"'",
+    "tech-graph:schema-check": "sh -c 'python3 -c \"import json,sys; from pathlib import Path; r=Path(\\\"${PWD}/../ai-ink-brain-api-python\\\").resolve(); sys.path.insert(0,str(r)); from tools.tech_graph_graph_v2_schema import validate_graph_v2; validate_graph_v2(json.load(open(Path(\\\"${PWD}/docs/_tech_graph/graph.json\\\")))); print(\\\"OK: graph_v2 schema\\\")\"'",
+    "tech-graph:query": "sh -c 'python3 \"${PWD}/../ai-ink-brain-api-python/tools/tech_graph_graph_query.py\" --graph \"${PWD}/docs/_tech_graph/graph.json\" \"$@\"' --"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.52",
