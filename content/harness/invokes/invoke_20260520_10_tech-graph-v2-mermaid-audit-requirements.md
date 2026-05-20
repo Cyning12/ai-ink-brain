@@ -12,6 +12,14 @@
 | parity_baseline_commit | `36acb5e`（T1/T2/T4 已落地） |
 | created | 2026-05-20 |
 | revised | 2026-05-20（对齐 PRIORITY_ROADMAP v1.1） |
+| task_delivered | 2026-05-20 · `content/tasks/active/task_engineering_tech_graph_v2_mermaid_audit_v1.md` · `draft` |
+
+## 修订记录
+
+| 日期 | 摘要 |
+| --- | --- |
+| 2026-05-20 | 开帽：Invoke 初版 + PRIORITY_ROADMAP v1.1 对齐 |
+| 2026-05-20 | 关帽：落盘 T3 task 初稿（`draft`/`required`/FP/freeze_id/下一棒 §10）；分支 `task/tech-graph-v2-mermaid-audit-v1` |
 
 ## 分支与并行（子 Agent 必读）
 
