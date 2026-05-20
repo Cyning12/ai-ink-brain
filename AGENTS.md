@@ -57,6 +57,14 @@
 
 ---
 
+## 并行 worktree（多 Agent · 多 `task/*` 分支）
+
+- **规范真值**：工作区 [`docs/harness/README.md`](../docs/harness/README.md) **并行分支与 Git worktree**；invoke 元信息 **`worktree_root`** + **`git_branch`**。
+- **graph_v2 parity 并行（2026-05-20）**：T5 manifest → 目录 **`ai-ink-brain`** · 分支 `task/tech-graph-v2-frontend-manifest-v1`；T3 mermaid → **`ai-ink-brain-wt-mermaid-audit`** · 分支 `task/tech-graph-v2-mermaid-audit-v1`。
+- **禁止**两线共用同一 checkout 或跨 worktree `git switch` 抢分支；Harness `reviews/` / `invokes/` / `task` 须在 **本线分支** commit。
+
+---
+
 ## 交付物约定
 
 - **配置真值表**：`docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md`（随代码演进持续更新）
@@ -65,7 +73,7 @@
   - flowchart 流程图维护双轨：`.md`（人类版）+ `.ai.md`（AI 协议版）
   - 修改代码后，优先更新 `.ai.md`，再同步 `.md`
   - 拓扑协议见本仓 `docs/_tech_graph/99_mermaid_protocol.md`（摘要）与后端仓完整版
-  - 变更 `.ai.md` 后：`pnpm tech-graph:graph-export` 并提交 `graph.json`；PR 前 `pnpm tech-graph:graph-check` 与 `pnpm tech-graph:equivalence-check`
+  - 变更 `.ai.md` 后：`pnpm tech-graph:graph-export` 并提交 `graph.json`；PR 前 `pnpm tech-graph:graph-check`、`pnpm tech-graph:equivalence-check` 与 `pnpm tech-graph:manifest-check`
   - 影响分析：`pnpm tech-graph:query describe-impact <node_id> 2`（机器轨默认，见后端闸口 B 结论）
 
 ---
