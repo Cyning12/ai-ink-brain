@@ -7,6 +7,7 @@
 | task_paths | ai-ink-brain/content/tasks/active/task_engineering_tech_graph_frontend_manifest_v1.md |
 | related_review_or_none | ai-ink-brain/content/harness/reviews/task_tech_graph_frontend_manifest_v1_audit_R1_20260520.md |
 | git_branch | task/tech-graph-v2-frontend-manifest-v1（前端 + api-python） |
+| worktree_root | **ai-ink-brain**（主 checkout；禁止在 `ai-ink-brain-wt-mermaid-audit` 改本任务） |
 | created | 2026-05-20 CST |
 
 ## 可复制 Prompt 快照（与对话首条 user 一致）
@@ -21,7 +22,9 @@
 输入（已由人工替换占位符；若你仍看到 {{…}} 或「待填」，须先追问用户，不得开工写业务代码）：
 - 主 task 路径（相对工作区根 Projects/）：
 ai-ink-brain/content/tasks/active/task_engineering_tech_graph_frontend_manifest_v1.md
-- 子仓根（相对 Projects/；主改代码 cwd；后端扩展在 ai-ink-brain-api-python）：
+- 逻辑子仓（task 路径前缀）：
+ai-ink-brain
+- Worktree 研发目录（git/pnpm cwd；见 docs/harness/README.md）：
 ai-ink-brain
 - 合并前须跑通的验证命令（与 CI / task 一致）：
 pnpm tech-graph:manifest-check && pnpm tech-graph:graph-check && pnpm tech-graph:equivalence-check && pnpm lint && pnpm test && pnpm build
@@ -37,7 +40,7 @@ ai-ink-brain/content/tasks/specs/SPEC-tech_graph_v2_frontend_parity_v1.md
 2. 若拒开工条件未满足 → 仅输出阻塞清单，不写业务代码。
 3. `test_strategy: required`：**先** 扩展 api-python `tech_graph_manifest_check.py`（`--repo frontend`）并跑通 **负向**（删一条 route → exit 1），**再** 提交前端 `_manifest.json` 与 CI。
 4. **跨仓顺序**：api-python PR（脚本扩展）优先合 **main**（或 CI 显式 pin ref）；再前端 PR（manifest + quality.yml + package.json `tech-graph:manifest-check`）。
-5. 在 `ai-ink-brain` 分支 `task/tech-graph-v2-frontend-manifest-v1` 工作；后端改动在 `ai-ink-brain-api-python` 对应分支。
+5. 在 **Projects/ai-ink-brain**（worktree_root）分支 `task/tech-graph-v2-frontend-manifest-v1` 工作；后端改动在 `ai-ink-brain-api-python` 对应分支；**禁止**在 `ai-ink-brain-wt-mermaid-audit` 改本任务。
 6. 执行 VERIFY 命令，保留要点；回填 task **§9「### 自检结论（执行者）」**（含负向用例摘要、exit code）。
 7. 对话输出下一棒 Prompt（如需 40 自检）或阻塞说明。
 8. **自动 commit**：按 `docs/harness/prompts/HANDOFF_AUTO_COMMIT.md` 在 **各仓 git 根** 分别 commit 本轮路径（禁止 `git add -A`）。用户写明「不要 commit」则跳过。

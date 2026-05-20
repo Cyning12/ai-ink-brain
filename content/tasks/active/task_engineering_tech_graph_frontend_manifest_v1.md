@@ -6,6 +6,7 @@
 > **invoke_snapshot**：`content/harness/invokes/invoke_20260520_10_tech-graph-v2-frontend-manifest-requirements.md`  
 > **路线图**：`docs/tech_graph/tasks/PRIORITY_ROADMAP_v1_zh.md` §2.2 **T5**（关账后 §0 回填）  
 > **git_branch**：`task/tech-graph-v2-frontend-manifest-v1`  
+> **worktree_root**：`ai-ink-brain`（相对工作区根 `Projects/`；所有 git/pnpm 默认 cwd；并行 T3 见 `ai-ink-brain-wt-mermaid-audit`）  
 > **test_strategy**：`required`  
 > **test_strategy_note**：manifest 漂移须 **可失败自动化**；负向用例（删 manifest 中一条 route）须使校验 **exit 1**，与后端 P1 manifest task 同口径。  
 > **freeze_id**：`TECH_GRAPH_S2_FREEZE_20260519_V2_3`（仅约束图谱 freeze 行；manifest schema bump 须本 task 修订记录一行说明）  
@@ -204,7 +205,7 @@ pnpm tech-graph:manifest-check && pnpm tech-graph:graph-check && pnpm tech-graph
 - `{{TASK_PATH}}`：`ai-ink-brain/content/tasks/active/task_engineering_tech_graph_frontend_manifest_v1.md`  
 - `{{SUBPROJECT_ROOT}}`：`ai-ink-brain`（后端改动在 `ai-ink-brain-api-python`）  
 - `{{VERIFY_COMMAND}}`：`pnpm tech-graph:manifest-check && pnpm tech-graph:graph-check && pnpm tech-graph:equivalence-check && pnpm lint && pnpm test && pnpm build`  
-- 分支：`task/tech-graph-v2-frontend-manifest-v1`  
+- **worktree**：`Projects/ai-ink-brain` · 分支 `task/tech-graph-v2-frontend-manifest-v1`  
 - **先** 实现 backend script frontend profile + **负向自测**，**再** manifest JSON + quality step。
 
 ---
