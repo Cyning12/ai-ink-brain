@@ -6,6 +6,7 @@
 > **关联路线图**：`docs/tech_graph/tasks/PRIORITY_ROADMAP_v1_zh.md` §2.2 **T3**（关账后 **必须** 按 §0 回填）  
 > **Invoke**：`content/harness/invokes/invoke_20260520_10_tech-graph-v2-mermaid-audit-requirements.md`  
 > **git_branch**：`task/tech-graph-v2-mermaid-audit-v1`（**禁止** 与 T5 共用 `task/tech-graph-v2-frontend-manifest-v1`）  
+> **worktree_root**：`ai-ink-brain-wt-mermaid-audit`（相对 `Projects/`；git worktree；Cursor Open Folder 对准此目录；**禁止**在 `ai-ink-brain` 主 checkout 改图）  
 > **parity 基线**：含 commit `36acb5e`（或已合并 parity 的 `main` / `f4f77b5` 及以后）  
 > **test_strategy**：`required`  
 > **test_strategy_note**：须以 **可失败** 的 `pnpm tech-graph:*` 门禁背书拓扑与导出；改图后 **先** 本地红→绿，再提交。  
@@ -165,7 +166,7 @@ ai-ink-brain/content/tasks/active/task_engineering_tech_graph_v2_mermaid_audit_v
 ```text
 你正在扮演工作区 Harness「执行编码帽」，遵循子仓规则与 task 必读列表。
 
-【仓库与分支】ai-ink-brain · task/tech-graph-v2-mermaid-audit-v1
+【仓库与 worktree】Projects/ai-ink-brain-wt-mermaid-audit · 分支 task/tech-graph-v2-mermaid-audit-v1（禁止在 ai-ink-brain 主 checkout 改图）
 
 【task】content/tasks/active/task_engineering_tech_graph_v2_mermaid_audit_v1.md
 【test_strategy】required · 【freeze_id】TECH_GRAPH_S2_FREEZE_20260519_V2_3

@@ -7,27 +7,20 @@
 | task_paths | `ai-ink-brain/content/tasks/active/task_engineering_tech_graph_v2_mermaid_audit_v1.md`（由本帽 **新建**） |
 | related_review_or_none | 无 |
 | priority_roadmap | [`docs/tech_graph/tasks/PRIORITY_ROADMAP_v1_zh.md`](../../../../docs/tech_graph/tasks/PRIORITY_ROADMAP_v1_zh.md) §2 · **T3** · v1.1 |
-| git_branch | **`task/tech-graph-v2-mermaid-audit-v1`**（子 Agent **须自行创建**） |
-| parallel_with | `invoke_20260520_10_tech-graph-v2-frontend-manifest-requirements.md`（T5 · 不同分支） |
+| git_branch | **`task/tech-graph-v2-mermaid-audit-v1`** |
+| worktree_root | **`ai-ink-brain-wt-mermaid-audit`**（`git worktree add`；Cursor Open Folder 对准此目录） |
+| parallel_with | `invoke_20260520_10_tech-graph-v2-frontend-manifest-requirements.md`（T5 · `ai-ink-brain`） |
 | parity_baseline_commit | `36acb5e`（T1/T2/T4 已落地） |
 | created | 2026-05-20 |
-| revised | 2026-05-20（对齐 PRIORITY_ROADMAP v1.1） |
-| task_delivered | 2026-05-20 · `content/tasks/active/task_engineering_tech_graph_v2_mermaid_audit_v1.md` · `draft` |
+| revised | 2026-05-20（PRIORITY_ROADMAP v1.1；增 **`worktree_root`**） |
 
-## 修订记录
-
-| 日期 | 摘要 |
-| --- | --- |
-| 2026-05-20 | 开帽：Invoke 初版 + PRIORITY_ROADMAP v1.1 对齐 |
-| 2026-05-20 | 关帽：落盘 T3 task 初稿（`draft`/`required`/FP/freeze_id/下一棒 §10）；分支 `task/tech-graph-v2-mermaid-audit-v1` |
-
-## 分支与并行（子 Agent 必读）
+## 分支与 worktree（子 Agent 必读）
 
 1. **路线图**：开工前读 [`PRIORITY_ROADMAP_v1_zh.md`](../../../../docs/tech_graph/tasks/PRIORITY_ROADMAP_v1_zh.md) §2.2–§2.3；关账后 **必须** 按该文件 §0 更新 **T3** 行 `路线图状态`。  
-2. **基线**：`git fetch` 后，优先从 **已含 `36acb5e`** 的分支建线（如已合并则 `main`；否则 `feat/unified-chat-typewriter-v0` 或维护者指定）。  
-3. **创建分支**（勿与 T5 共用）：  
-   `git checkout <含 36acb5e 的基线> && git pull && git checkout -b task/tech-graph-v2-mermaid-audit-v1`  
-4. **文件边界**：仅 `docs/_tech_graph/*.ai.md` / `*.md` / 必要时 `graph.json`；**禁止** `package.json`、`quality.yml`、`_manifest.json`（T5）。
+2. **研发目录**：`Projects/ai-ink-brain-wt-mermaid-audit`（由主仓 `git worktree add ../ai-ink-brain-wt-mermaid-audit task/tech-graph-v2-mermaid-audit-v1`）；**禁止**在 `ai-ink-brain` 主 checkout 对本任务 `git switch`。  
+3. **分支**：`task/tech-graph-v2-mermaid-audit-v1`（基线含 **`36acb5e`**；勿与 T5 共用 `task/tech-graph-v2-frontend-manifest-v1`）。  
+4. **文件边界**：仅 `docs/_tech_graph/*.ai.md` / `*.md` / 必要时 `graph.json`；**禁止** `package.json`、`quality.yml`、`_manifest.json`（T5）。  
+5. **Harness 工件**：`task` / `reviews` / `invokes` 须在 **本 worktree + 本分支** commit。
 
 ---
 
@@ -39,12 +32,10 @@
 - docs/harness/HARNESS_V2_PLAN.md §5
 - docs/tech_graph/tasks/PRIORITY_ROADMAP_v1_zh.md §0（关账后须回填路线图）
 
-【Git · 子 Agent 自行建分支】
-- 仓库：ai-ink-brain
-- 基线须含 parity 落地 commit 36acb5e（graph_v2_schema、equivalence CI、pnpm tech-graph:*）；若 main 尚未合并，用 feat/unified-chat-typewriter-v0 或维护者指定分支
-- git checkout -b task/tech-graph-v2-mermaid-audit-v1
-- 禁止与 T5 共用分支 task/tech-graph-v2-frontend-manifest-v1
-- 禁止改 package.json / .github/workflows/quality.yml / _manifest.json
+【Git · worktree】
+- 研发目录（cwd）：Projects/ai-ink-brain-wt-mermaid-audit · 分支 task/tech-graph-v2-mermaid-audit-v1
+- 基线须含 36acb5e；worktree 已建则直接在该目录研发，禁止切到 ai-ink-brain 主目录改图
+- 禁止在 ai-ink-brain（T5 线）改本任务；禁止 package.json / quality.yml / _manifest.json
 
 【目标与上下文】
 PRIORITY_ROADMAP §2：T1/T2/T4 已为 done（代码落地）；本帽负责 **T3（W2）** task 初稿与完善。
