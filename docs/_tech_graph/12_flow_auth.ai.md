@@ -43,23 +43,31 @@ flowchart TD
     %% === Unlock 流程 ===
     UNLOCK_UI --"~>"--> API_UNLOCK --"->"--> ENV
     ENV --"[secret configured]"--> TSE
+    // → lib/auth/admin-env.ts
     TSE --"[ok]"--> COOKIE
+    // → lib/auth/admin-cookie.ts
     COOKIE --"Set-Cookie HttpOnly"--> SESSION_UI
+    // → lib/hooks/useAdminSession.ts
 
     %% === Session 检查 ===
     SESSION_UI --"~>"--> API_SESSION --"->"--> ENV
     API_SESSION --"->"--> COOKIE
+    // → lib/auth/admin-cookie.ts
 
     %% === Bearer 路径 ===
     LS --"->"--> TOKEN --"->"--> API_PY
+    // → app/api/py/**/route.ts
 
     %% === Request Gate ===
     API_PY --"->"--> REQ --"->"--> VALIDATE
     VALIDATE --"[cookie ok]"--> COOKIE
+    // → lib/auth/admin-cookie.ts
     VALIDATE --"[else]"--> PARSE --"->"--> TSE --"[match]"--> ENV
+    // → lib/auth/parse-admin-token.ts
 
     %% === 结果 ===
     REQ --"[401]"--> DENY[[Unauthorized]]
+    // → lib/auth.ts
     REQ --"[pass]"--> UPSTREAM[(Python FastAPI)]
     // → PY_API_URL
 
