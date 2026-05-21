@@ -33,7 +33,8 @@ function assistantTextFromMessages(messages: UIMessage[]): string {
 }
 
 /**
- * Unified Chat 薄封装：`useChat` + `ChatbiSseTransport`（Phase 1：正文 SDK，Timeline 走 callbacks 双写）。
+ * Unified Chat 薄封装：`useChat` + `ChatbiSseTransport`（正文 SDK）。
+ * Timeline chain 状态机见 `useUnifiedChatStream`（Phase 2）。
  */
 export function useUnifiedChat(options: UseUnifiedChatOptions) {
   /** 可变桥：避免在 useMemo 内读 useRef（eslint react-hooks/refs） */
