@@ -275,8 +275,9 @@
 | 命令 | cwd | 退出码 | 要点 |
 | --- | --- | ---: | --- |
 | `pnpm lint` | `ai-ink-brain` | **0** | eslint 无 error |
-| `pnpm test` | `ai-ink-brain` | **0** | 9 files / **32** tests passed（含 `chainRoundState.test.ts`） |
+| `pnpm test` | `ai-ink-brain` | **0** | 9 files / **32** tests passed（含 `chainRoundState` / `executionTrace`） |
 | `pnpm exec vitest run lib/unified-chat/sse lib/unified-chat/transport` | `ai-ink-brain` | **0** | 3 files / **12** tests |
+| `pnpm exec vitest run lib/unified-chat/chainRoundState lib/unified-chat/executionTrace` | `ai-ink-brain` | **0** | 5 files / **21** tests（reducer + trace sections） |
 | `pnpm build` | `ai-ink-brain` | **0** | Next 16.2.3 webpack；清 `.next` 后复跑通过 |
 
 #### 验收项（§9 · PR3 子集）
