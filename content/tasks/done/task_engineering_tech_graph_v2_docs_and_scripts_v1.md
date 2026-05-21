@@ -1,6 +1,6 @@
 # Task：技术图谱 v2 — 文档、pnpm 脚本与 Agent 查询约定（T1）
 
-> **状态**：`implemented`（待 PR 合并后勾选验收）  
+> **状态**：`done（2026-05-20 · parity PR #35 → main）`  
 > **关联 SPEC**：`content/tasks/specs/SPEC-tech_graph_v2_frontend_parity_v1.md`  
 > **Playbook**：`docs/diary/tech_graph_v2_frontend_migration_playbook_v1_zh.md`  
 > **test_strategy**：`required`（本地 `pnpm tech-graph:*` 可失败）  

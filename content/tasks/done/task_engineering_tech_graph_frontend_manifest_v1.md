@@ -1,6 +1,6 @@
 # Task：技术图谱 v2 — 前端 `_manifest.json` 与 manifest_check（T5 · W6）
 
-> **状态**：`active`（40 帽自检通过；待 50 独立复检 / PR CI）  
+> **状态**：`done（2026-05-20 · PR #36 → main · b9a5ccd）`  
 > **关联 SPEC**：`content/tasks/specs/SPEC-tech_graph_v2_frontend_parity_v1.md` §4 W6、§8 T5、§11 顺序 6  
 > **关联图谱**：`docs/_tech_graph/99_spec.md`、`00_main.ai.md`、`10_flow_route.ai.md`、`11_flow_api.ai.md`  
 > **invoke_snapshot**：`content/harness/invokes/invoke_20260520_10_tech-graph-v2-frontend-manifest-requirements.md`  
@@ -114,7 +114,7 @@
 - [x] 本地：`pnpm tech-graph:manifest-check` → **exit 0**，stdout 含 `OK`。（40 帽）
 - [x] **负向（required）**：删 `POST /api/py/unified/chat/stream` → **exit 1**，stderr `Routes 缺失（truth->manifest）`；恢复后 **exit 0**。（40 帽复跑）
 - [x] **正向漂移**：临时 `DELETE /api/__fake__/never` → **exit 1**，stderr `Routes 多余（manifest->truth）`；恢复后 **exit 0**。（40 帽复跑）
-- [ ] PR **`quality`** workflow 全绿，且日志中存在 **Tech graph manifest check** 步骤且 exit 0。（**待 50 / 合并后 CI**；本地 `quality.yml` 已含该 step，后端 main **未**含 `54c976b` 前 CI 将 **exit 2**）
+- [x] PR **`quality`** workflow 全绿，且日志中存在 **Tech graph manifest check** 步骤且 exit 0。（PR [#36](https://github.com/Cyning12/ai-ink-brain/pull/36) · 前置 api-python [#39](https://github.com/Cyning12/ai-ink-brain-api-python/pull/39)）
 - [x] `99_spec.md` / `AGENTS.md` 已文档化 manifest 命令与失败语义（FP-MF-*）。（40 帽）
 - [x] **未** 修改任何 `docs/_tech_graph/*.ai.md`。（`git diff origin/main...HEAD` · 0 文件）
 - [ ] 关账后更新 `PRIORITY_ROADMAP_v1_zh.md` §2.2 **T5** → `done（YYYY-MM-DD）` 并填 **子 task 路径**。（关账 / HG-AUDIT-CLOSE 后）
