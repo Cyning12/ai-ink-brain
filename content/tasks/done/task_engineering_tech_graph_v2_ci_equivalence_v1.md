@@ -1,6 +1,6 @@
 # Task：技术图谱 v2 — CI 等价门禁（T2）
 
-> **状态**：`implemented`（待 PR 合并后勾选验收）  
+> **状态**：`done（2026-05-20 · parity PR #35 → main）`  
 > **关联 SPEC**：`content/tasks/specs/SPEC-tech_graph_v2_frontend_parity_v1.md` §11 顺序 3  
 > **test_strategy**：`required`  
 > **freeze_id**：`TECH_GRAPH_S2_FREEZE_20260519_V2_3`
@@ -11,4 +11,4 @@
 
 ## 验收
 
-- [ ] PR 上 **quality** 全绿（含 equivalence 步）
+- [x] PR 上 **quality** 全绿（含 equivalence 步）
