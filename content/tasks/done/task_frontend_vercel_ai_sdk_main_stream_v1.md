@@ -1,6 +1,6 @@
 # Task：主流程流式体验 — 迁移 Vercel AI SDK（面试演示核心路径）
 
-> **状态**：`active`（**PR1+PR2 已合并 `main`** @ `4752f17` · [PR #32](https://github.com/Cyning12/ai-ink-brain/pull/32)；**PR3 Timeline hook 化** 待 PR 合 `main`）
+> **状态**：`done（2026-05-21 验收通过）`
 > **执行帽 invoke（30 · PR3）**：`content/harness/invokes/invoke_20260521_30_frontend-vercel-ai-sdk-pr3-timeline.md`  
 > **执行帽 invoke（30）**：`content/harness/invokes/invoke_20260520_30_frontend-vercel-ai-sdk-main-stream-execute.md`  
 > **登记日期**：2026-05-20  
