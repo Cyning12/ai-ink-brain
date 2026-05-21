@@ -1,6 +1,7 @@
 # Task：主流程流式体验 — 迁移 Vercel AI SDK（面试演示核心路径）
 
-> **状态**：`active`（**PR1+PR2 已合并 `main`** @ `4752f17` · [PR #32](https://github.com/Cyning12/ai-ink-brain/pull/32)；待 PR3 Timeline hook 化）  
+> **状态**：`active`（**PR1+PR2 已合并 `main`** @ `4752f17` · [PR #32](https://github.com/Cyning12/ai-ink-brain/pull/32)；**PR3 Timeline hook 化** 待 PR 合 `main`）
+> **执行帽 invoke（30 · PR3）**：`content/harness/invokes/invoke_20260521_30_frontend-vercel-ai-sdk-pr3-timeline.md`  
 > **执行帽 invoke（30）**：`content/harness/invokes/invoke_20260520_30_frontend-vercel-ai-sdk-main-stream-execute.md`  
 > **登记日期**：2026-05-20  
 > **需求帽回填**：2026-05-20  
@@ -82,17 +83,17 @@
 
 ### T3 — Timeline 解耦
 
-- [ ] `ChainTimeline` 仅消费 **`chain` 事件数组**（来自 adapter，非手写 read loop 内联 `setState`）。  
-- [ ] 右栏执行链路仍用 **`buildExecutionTraceSections`**（**不**在本单实现 vNext `single_panel`）。
+- [x] `ChainTimeline` 仅消费 **`chain` 事件数组**（来自 `useUnifiedChatStream` → `timelineEvents`，无页面内联 SSE read loop）。  
+- [x] 右栏执行链路仍用 **`buildExecutionTraceSections`**（迁至 `lib/unified-chat/executionTrace.ts`；**不**在本单实现 vNext `single_panel`）。
 
 ### T4 — 面试演示清单
 
 - [ ] `content/tasks/active/` 或 `docs/diary/` 附 **3 分钟演示脚本**（见 §可观测验收 · 演示）。
 
-### T5 — 质量门
+### T5 — 质量门（PR3 子集）
 
-- [ ] `pnpm lint`、`pnpm test`、`pnpm build` 绿。  
-- [ ] 新增/更新 vitest：`lib/unified-chat/sse/*.test.ts`、`lib/unified-chat/transport/*.test.ts`（mock `fetch` + `ReadableStream`）。
+- [x] `pnpm lint`、`pnpm test`、`pnpm build` 绿（PR3 执行者自检 · 2026-05-21）。  
+- [x] 新增 vitest：`lib/unified-chat/chainRoundState.test.ts`；既有 `sse` / `transport` 回归绿。
 
 ---
 
@@ -254,6 +255,7 @@
 - 选型记录（T0，落盘于本小节）：默认 **方案 A**；B 仅 spike 备选。对比：A 低延迟/BFF 无转码、Timeline 沿用 chain parser；B 需 UI Stream 转码与双协议维护。  
 - 主要 PR：**PR1** @ `4e0789e`（`lib/unified-chat/sse/`）；**PR2 Phase 1** 已合 **`main`** @ `4752f17`（[PR #32](https://github.com/Cyning12/ai-ink-brain/pull/32)）：`chatbiSseTransport` + `useUnifiedChat` + adapter 双写  
 - **Phase 1 说明**：正文经 SDK `text-delta`（`agent.llm.delta` / `assistant.message`）；Timeline 仍 `setEvents` + `buildExecutionTraceSections`（PR3 收敛）  
+- **PR3（T3 + 瘦身）**：`useUnifiedChatStream` + `chainRoundState` / `executionTrace` / `chainEventSelectors`；`UnifiedChatPageClient.tsx` **923 行**（原 ~1933）；SSE 读流仅在 `lib/unified-chat/transport/chatbiSseStream.ts`  
 - 演示录屏 / 脚本路径：**待 PR4**  
 - **打字机 v0**（子 task，非阻塞母单）：[`task_frontend_unified_chat_typewriter_v0.md`](task_frontend_unified_chat_typewriter_v0.md) · 分支 `feat/unified-chat-typewriter-v0` · 维护者初步验收通过 · 待 PR 合 `main`
 
@@ -263,13 +265,38 @@
 | --- | --- |
 | 工作目录 | `ai-ink-brain` |
 | 分支 | `feat/unified-chat-ai-sdk-stream-v1` |
-| HEAD（R3 自检时） | **`906a062`**（与分支 tip 一致） |
-| 实现修复 commit | `23a053b`（`normalizeRequestHeaders` · V-BUILD） |
-| 变更范围 | `git diff 393f877..HEAD`（transport TS + task/invoke 文档） |
-| 本轮范围 | **PR2（T2 Phase 1）· R3 执行者自检** |
-| 自检帽 invoke | `content/harness/invokes/invoke_20260520_40_frontend-vercel-ai-sdk-main-stream-self-check-r3.md` |
+| 本轮范围 | **PR3（T3 Timeline hook + 瘦身）· 30 帽执行** |
+| 执行帽 invoke | `content/harness/invokes/invoke_20260521_30_frontend-vercel-ai-sdk-pr3-timeline.md` |
+| `UnifiedChatPageClient.tsx` 行数 | **923**（目标 ≤1200；SSE 逻辑 100% 在 `lib/unified-chat/`） |
+| 上一棒 PR2 自检 | `content/harness/invokes/invoke_20260520_40_frontend-vercel-ai-sdk-main-stream-self-check-r3.md` |
 
-#### 命令与退出码（40 · R3 · 2026-05-18）
+#### 命令与退出码（30 · PR3 · 2026-05-21）
+
+| 命令 | cwd | 退出码 | 要点 |
+| --- | --- | ---: | --- |
+| `pnpm lint` | `ai-ink-brain` | **0** | eslint 无 error |
+| `pnpm test` | `ai-ink-brain` | **0** | 9 files / **32** tests passed（含 `chainRoundState.test.ts`） |
+| `pnpm exec vitest run lib/unified-chat/sse lib/unified-chat/transport` | `ai-ink-brain` | **0** | 3 files / **12** tests |
+| `pnpm build` | `ai-ink-brain` | **0** | Next 16.2.3 webpack；清 `.next` 后复跑通过 |
+
+#### 验收项（§9 · PR3 子集）
+
+| ID | 结果 | 证据 |
+| --- | --- | --- |
+| V-LINT | **pass** | `pnpm lint` exit 0 |
+| V-TEST | **pass** | `pnpm test` exit 0 |
+| V-BUILD | **pass** | `pnpm build` exit 0 |
+| V-PARSER | **pass** | vitest `lib/unified-chat/sse`（既有） |
+| V-TRANSPORT | **pass** | vitest `lib/unified-chat/transport`（既有） |
+| 母单 §8 Timeline / 结构 | **pass（CI）** | `useUnifiedChatStream` + `ChainTimeline` 仅 `timelineEvents`；无页面重复 SSE read loop |
+| V-NET / V-RAG / V-SQL / V-DONE-FAIL / V-ABORT | **未测** | 留 **40 帽** 或 PR 合并前人测 |
+
+#### PR3 结论
+
+- **可进 PR 描述**：Timeline 状态机迁入 `useUnifiedChatStream`；执行链路/选择器迁至 `lib/unified-chat/`；页面 **923 行**。  
+- **下一棒**：**40 自检** 或维护者人测 §9 剩余项。
+
+#### 命令与退出码（40 · R3 · 2026-05-18 · PR2 归档）
 
 | 命令 | cwd | 退出码 | 要点 |
 | --- | --- | ---: | --- |
