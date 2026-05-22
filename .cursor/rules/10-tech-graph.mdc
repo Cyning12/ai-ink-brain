@@ -1,36 +1,103 @@
-## `_tech_graph/` 技术图谱强制规范（前端，低幻觉）
-- 所有技术逻辑、架构、流程必须基于 `_tech_graph/` 下的 Mermaid 图谱。
-- 禁止依赖大段纯文本文档作为开发依据。
-- 前端独立维护自身 `_tech_graph/`，不与后端混同。
+---
+description: 技术图谱 — Mermaid 维护轨 + graph.json 机器轨（双轨，低幻觉）
+globs:
+  - docs/_tech_graph/**
+  - app/**
+  - components/**
+  - lib/**
+---
 
-## 图谱格式与 flowchart 拓扑协议
-- 图谱文件：全部为 `.md`，内嵌 Mermaid 图表。
-- 数据结构：统一使用 Struct / `classDiagram`，禁止贴原始 interface / JSON。
-- flowchart 遵循拓扑协议（见工作区根 `Projects/AGENTS.md` §7.2 或本仓 `docs/_tech_graph/99_mermaid_protocol.md`）：
+## `_tech_graph/` 技术图谱（唯一事实来源）
+
+- 所有技术逻辑、架构、流程必须基于 `docs/_tech_graph/` 下的 Mermaid 图谱；禁止用大段纯文本文档替代图谱做业务逻辑依据。
+- 前端**独立**维护本仓 `docs/_tech_graph/`，禁止混用后端或其它子仓图谱文件。
+- 与 **jsonPKmermaid 实验轨**（配对后端 `ai-ink-brain-api-python/docs/diary/jsonPKmermaid/`）的关系：**非必读**（见 `08-docs-diary.mdc`）；本规则描述 **生产轨**（`_tech_graph/` + `graph_query`）。仅在做闸口复现或 task 显式引用时按需读实验目录，**禁止**默认遍历。
+
+## 双轨制（维护轨 vs 机器轨）
+
+| 轨道 | 载体 | 谁维护 | Agent 何时优先读 |
+|------|------|--------|------------------|
+| **维护轨** | `*.md` / `*.ai.md`（内嵌 Mermaid） | 人 + Agent 改图后导出 | 改流程拓扑、补锚点、写规约叙述、对照 `01_struct` |
+| **机器轨** | `graph.json`（**graph_v2**）、`_manifest.json`、`_contract_manifest.json` | 脚本导出 + 契约门禁；`graph.json` 由 `.ai.md` 导出 | **影响分析、依赖遍历**：**`graph_query` 子图优先**（`pnpm tech-graph:query`），再 `_manifest` / `_contract`；**禁止**默认整包 `graph.json` 或 **graph_v1** 整图灌 prompt |
+
+- **禁止**把 `graph.json` 当作可手改源文件；改图 → 改对应 `.ai.md` → `pnpm tech-graph:graph-export`（或 CI `--check`）再生 `graph.json`。
+- **禁止**在对话里用整份 `graph.json` 替代已导出的 Mermaid 维护义务；JSON 与 Mermaid 语义须等价。
+- **禁止**将 **graph_v1 整包** 或 **graph_v2 整文件** 作为 Agent 默认主载荷；须 **`pnpm tech-graph:query`**（`downstream` / `upstream` / `neighbors`）取子图 + anchors。无 `graph_v2` 时 query **FAIL（FP-5）**，不得静默降级为 v1 整包。
+- `01_struct.md` 的 **classDiagram** 仍为 TS/数据结构 Struct 真值（未并入 `graph.json` 时不得仅用 JSON 推断类型）。
+
+## 图谱格式与 flowchart 拓扑协议（维护轨）
+
+- 图谱文件：`.md` / `.ai.md`，内嵌 Mermaid；数据结构用 Struct / `classDiagram`，**禁止**在图谱正文中粘贴完整 interface / 长 JSON。
+- flowchart 遵循 `docs/_tech_graph/99_mermaid_protocol.md`（摘要；完整版见配对后端仓同名文件）：
   - 边标记：`->` 同步、`~>` 异步（Promise/await）、`?>` 条件、`[ok]` / `[err]` 状态、`::xxx` 元关系
   - 禁止裸边（无边标记的 `-->`）
-  - 锚点用 `// → path#Ln` 独立注释行
+  - 锚点用 `// → path#Ln` 独立注释行，不写在节点标签内
 
-## 本仓 `_tech_graph` 固定结构（双轨制）
+## 本仓 `docs/_tech_graph/` 目录（摘要）
+
 ```text
 docs/_tech_graph/
-├─ 00_main.md              # 全局路由 & 渲染流程（人类友好版）
-├─ 00_main.ai.md           # 全局路由 & 渲染流程（AI 协议版）
-├─ 01_struct.md            # TS 类型 & 数据结构
-├─ 02_version.md           # 版本迭代时间线
-├─ 10_flow_route.md        # 页面跳转流程（人类友好版）
-├─ 10_flow_route.ai.md     # 页面跳转流程（AI 协议版）
-├─ 11_flow_api.md          # API 请求 & 代理流程（人类友好版）
-├─ 11_flow_api.ai.md       # API 请求 & 代理流程（AI 协议版）
-├─ 12_flow_auth.md         # 登录 & 权限 & Session（人类友好版）
-├─ 12_flow_auth.ai.md      # 登录 & 权限 & Session（AI 协议版）
-├─ 13_flow_components.md   # 组件渲染 & 数据交互（人类友好版）
-├─ 13_flow_components.ai.md # 组件渲染 & 数据交互（AI 协议版）
-├─ 99_spec.md              # 前端实现规约
-└─ 99_mermaid_protocol.md  # Mermaid 拓扑协议（引用后端仓规范）
+├─ 00_main.md / 00_main.ai.md           # 全局路由 & 渲染流程（人/AI 双轨）
+├─ 01_struct.md                         # TS 类型 & 数据结构（classDiagram）
+├─ 02_version.md                        # 版本迭代时间线
+├─ 10_flow_route.md / *.ai.md           # 页面跳转流程（双轨）
+├─ 11_flow_api.md / *.ai.md             # API 请求 & 代理流程（双轨）
+├─ 12_flow_auth.md / *.ai.md            # 登录 & 权限 & Session（双轨）
+├─ 13_flow_components.md / *.ai.md      # 组件渲染 & 数据交互（双轨）
+├─ 99_spec.md                           # 前端实现规约（含 graph_v2 CI）
+├─ graph_v2_schema.md                   # graph.json 字段与失败码
+├─ 99_mermaid_protocol.md
+├─ graph.json                           # 【机器轨】由 *.ai.md 导出，勿手改
+├─ _manifest.json                       # 端点 / 页面 / env 清单
+└─ _contract_manifest.json              # 跨端契约（如 Unified SSE）
 ```
 
-## 双轨说明（全局标准）
-- `.md`：人类维护版（简洁、裸边可用、锚点写在节点标签内）。
-- `.ai.md`：AI 协议版（结构化标记、零裸边、锚点分离、异步/错误显式标记）。
-- 两者语义等价；flowchart 必须同时维护。
+## Mermaid 人读 / AI 协议双轨（`.md` vs `.ai.md`）
+
+- `.md`：人类友好（可裸边、锚点可写在节点内）；水墨极简叙述可保留于此轨。
+- `.ai.md`：AI 协议版（零裸边、锚点分离、异步/错误显式）；**导出 `graph.json` 的输入源**。
+- flowchart 须保持两者语义等价；**classDiagram / timeline** 等无流程边的图无需 `.ai.md`。
+
+## Agent 读取顺序（本仓前端）
+
+1. **影响分析 / 改路由 / 改 BFF 代理 / 改组件数据流**（**query 优先**）：
+   - `pnpm tech-graph:query downstream <id> <depth>`（或 `upstream` / `neighbors`）→ 子图 JSON + `anchors`
+   - → `_manifest.json` 切片 →（若涉 **Unified Chat / SSE**）`_contract_manifest.json` 切片
+   - → 按需 `01_struct.md` / `99_spec.md` / `graph_v2_schema.md`
+   - → query 不足时再读对应 `10_flow_*.ai.md` 片段
+   - **T003 / Admin Ingest 类题**（且 **task 已指向** 配对后端 `docs/diary/jsonPKmermaid/fixtures/...`）：在子图 + manifest/contract 之后，可参照实验轨 **`manifest_slice` + `impact_surface`**；产出 `impacts[]` **须含 `path` + `kind`**。**无 task 指向时勿读** jsonPKmermaid fixtures。
+   - **勿**默认 `cat graph.json` 整包；**勿**用 graph_v1 冒充 v2 query。
+2. **改 TS 类型 / Env / UI 契约**：`01_struct.md`、`99_spec.md` + 代码；不单靠 `graph.json`。
+3. **改代码后**：同步更新受影响 `.ai.md` / `_manifest` / `_contract`，并确保 `graph.json`（**graph_v2**）导出与 CI（`pnpm tech-graph:manifest-check`、`pnpm tech-graph:graph-check`、`pnpm tech-graph:equivalence-check`）通过。
+
+## jsonPKmermaid 物化轨 vs 默认 machine 轨（闸口 C / C′ / C″ · 实验轨 · 非必读）
+
+> 本节为 **历史实验结论摘要**；日常实现以 **`pnpm tech-graph:query` + `_tech_graph/`** 为准。详文与 fixtures 在配对后端 `docs/diary/jsonPKmermaid/`，**仅 task/用户显式需要时**打开。
+
+| 项 | 约定 |
+| --- | --- |
+| **machine 默认** | **`CTX_V2_QUERY`** / **`graph_query` 子图**（闸口 C **accepted**，C″ **不推翻**） |
+| **物化切片** | 分题 `manifest_slice` / `impact_surface` 为 **实验/物化辅助**，**不等于**整包 `graph.json` 或默认 Mermaid 双轨主载荷 |
+| **人读/对照轨** | **`CTX_DUAL_MD`** 仅对照或人读按需；**禁止**升为 machine 默认 |
+
+## 禁止项（Agent 消费 · 重申）
+
+- **禁止**将物化 `impact_surface` 或分题 `manifest_slice` **当作**默认整包 `graph.json`、graph_v1/v2 全文件或整段 Mermaid 双轨主载荷。
+- **禁止**因物化切片有效而默认切换为 `CTX_DUAL_MD`；维持 **`graph_query` + `CTX_V2_QUERY`**。
+
+## 稳定引用（生产轨）
+
+- 方案 1 规约：配对后端 `docs/tech_graph/SPEC/json_graph/scheme_1_graph_json.md`
+- 方案 2 查询：配对后端 `docs/tech_graph/SPEC/query_graph/scheme_2_graph_query.md` · 本仓 `pnpm tech-graph:query`（脚本在后端 `tools/tech_graph_graph_query.py`）
+- 前端迁移实践：`content/tasks/specs/MIGRATION-tech_graph_v2_frontend_playbook_v1_zh.md`
+
+## 按需引用（实验轨 · 非必读）
+
+- 闸口 C / C′ / C″ 结论文与 gold 题集：配对后端 `docs/diary/jsonPKmermaid/reports/`、`fixtures/`（**勿**在无 task 时主动读取）
+- 后端 RAG/ingest 图谱：见 `ai-ink-brain-api-python/docs/_tech_graph/`
+- 工作区总规范：`Projects/AGENTS.md` §7
+
+## Visual Style（水墨 · 与图谱并列的 UI 约束）
+
+- 背景 `#F9F9F7`、文字 `#2C2C2C`、低饱和靛蓝/石墨强调色；大量留白。
+- 路由与页面行为以 `10_flow_route*.md` 为准，不编造不存在的页面或 API。
