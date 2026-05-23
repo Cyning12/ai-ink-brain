@@ -19,5 +19,29 @@
     "type": "agent.llm.delta",
     "ts": 1003,
     "payload": {}
+  },
+  "agentClarifyOk": {
+    "type": "agent.clarify",
+    "ts": 200,
+    "step_id": "a1_clarify",
+    "payload": {
+      "step_number": 1,
+      "message": "待您澄清（低置信度）",
+      "prompt_for_user": "请补充您关心的指标、时间范围或具体业务对象。"
+    }
+  },
+  "agentClarifyMissingPrompt": {
+    "type": "agent.clarify",
+    "ts": 201,
+    "step_id": "a1_clarify_bad",
+    "payload": {
+      "step_number": 1,
+      "message": "待您澄清（低置信度）"
+    }
+  },
+  "agentClarifyUnknownVariant": {
+    "type": "agent.clarify.v2",
+    "ts": 202,
+    "payload": {}
   }
 }

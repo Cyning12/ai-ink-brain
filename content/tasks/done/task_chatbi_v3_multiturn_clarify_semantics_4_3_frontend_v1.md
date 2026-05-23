@@ -1,7 +1,7 @@
 # 前端 Task：ChatBI V3 · 多轮低置信澄清（§4.3）SSE / Timeline 对接
 
-> **状态**：`pending`（**P1-4**；**开工闸门**见 **§开工闸门与前后端节奏**；未满足前保持 `pending`）  
-> **关联图谱**：`docs/_tech_graph/`（Unified Chat SSE 消费；若新增 `chain.type` 则增量 `11_flow_api*.md`）
+> **状态**：`done（2026-05-23 · P1-4 手工烟测通过 · run_id 83b821f2-2a35-4197-9cf0-76dc9c5a9b0e）`  
+> **关联图谱**：`docs/_tech_graph/`（Unified Chat SSE 消费；`11_flow_api.md` prose 已增量）
 
 ---
 
@@ -9,15 +9,15 @@
 
 本文件位于 **`ai-ink-brain` 仓**内路径：
 
-`content/tasks/active/task_chatbi_v3_multiturn_clarify_semantics_4_3_frontend_v1.md`（相对该仓根）。
+`content/tasks/done/task_chatbi_v3_multiturn_clarify_semantics_4_3_frontend_v1.md`（相对该仓根）。
 
 | 目标 | 写法 |
 |------|------|
 | **同仓 `content/tasks/done/`** | Markdown 可用 [`../done/…`](../done/task_chatbi_v3_text2sql_phase_sse_timeline_frontend_v1.md)（从 `active/` 上一级到 `tasks/` 再进 `done/`） |
 | **兄弟仓 `ai-ink-brain-api-python`（与总仓 AGENTS 一致：两仓均为 `Projects/` 下同级目录）** | **推荐**：在文档/PR 中写 **`Projects/ai-ink-brain-api-python/docs/...`** 全路径，便于人与 Cursor `@` 引用。**勿**使用 `../ai-ink-brain-api-python/` 从本文件出发——在磁盘上会解析到 **`content/tasks/ai-ink-brain-api-python/`**，该路径**不存在**。 |
-| **若必须用相对路径从本文件指到兄弟仓根**（仅当两仓确为同级时） | `../../../ai-ink-brain-api-python/docs/tasks/active/task_chatbi_v3_multiturn_clarify_semantics_4_3_v1.md`（`active`→`tasks`→`content`→`ai-ink-brain` 根，再进入兄弟目录） |
+| **若必须用相对路径从本文件指到兄弟仓根**（仅当两仓确为同级时） | `../../../ai-ink-brain-api-python/docs/tasks/done/task_chatbi_v3_multiturn_clarify_semantics_4_3_v1.md` |
 
-**配对后端任务（真值路径）**：`Projects/ai-ink-brain-api-python/docs/tasks/active/task_chatbi_v3_multiturn_clarify_semantics_4_3_v1.md`
+**配对后端任务（真值路径）**：`Projects/ai-ink-brain-api-python/docs/tasks/done/task_chatbi_v3_multiturn_clarify_semantics_4_3_v1.md`（**done · 2026-05-13**）
 
 **L1 / SPEC（同上，Projects 根）**：
 
@@ -74,11 +74,11 @@
 
 ## 范围
 
-- [ ] **SSE 解析**：`components/unified-chat/UnifiedChatPageClient.tsx`（或抽离模块）按 **§开工闸门** 冻结表解析澄清帧；遵守 **§策略 B**。
-- [ ] **BFF**：见 **§BFF（与后端显式结论）**；默认仅透传既有 header。
-- [ ] **UI**：用户可见 **「澄清中 / 待您确认」** 与追问文案（payload 内、且为 manifest 键）；Timeline / `ChainEventCard` **须与 `agent.think` 可区分**（标签/图标/样式三选一即可）。
-- [ ] **类型**：`components/chain-chat/types.ts` 收窄 `ChainEvent` / `chain.type` 联合；主路径 **禁止 `any`**。
-- [ ] **图谱**：若消费路径变化，增量 `docs/_tech_graph/11_flow_api.md`（flowchart 变更则 **`.ai.md` 双轨**）。
+- [x] **SSE 解析**：`lib/unified-chat/sse/chainEventFromSse.ts` + `chainPayloadValidators.ts`（`agent.clarify` 最小键校验）；`UnifiedChatPageClient` 经既有 SSE 归约入链；遵守 **§策略 B**。
+- [x] **BFF**：见 **§BFF（与后端显式结论）**；`app/api/py/unified/chat/stream/route.ts` 仅透传既有 header（含 `X-ChatBI-Sse-Contract`）。
+- [x] **UI**：`ChainEventCard` 琥珀色 **「澄清中 · 待您确认」** + `message` / `prompt_for_user`；与 `agent.think`（slate 网格 + `thought`）视觉区分。
+- [x] **类型**：`components/chain-chat/types.ts` — `AgentClarifyPayload` + 白名单含 `agent.clarify`；主路径无 `any`。
+- [x] **图谱**：`docs/_tech_graph/11_flow_api.md` §「多轮澄清 SSE」prose 增量（无 flowchart 变更，**不**改 `.ai.md`）。
 
 ## 非范围
 
@@ -117,32 +117,44 @@
 
 ## 验收标准（可勾选 · 消除「两种/三种」歧义）
 
-- [ ] **策略 B**：见 **§策略 B**；未知 type / 越界键不崩、不白屏。  
-- [ ] **澄清 vs `agent.think`（必达）**：用户能 **稳定区分**「澄清态」与「普通思考」——二者 **不得**共用同一套不可区分的视觉形态（须各有标签/图标/样式之一）。  
-- [ ] **澄清 vs 最终答案（必达）**：**最终答案**仅指 **`assistant.message`**（若产品改为其它单一事件，在 **§实现备忘** **一句话** 冻结并替换本句）；澄清 UI **不得**覆盖、顶替或误标为最终答案区。  
-- [ ] **`run_id` 同源**：澄清相关 `ChainEvent.run_id` 与 **`meta.payload.run_id` / `done.run_id`** 一致（不回归既有 meta 回填逻辑）。  
-- [ ] **契约无越界**：仅读 manifest 已列键；PR 前 **`Projects/ai-ink-brain-api-python`** 下 `python tools/tech_graph_contract_check.py` 绿。  
-- [ ] **配对后端**：后端 **§验收标准** 中与「用户可见澄清」对应的项，在本仓有 **UI/解析** 与 **PR 互链**。
+- [x] **策略 B**：未知 type / 缺 manifest 键 → `chainEventFromSse` 返回 null；单测 `chainEventFromSse.test.ts`（2026-05-23 · 35 tests 绿）。
+- [x] **澄清 vs `agent.think`（必达）**：`ChainEventCard` — clarify 琥珀 badge + 摘要/追问区；think 为 slate 工具网格 + `thought` 标题。
+- [x] **澄清 vs 最终答案（必达）**：最终答案仅 **`assistant.message`**（`extractFinalAnswer` + 页面文案）；clarify 仅在 Timeline 卡片，不写入最终答案区逻辑。
+- [x] **`run_id` 同源**：`applyChainSseFrame` 以 `meta.payload.run_id` 为 canonical（单测已有）；clarify 帧经同路径归约。
+- [x] **契约无越界**：仅读 `step_number` / `message` / `prompt_for_user`；`python tools/tech_graph_contract_check.py` **OK**（2026-05-23）。
+- [x] **配对后端 · 手工烟测**：Unified Chat **2026-05-23** 通过；`run_id=83b821f2-2a35-4197-9cf0-76dc9c5a9b0e`；15 帧含 `agent.clarify`，**无** `tool.call.*` / `sql.result`；`router.decision` 的 `candidate_mode`/`final_mode` 均为 `text2sql`；`assistant.message` 为澄清指引文案。探针 env：`CHATBI_V3_LOW_CONFIDENCE_CLARIFY=1`、`INTENT_MIN_CONFIDENCE=1.0`（使 intent `0.95` 命中低置信门）、`CHATBI_V3_PLAN_PREVIEW_CONFIRM=0`。
 
 ---
 
 ## 手动测试与 mock 入口
 
-1. **首选**：后端实现 PR **附件**或 `ai-ink-brain-api-python/docs/spec/v3-agent/P0/` 下 **脱敏 SSE 文本样例**（`.md` 代码块 / `.jsonl` / `.txt` 任一）；路径由后端写入 **后端子任务实现备忘**，本任务 **§实现备忘** 抄录 **同一路径** 以便单测 / 手工重放。  
-2. **次选**：staging 真实请求 + **`CHATBI_JSON_LOG`** grep `run_id`（排障，非 UI 必显）。  
-3. **本仓单测**：若已有针对 `chain` 解析的 `*.test.ts` / `*.spec.ts`，在 **§实现备忘** 回填 **实际文件路径**；若无，可不强制，但 **不得**以「无文档」挡验收——须满足上条 **样例路径**。
+1. **首选**：`Projects/ai-ink-brain-api-python/docs/spec/v3-agent/P0/SSE-sample-agent-clarify.md`  
+2. **E2E 参考 Timeline**：`Projects/ai-ink-brain-api-python/docs/spec/v3-agent/text2sql/P1-4-第二次对话测试.md`  
+3. **本仓单测**：`lib/unified-chat/sse/chainEventFromSse.test.ts` + fixture `lib/unified-chat/sse/fixtures/chain-meta-and-tool.json`（`agentClarifyOk` / 负例）
+
+**关单前手工清单（本地）**：
+
+```text
+api-python: CHATBI_V3_LOW_CONFIDENCE_CLARIFY=1，建议 CHATBI_V3_PLAN_PREVIEW_CONFIRM=0
+前端: pnpm dev → /unified-chat → ChatBI token 解锁
+问句: 「统计 heros 表里有多少条数据」，prefer=auto
+期望: Timeline 有 agent.clarify；无 sql.result；run_id 同源；最终答案区为 assistant.message
+```
 
 ---
 
 ## 实现备忘（回填）
 
-- 开工闸门 **A / B** 及 PR：…  
-- 冻结的 `chain.type` / payload 键表（或「未改契约」）：…  
-- **澄清 vs 最终答案** 产品边界一句话（若与默认 `assistant.message` 不同）：…  
-- **占位字符串**（与后端一致）：…  
-- **BFF**：无需变更 / 已变更（链 PR）：…  
-- **SSE 样例路径**（后端提供）：…  
-- **阻塞**（若无写「无」）：…
+- **开工闸门 B**（后端 done 任务 §实现备忘）：**契约未改 manifest**；`agent.clarify` 已在 manifest；后端关单 **2026-05-13**（`docs/tasks/done/task_chatbi_v3_multiturn_clarify_semantics_4_3_v1.md`）。
+- **冻结 type / payload**：`agent.clarify` → `step_number`, `message`, `prompt_for_user`（manifest 真值，无新增键）。
+- **澄清 vs 最终答案**：默认 **`assistant.message`** 为最终答案；clarify 仅 Timeline 展示。
+- **占位字符串**：本单 clarify payload 仅 manifest 三键；**无**额外表名字段渲染；产品 RBAC 细粒度 **待 P1-3**（与后端一致）。
+- **BFF**：**无需变更**（后端备忘 + 代码审阅 `route.ts` 仅透传 Contract / Auth）。
+- **SSE 样例路径**：`Projects/ai-ink-brain-api-python/docs/spec/v3-agent/P0/SSE-sample-agent-clarify.md`
+- **前端 PR / commit**：`ec59622`（解析 + UI + 图谱 prose）；烟测单测增量 **2026-05-23**（本对话）。
+- **单测路径**：`lib/unified-chat/sse/chainEventFromSse.test.ts`
+- **手工烟测留证**：`run_id=83b821f2-2a35-4197-9cf0-76dc9c5a9b0e`（2026-05-23）；与 `P1-4-第二次对话测试.md` 结构一致（15 帧、澄清短路）。
+- **阻塞**：无
 
 ---
 
@@ -158,3 +170,5 @@
 |------|------|
 | 2026-05-11 | 首版：配对后端 P1-4 |
 | 2026-05-11 | 修订：路径真值、开工闸门、策略 B 本单定义、验收口径、mock、RBAC 兜底、BFF 显式结论 |
+| 2026-05-23 | 烟测：`in_progress`；闸门 B 抄录；范围/验收（除手工）勾选；`agent.clarify` fixture 单测；配对后端路径改 `done/` |
+| 2026-05-23 | **关单**：手工烟测通过（`83b821f2-…`）→ `done/` 归档 |

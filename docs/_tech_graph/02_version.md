@@ -29,6 +29,7 @@ timeline
   2026-05-20 : tech graph v2 parity graph_v2_schema 99_mermaid_protocol equivalence CI playbook
   2026-05-20 : T3 W2 Mermaid 双轨拓扑审计 5 对 flowchart 锚点补强 equivalence 绿 freeze TECH_GRAPH_S2_FREEZE_20260519_V2_3
   2026-05-21 : 45455e0 auto: components/unified-chat/UnifiedChatExecutionTracePanel.tsx
+  2026-05-23 : 7901b24 auto: lib/unified-chat/sse/chainEventFromSse.test.ts
 ```
 
 **Verify（P1）**：PR 门禁 workflow **`quality`** 含 **`pnpm test`**、**`tech_graph_graph_export --check`** 与 **`tech_graph_graph_equivalence_check`**（graph_v2，与 `content/tasks/specs/MIGRATION-tech_graph_v2_frontend_playbook_v1_zh.md` 一致）。
