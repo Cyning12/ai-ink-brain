@@ -39,6 +39,42 @@ describe("chainEventFromSse", () => {
       }),
     ).toBeNull();
   });
+
+  it("accepts agent.clarify with manifest min keys (P1-4 §4.3)", () => {
+    const ev = chainEventFromSse({
+      runId: "run-demo-clarify",
+      raw: fixtures.agentClarifyOk,
+      fallbackStepId: "chain",
+    });
+    expect(ev?.type).toBe("agent.clarify");
+    expect(ev?.run_id).toBe("run-demo-clarify");
+    expect(ev?.step_id).toBe("a1_clarify");
+    expect(ev?.payload).toMatchObject({
+      step_number: 1,
+      message: "待您澄清（低置信度）",
+      prompt_for_user: expect.stringContaining("请补充"),
+    });
+  });
+
+  it("rejects agent.clarify missing prompt_for_user (策略 B)", () => {
+    expect(
+      chainEventFromSse({
+        runId: "r",
+        raw: fixtures.agentClarifyMissingPrompt,
+        fallbackStepId: "chain",
+      }),
+    ).toBeNull();
+  });
+
+  it("rejects unknown agent.clarify variant type (策略 B)", () => {
+    expect(
+      chainEventFromSse({
+        runId: "r",
+        raw: fixtures.agentClarifyUnknownVariant,
+        fallbackStepId: "chain",
+      }),
+    ).toBeNull();
+  });
 });
 
 describe("applyChainSseFrame", () => {

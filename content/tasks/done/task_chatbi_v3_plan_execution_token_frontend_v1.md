@@ -14,7 +14,7 @@
 |------|------|
 | **兄弟仓后端** | 推荐写 **`Projects/ai-ink-brain-api-python/...`** 全路径，便于 `@` 引用。 |
 | **同仓 done 任务** | 例如 [`./task_frontend_unified_chat_streaming_sse_v1.md`](./task_frontend_unified_chat_streaming_sse_v1.md) |
-| **同仓 active 任务** | 例如 [`../active/task_chatbi_v3_multiturn_clarify_semantics_4_3_frontend_v1.md`](../active/task_chatbi_v3_multiturn_clarify_semantics_4_3_frontend_v1.md) |
+| **同仓 active 任务** | 例如 [`../done/task_chatbi_v3_multiturn_clarify_semantics_4_3_frontend_v1.md`](../done/task_chatbi_v3_multiturn_clarify_semantics_4_3_frontend_v1.md) |
 
 **契约与语义真值（后端仓）**：
 
@@ -22,7 +22,7 @@
 - `Projects/ai-ink-brain-api-python/docs/spec/v2-agent/SPEC-ChatBI-V2-Events.md` **§3.2.2** `agent.plan.preview`
 - `Projects/ai-ink-brain-api-python/docs/spec/v3-agent/SPEC-ChatBI-V3-LowConfidence-Plan-Confirm.md`（产品语义 / 安全边界）
 
-**配对澄清前端母单**（Timeline 上 `agent.clarify` 已对接时，本单在其上叠加「确认执行」动作）：[`../active/task_chatbi_v3_multiturn_clarify_semantics_4_3_frontend_v1.md`](../active/task_chatbi_v3_multiturn_clarify_semantics_4_3_frontend_v1.md)
+**配对澄清前端母单**（Timeline 上 `agent.clarify` 已对接时，本单在其上叠加「确认执行」动作）：[`../done/task_chatbi_v3_multiturn_clarify_semantics_4_3_frontend_v1.md`](../done/task_chatbi_v3_multiturn_clarify_semantics_4_3_frontend_v1.md)
 
 ---
 
