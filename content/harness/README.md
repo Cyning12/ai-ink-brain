@@ -17,9 +17,9 @@
 
 ---
 
-## 前端 gold slug（当前会话草案）
+## 前端 基准 slug（已锁定）
 
-> 状态：草案已列，最终“锁定定稿”仍以 task 人工闸 `HG-FRONTEND-GOLD-SLUGS` 为准。
+> 状态：`HG-FRONTEND-GOLD-SLUGS` **approved**（2026-05-27）· 工作区 task `task_harness_frontend_p1_4_wiki_parity_v1` 已关账。
 
 - `frontend-tech-graph-v2-manifest`
 - `frontend-vercel-ai-sdk-main-stream`
