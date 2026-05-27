@@ -22,7 +22,10 @@
    - `99_mermaid_protocol.md` — Mermaid 拓扑协议摘要（完整版见配对后端仓同名文件）
    - **迁移实践**：`content/tasks/specs/MIGRATION-tech_graph_v2_frontend_playbook_v1_zh.md`
 4. **`content/tasks/README.md`** + **`content/tasks/active/`**、**`content/tasks/done/`**：任务规格与归档规则（与后端 `docs/tasks/` 分类一致）
-5. **多子仓协作**（总设职责、任务单规范与落盘路径）见工作区根 `Projects/AGENTS.md` **§2**，跨仓任务按该约定先写任务初稿再分派子 Agent 丰富。
+5. **Coding Wiki（L2 编译层 · 关账回顾默认读序）**
+   - 入口：`../ai-ink-brain-api-python/docs/coding_wiki/index.md`、`../ai-ink-brain-api-python/docs/coding_wiki/CODING_WIKI.md`、`../ai-ink-brain-api-python/docs/spec/governance/SPEC-Governance-Wiki-Agent-Readorder-v1.md`
+   - 读序：`index` → `syntheses/<slug>` → pointer 回到 L1 task；当任务涉及改代码（路由/BFF/契约）时，仍以本仓 L0 `docs/_tech_graph/` + query 为准，Wiki 不替代实现真值。
+6. **多子仓协作**（总设职责、任务单规范与落盘路径）见工作区根 `Projects/AGENTS.md` **§2**，跨仓任务按该约定先写任务初稿再分派子 Agent 丰富。
 
 ---
 
