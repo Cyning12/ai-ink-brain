@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 
 import type { ChainEvent } from "@/components/chain-chat/types";
+import { AGENT_PLAN_PREVIEW_TOOL_RAG } from "@/lib/unified-chat/sse";
 import { SqlResultTable } from "@/components/chain-chat/SqlResultTable";
 import { extractText2sqlPhasesMsFromToolOutput } from "@/lib/unified-chat/text2sqlPhaseSse";
 import { SourceCitations } from "@/components/SourceCitations";
@@ -400,16 +401,22 @@ export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Pro
     if (event.type === "agent.plan.preview") {
       const p = event.payload ?? {};
       const sql = typeof p.sql_draft === "string" ? p.sql_draft : "";
+      const rewriteQuery = typeof p.rewrite_query === "string" ? p.rewrite_query : "";
+      const plannedTopK = p.planned_top_k;
+      const headlines = Array.isArray(p.preview_headlines)
+        ? p.preview_headlines.filter((h): h is string => typeof h === "string")
+        : [];
       const warns = Array.isArray(p.warnings) ? p.warnings : [];
       const exp = p.expires_in_sec;
       const expStr = typeof exp === "number" && Number.isFinite(exp) ? String(Math.max(0, Math.floor(exp))) : "—";
       const pid = typeof p.plan_id === "string" ? p.plan_id : "";
       const tool = typeof p.tool === "string" ? p.tool : "";
+      const isRag = tool === AGENT_PLAN_PREVIEW_TOOL_RAG;
       return (
         <div className="space-y-2 text-[11px] text-slate-800">
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-full border border-indigo-500/50 bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-950">
-              方案预览（未执行）
+              {isRag ? "RAG 方案预览（未执行）" : "方案预览（未执行）"}
             </span>
             <span className="text-[10px] text-slate-500">
               TTL 约 {expStr}s · plan_id <span className="font-mono">{pid || "—"}</span>
@@ -420,12 +427,39 @@ export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Pro
               <span className="text-slate-500">tool</span> {tool || "—"}
             </div>
           </div>
-          <div>
-            <div className="text-[10px] font-medium text-indigo-900/90">sql_draft</div>
-            <div className="mt-1 max-h-[40vh] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-indigo-200/70 bg-indigo-50/40 px-2 py-1.5 font-mono text-[11px] leading-relaxed text-slate-900">
-              {sql.trim() ? sql : "—"}
+          {isRag ? (
+            <div className="space-y-2">
+              <div>
+                <div className="text-[10px] font-medium text-indigo-900/90">rewrite_query</div>
+                <div className="mt-1 max-h-[32vh] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-teal-200/70 bg-teal-50/40 px-2 py-1.5 font-mono text-[11px] leading-relaxed text-slate-900">
+                  {rewriteQuery.trim() ? rewriteQuery : "—"}
+                </div>
+              </div>
+              {typeof plannedTopK === "number" && Number.isFinite(plannedTopK) ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[10px] text-slate-500">planned_top_k</span>
+                  <span className="font-mono text-slate-900">{Math.floor(plannedTopK)}</span>
+                </div>
+              ) : null}
+              {headlines.length > 0 ? (
+                <div>
+                  <div className="text-[10px] font-medium text-slate-600">preview_headlines</div>
+                  <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[12px] leading-relaxed text-slate-900">
+                    {headlines.map((h, i) => (
+                      <li key={i}>{h}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
             </div>
-          </div>
+          ) : (
+            <div>
+              <div className="text-[10px] font-medium text-indigo-900/90">sql_draft</div>
+              <div className="mt-1 max-h-[40vh] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-indigo-200/70 bg-indigo-50/40 px-2 py-1.5 font-mono text-[11px] leading-relaxed text-slate-900">
+                {sql.trim() ? sql : "—"}
+              </div>
+            </div>
+          )}
           {warns.length > 0 ? (
             <div>
               <div className="text-[10px] font-medium text-slate-600">warnings</div>

@@ -36,15 +36,33 @@ export type AgentClarifyPayload = Readonly<{
   prompt_for_user: string;
 }>;
 
-/** manifest `agent.plan.preview` 最小 payload（`_contract_manifest.json`） */
-export type AgentPlanPreviewPayload = Readonly<{
+/** manifest `agent.plan.preview` 公共 payload 键（`_contract_manifest.json` · C1@2026-05-31） */
+export type AgentPlanPreviewPayloadBase = Readonly<{
   plan_id: string;
   tool: string;
-  sql_draft: string;
   warnings: unknown[];
   plan_execution_token: string;
   expires_in_sec: number;
 }>;
+
+/** Text2SQL 低置信预览（tool=text2sql_query） */
+export type AgentPlanPreviewText2SqlPayload = AgentPlanPreviewPayloadBase &
+  Readonly<{
+    tool: "text2sql_query";
+    sql_draft: string;
+  }>;
+
+/** RAG 低置信预览（tool=rag_search） */
+export type AgentPlanPreviewRagPayload = AgentPlanPreviewPayloadBase &
+  Readonly<{
+    tool: "rag_search";
+    rewrite_query: string;
+    sql_draft?: string;
+    planned_top_k?: number;
+    preview_headlines?: string[];
+  }>;
+
+export type AgentPlanPreviewPayload = AgentPlanPreviewText2SqlPayload | AgentPlanPreviewRagPayload;
 
 export type ChainEvent = {
   type: ChainEventType;

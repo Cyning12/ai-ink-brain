@@ -14,7 +14,10 @@ import type { ChainEvent } from "@/components/chain-chat/types";
 import { UnifiedChatExecutionTracePanel } from "@/components/unified-chat/UnifiedChatExecutionTracePanel";
 import { UnifiedChatRouterDebugPanel } from "@/components/unified-chat/UnifiedChatRouterDebugPanel";
 import { UnifiedChatTimelinePanel } from "@/components/unified-chat/UnifiedChatTimelinePanel";
-import { isValidAgentPlanPreviewPayload } from "@/lib/unified-chat/sse";
+import {
+  AGENT_PLAN_PREVIEW_TOOL_RAG,
+  isValidAgentPlanPreviewPayload,
+} from "@/lib/unified-chat/sse";
 import { copyPlainToClipboard } from "@/lib/unified-chat/clipboard";
 import { extractFinalAnswer, extractUserQueryText } from "@/lib/unified-chat/chainEventSelectors";
 import { buildExecutionTraceCopyText } from "@/lib/unified-chat/executionTrace";
@@ -78,6 +81,9 @@ export function UnifiedChatPageClient() {
     expiresInSec: number;
     receivedAtMs: number;
     sqlDraft: string;
+    rewriteQuery: string;
+    plannedTopK: number | null;
+    previewHeadlines: string[];
     warnings: unknown[];
     planId: string;
     tool: string;
@@ -170,6 +176,8 @@ export function UnifiedChatPageClient() {
       const boundQuery = extractUserQueryText(roundEvents);
       if (!boundQuery.trim()) return;
       const ex = rec.expires_in_sec;
+      const plannedTopKRaw = rec.planned_top_k;
+      const headlinesRaw = rec.preview_headlines;
       setPendingPlanConfirm({
         token,
         boundQuery: boundQuery.trim(),
@@ -178,6 +186,14 @@ export function UnifiedChatPageClient() {
           typeof ex === "number" && Number.isFinite(ex) && ex >= 0 ? Math.floor(ex) : 0,
         receivedAtMs: Date.now(),
         sqlDraft: typeof rec.sql_draft === "string" ? rec.sql_draft : "",
+        rewriteQuery: typeof rec.rewrite_query === "string" ? rec.rewrite_query : "",
+        plannedTopK:
+          typeof plannedTopKRaw === "number" && Number.isFinite(plannedTopKRaw)
+            ? Math.floor(plannedTopKRaw)
+            : null,
+        previewHeadlines: Array.isArray(headlinesRaw)
+          ? headlinesRaw.filter((h): h is string => typeof h === "string")
+          : [],
         warnings: Array.isArray(rec.warnings) ? [...rec.warnings] : [],
         planId: typeof rec.plan_id === "string" ? rec.plan_id : "",
         tool: typeof rec.tool === "string" ? rec.tool : "",
@@ -819,7 +835,11 @@ export function UnifiedChatPageClient() {
               {pendingPlanConfirm ? (
                 <div className="space-y-2 rounded-xl border border-indigo-300/70 bg-indigo-50/50 px-3 py-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="text-[12px] font-semibold text-indigo-950">低置信 · 预览 SQL 已就绪</div>
+                    <div className="text-[12px] font-semibold text-indigo-950">
+                      {pendingPlanConfirm.tool === AGENT_PLAN_PREVIEW_TOOL_RAG
+                        ? "低置信 · 预览 RAG 方案已就绪"
+                        : "低置信 · 预览 SQL 已就绪"}
+                    </div>
                     {planPreviewTtlRemainingSec != null ? (
                       <span className="rounded-full border border-indigo-400/40 bg-white/80 px-2 py-0.5 font-mono text-[10px] text-indigo-900">
                         约 {planPreviewTtlRemainingSec}s 后过期
@@ -833,9 +853,38 @@ export function UnifiedChatPageClient() {
                   {planPreviewTtlRemainingSec === 0 && !loading ? (
                     <p className="text-[11px] font-medium text-amber-900/90">令牌已过期，正在自动重新请求…</p>
                   ) : null}
-                  <div className="max-h-[28vh] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-indigo-200/80 bg-white/70 px-2 py-2 font-mono text-[11px] text-slate-900">
-                    {pendingPlanConfirm.sqlDraft.trim() ? pendingPlanConfirm.sqlDraft : "（无 sql_draft）"}
-                  </div>
+                  {pendingPlanConfirm.tool === AGENT_PLAN_PREVIEW_TOOL_RAG ? (
+                    <div className="space-y-2 text-[11px] text-slate-800">
+                      <div>
+                        <div className="text-[10px] font-medium text-indigo-900/90">改写检索 query</div>
+                        <div className="mt-1 max-h-[20vh] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-indigo-200/80 bg-white/70 px-2 py-2 font-mono text-[11px] leading-relaxed text-slate-900">
+                          {pendingPlanConfirm.rewriteQuery.trim()
+                            ? pendingPlanConfirm.rewriteQuery
+                            : "（预览不可用：缺少 rewrite_query）"}
+                        </div>
+                      </div>
+                      {pendingPlanConfirm.plannedTopK != null ? (
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-[10px] text-slate-500">计划条数 top_k</span>
+                          <span className="font-mono text-slate-900">{pendingPlanConfirm.plannedTopK}</span>
+                        </div>
+                      ) : null}
+                      {pendingPlanConfirm.previewHeadlines.length > 0 ? (
+                        <div>
+                          <div className="text-[10px] font-medium text-slate-600">标题级摘要</div>
+                          <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[12px] leading-relaxed text-slate-900">
+                            {pendingPlanConfirm.previewHeadlines.map((h, hi) => (
+                              <li key={hi}>{h}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <div className="max-h-[28vh] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-indigo-200/80 bg-white/70 px-2 py-2 font-mono text-[11px] text-slate-900">
+                      {pendingPlanConfirm.sqlDraft.trim() ? pendingPlanConfirm.sqlDraft : "（无 sql_draft）"}
+                    </div>
+                  )}
                   {pendingPlanConfirm.warnings.length > 0 ? (
                     <ul className="list-disc space-y-1 pl-4 text-[11px] text-slate-800">
                       {pendingPlanConfirm.warnings.map((w, wi) => (

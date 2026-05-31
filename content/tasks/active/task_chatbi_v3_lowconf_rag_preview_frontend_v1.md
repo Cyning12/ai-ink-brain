@@ -59,10 +59,10 @@
 
 ## 范围
 
-- [ ] **FE-1** 解析 `agent.plan.preview`：`tool === rag_search`（或 manifest 约定值）时消费 RAG 承诺键，**不**假定 `sql_draft` 非空
-- [ ] **FE-2** 确认卡片：按 `tool` 分支标题与正文（RAG：改写 query / 计划条数 / 标题级 hits 等，以实现拍板为准）；保留「按预览执行」「取消(丢弃令牌)」
-- [ ] **FE-3** 续跑：`POST …/unified/chat/stream` body 含 `plan_execution_token`；问句与首轮一致（沿用 5-2 校验）
-- [ ] **FE-4** `ChainEventCard`：`agent.plan.preview` RAG 分支非仅 `sql_draft` 围栏
+- [x] **FE-1** 解析 `agent.plan.preview`：`tool === rag_search`（或 manifest 约定值）时消费 RAG 承诺键，**不**假定 `sql_draft` 非空
+- [x] **FE-2** 确认卡片：按 `tool` 分支标题与正文（RAG：改写 query / 计划条数 / 标题级 hits 等，以实现拍板为准）；保留「按预览执行」「取消(丢弃令牌)」
+- [x] **FE-3** 续跑：`POST …/unified/chat/stream` body 含 `plan_execution_token`；问句与首轮一致（沿用 5-2 校验）
+- [x] **FE-4** `ChainEventCard`：`agent.plan.preview` RAG 分支非仅 `sql_draft` 围栏
 - [ ] **FE-5** 烟测留证：Timeline JSON ×2 + 截图；路径写入 §实现备忘并链后端 `docs/diary/samples/chatbi-v3-lowconf-rag-preview/`
 
 ### 实现触点（参考后端 task §6）
@@ -121,10 +121,10 @@
 
 | 项 | 内容 |
 |----|------|
-| 涉及文件 | （待填） |
-| 契约增量键 | （22 前与后端对齐：`rewrite_query` / `rag_plan` 等） |
-| 烟测路径 | （待填） |
-| 图谱变更 | （可选）`docs/_tech_graph/11_flow_api*.md` |
+| 涉及文件 | `lib/unified-chat/sse/chainPayloadValidators.ts` · `chainPayloadValidators.test.ts` · `components/chain-chat/types.ts` · `UnifiedChatPageClient.tsx` · `ChainEventCard.tsx` · `docs/_tech_graph/_contract_manifest.json` |
+| 契约增量键 | C1 扁平键：`rewrite_query`（rag_search 必填）、`planned_top_k` / `preview_headlines`（可选）；`sql_draft` 仅 text2sql_query 必填 |
+| 烟测路径 | （待 FE-5 · 依赖后端 G1–G2 staging） |
+| 图谱变更 | `_contract_manifest.json` 新增 Ink 镜像；`11_flow_api` 未改 |
 
 ---
 
@@ -138,7 +138,34 @@
 
 ## ### 自检结论（执行者）
 
-（40 帽回填）
+**帽**：30-execute-code · **日期**：2026-05-31 · **cwd**：`ai-ink-brain`
+
+### 验证命令
+
+| 命令 | cwd | 退出码 | 要点 |
+|------|-----|--------|------|
+| `pnpm lint` | ai-ink-brain | 0 | eslint 无报错 |
+| `pnpm test` | ai-ink-brain | 0 | 10 files · 41 tests passed（含新增 `chainPayloadValidators.test.ts` 6 例） |
+| `pnpm build` | ai-ink-brain | 0 | Next.js 16.2.3 编译与 TS 通过 |
+
+### 验收项（30 范围）
+
+| 项 | 结论 | 证据 |
+|----|------|------|
+| FE-1 | pass | `isValidAgentPlanPreviewPayload`：`rag_search` + `rewrite_query` 无 `sql_draft` 单测通过 |
+| FE-2 | pass | `UnifiedChatPageClient` 按 `tool` 分支标题/正文；保留执行/取消与 TTL |
+| FE-3 | pass | `send()` 续跑路径未改；token/问句/session 校验沿用 5-2 |
+| FE-4 | pass | `ChainEventCard` RAG 分支展示 rewrite_query / planned_top_k / preview_headlines |
+| FE-5 | **未测** | 待后端 RAG preview staging + 两轮真机烟测 |
+| D5 | pass | 上表三命令全绿 |
+| F2 修复 | pass | validator 不再对 `rag_search` 强制 `sql_draft` |
+| 契约 C1 | pass（Ink 侧） | `docs/_tech_graph/_contract_manifest.json` 落盘；**merge 前须与后端同键双 PR** |
+
+### 已知未测项
+
+- FE-5 烟测（Timeline×2 + 截图）
+- 与后端联调 `rag_search` 低置信 SSE 真帧
+- `pnpm tech-graph:manifest-check`（本变更未改 `_manifest.json`）
 
 ---
 
