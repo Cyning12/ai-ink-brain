@@ -98,11 +98,11 @@
 
 ## 验收标准
 
-- [ ] FE-1～FE-5 满足
-- [ ] `pnpm lint` · `pnpm test` · `pnpm build` 全绿（D5）
-- [ ] 契约：仅消费 manifest 承诺键；`isValidAgentPlanPreviewPayload` 与 RAG 载荷一致（**禁止** 因缺 `sql_draft` 整帧丢弃 RAG preview）
-- [ ] Harness：22/30/40/50 invoke · review · reinspect · **`### KPI（00）`**
-- [ ] **HG-*** → `approved` 后再 merge
+- [ ] FE-1～FE-5 满足（FE-1～FE-4 ☑ · **FE-5 阻塞**：后端 G1–G2 staging 未就绪）
+- [x] `pnpm lint` · `pnpm test` · `pnpm build` 全绿（D5 · 40 帽复验 2026-05-31）
+- [x] 契约：仅消费 manifest 承诺键；`isValidAgentPlanPreviewPayload` 与 RAG 载荷一致（**禁止** 因缺 `sql_draft` 整帧丢弃 RAG preview）
+- [ ] Harness：22/30/40/50 invoke · review · reinspect · **`### KPI（00）`**（40 ☑ · 50 待）
+- [ ] **HG-*** → `approved` 后再 merge（**HG-REINSPECT** 仍 pending）
 
 ---
 
@@ -138,34 +138,39 @@
 
 ## ### 自检结论（执行者）
 
-**帽**：30-execute-code · **日期**：2026-05-31 · **cwd**：`ai-ink-brain`
+**帽**：40-self-check · **日期**：2026-05-31 · **cwd**：`ai-ink-brain` · **实现 commit**：`72f8f0c`
 
-### 验证命令
+### 验证命令（40 帽独立复跑）
 
 | 命令 | cwd | 退出码 | 要点 |
 |------|-----|--------|------|
 | `pnpm lint` | ai-ink-brain | 0 | eslint 无报错 |
-| `pnpm test` | ai-ink-brain | 0 | 10 files · 41 tests passed（含新增 `chainPayloadValidators.test.ts` 6 例） |
-| `pnpm build` | ai-ink-brain | 0 | Next.js 16.2.3 编译与 TS 通过 |
+| `pnpm test` | ai-ink-brain | 0 | Test Files 10 passed · Tests **41 passed**（含 `chainPayloadValidators.test.ts` 6 例） |
+| `pnpm build` | ai-ink-brain | 0 | Next.js **16.2.3** · Compiled successfully · TS 通过 · 136 static pages |
 
-### 验收项（30 范围）
+### 验收项对照（FE-1～FE-5 · task 验收标准）
 
-| 项 | 结论 | 证据 |
-|----|------|------|
-| FE-1 | pass | `isValidAgentPlanPreviewPayload`：`rag_search` + `rewrite_query` 无 `sql_draft` 单测通过 |
-| FE-2 | pass | `UnifiedChatPageClient` 按 `tool` 分支标题/正文；保留执行/取消与 TTL |
-| FE-3 | pass | `send()` 续跑路径未改；token/问句/session 校验沿用 5-2 |
-| FE-4 | pass | `ChainEventCard` RAG 分支展示 rewrite_query / planned_top_k / preview_headlines |
-| FE-5 | **未测** | 待后端 RAG preview staging + 两轮真机烟测 |
-| D5 | pass | 上表三命令全绿 |
-| F2 修复 | pass | validator 不再对 `rag_search` 强制 `sql_draft` |
-| 契约 C1 | pass（Ink 侧） | `docs/_tech_graph/_contract_manifest.json` 落盘；**merge 前须与后端同键双 PR** |
+| 项 | 结论 | 证据 | 可重试 |
+|----|------|------|--------|
+| FE-1 | **pass** | 单测 `rag_search` + `rewrite_query` 无 `sql_draft` → `isValidAgentPlanPreviewPayload` true；`chainEventFromSse` 经同一 validator | — |
+| FE-2 | **pass** | `UnifiedChatPageClient`：`AGENT_PLAN_PREVIEW_TOOL_RAG` 分支标题「预览 RAG 方案」+ rewrite_query / top_k / headlines | — |
+| FE-3 | **pass** | `send(..., { planExecutionToken })` + session/query 绑定校验未改（diff 72f8f0c 未动 send 核心逻辑） | — |
+| FE-4 | **pass** | `ChainEventCard` RAG 分支非仅 sql_draft 围栏 | — |
+| FE-5 | **fail（阻塞）** | 无 Timeline×2 / 截图；后端 task G1–G2 未发 RAG preview 或 staging | **是**（待后端联调） |
+| D5 | **pass** | 上表三命令 exit 0 | — |
+| F2 | **pass** | validator 按 tool 分支；RAG 不强制 sql_draft | — |
+| 契约 C1 | **pass-with-notes** | Ink `_contract_manifest.json` 已落盘；**merge 前须与 api-python 同键双 PR** | — |
+| Harness 40 | **pass** | invoke `invoke_20260531_40_chatbi-v3-lowconf-rag-preview-frontend.md` | — |
 
-### 已知未测项
+### 已知未测项 / 阻塞
 
-- FE-5 烟测（Timeline×2 + 截图）
-- 与后端联调 `rag_search` 低置信 SSE 真帧
-- `pnpm tech-graph:manifest-check`（本变更未改 `_manifest.json`）
+- **FE-5**：依赖配对后端 `task_chatbi_v3_lowconf_rag_preview_v1.md` **G1–G2**（低置信 RAG 发 `agent.plan.preview`）或联调 staging；当前仅单测 + 静态 UI 分支，**不可**替代真机两轮烟测。
+- 跨仓联调 `rag_search` 低置信 SSE 真帧（同 FE-5）。
+- `pnpm tech-graph:manifest-check`（本变更未改 `_manifest.json`，**非阻塞**）。
+
+### 30 帽记录（归档）
+
+30 帽于同日前后首次跑通 D5（41 tests）；40 帽 **独立复跑** 确认结果一致，未改业务代码。
 
 ---
 
