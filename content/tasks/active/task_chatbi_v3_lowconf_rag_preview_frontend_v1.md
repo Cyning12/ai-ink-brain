@@ -98,11 +98,11 @@
 
 ## 验收标准
 
-- [ ] FE-1～FE-5 满足（FE-1～FE-4 ☑ · **FE-5 阻塞**：后端 G1–G2 staging 未就绪）
-- [x] `pnpm lint` · `pnpm test` · `pnpm build` 全绿（D5 · 40 帽复验 2026-05-31）
+- [ ] FE-1～FE-5 满足（FE-1～FE-4 ☑ · **FE-5 fail**：50 复检确认 · 后端 G1–G2 staging 未就绪 · 可人签 defer）
+- [x] `pnpm lint` · `pnpm test` · `pnpm build` 全绿（D5 · 40/50 帽独立复验 2026-05-31）
 - [x] 契约：仅消费 manifest 承诺键；`isValidAgentPlanPreviewPayload` 与 RAG 载荷一致（**禁止** 因缺 `sql_draft` 整帧丢弃 RAG preview）
-- [ ] Harness：22/30/40/50 invoke · review · reinspect · **`### KPI（00）`**（40 ☑ · 50 待）
-- [ ] **HG-*** → `approved` 后再 merge（**HG-REINSPECT** 仍 pending）
+- [ ] Harness：22/30/40/50 invoke · review · reinspect · **`### KPI（00）`**（22/30/40/50 ☑ · KPI 待 CLOSE）
+- [ ] **HG-*** → `approved` 后再 merge（**HG-REINSPECT** 仍 pending · 50 报告 `reinspect_chatbi-v3-lowconf-rag-preview-frontend_20260531_v1.md` 供人签）
 
 ---
 
