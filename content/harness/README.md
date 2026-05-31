@@ -27,6 +27,15 @@
 
 ---
 
+## KPI v1.2 迁移状态（2026-05-31）
+
+> **暂缓执行**。P1-4 parity 已满足日常帽链；**新建 task 必填 KPI** 等字段待后端试运行稳定后再落盘。  
+> **方案真值（工作区）**：[`docs/harness/guides/PLAN_frontend_harness_kpi_migration_v1_zh.md`](../../../docs/harness/guides/PLAN_frontend_harness_kpi_migration_v1_zh.md)（相对本文件 · 工作区 `Projects/` 根）。
+
+临时做法：新前端 task 可 `@` 工作区 `KPI_RUBRIC_v1_2` / `HARNESS_V2_PLAN` §5.8，**勿**复制 prompts 到本仓。
+
+---
+
 ## 约束重申
 
 - 不修改 `ai-ink-brain-api-python/api/`。
