@@ -8,6 +8,35 @@
 
 ---
 
+## Harness 元信息（2026-05-31 起 · 新建 task 必填）
+
+| 字段 | 值 |
+|------|-----|
+| **task_slug** | `<kebab-case>` |
+| **test_strategy** | `required` \| `recommended` \| `not_applicable`（`not_applicable` 须一行理由） |
+| **freeze_id** | `<SCOPE>@YYYY-MM-DD` 或 commit |
+| **semi_auto** | `true` \| `false` |
+| **audit_profile** | `full` \| `light` \| `post_close` |
+| **experience_capture** | `required` \| `recommended` \| `not_applicable` |
+| **kpi_rubric** | `KPI_RUBRIC_v1_2` |
+| **kpi_aggregator** | `CLOSE`（默认）\| `00` \| `50` \| `human` |
+| **git_branch** | `task/<slug>`（可选） |
+
+- **KPI 真值**：工作区 [`docs/harness/guides/KPI_RUBRIC_v1_2.md`](../../../docs/harness/guides/KPI_RUBRIC_v1_2.md) · [`HARNESS_V2_PLAN.md`](../../../docs/harness/HARNESS_V2_PLAN.md) §5.8  
+- **prompts**：`@` 工作区 `Projects/docs/harness/prompts/`（**勿**复制到本仓）  
+- **关账前**：正文须有 **`### KPI（00）`**（节名保留；由 `kpi_aggregator` 填写）  
+- **前端迁移说明**：[`PLAN_frontend_harness_kpi_migration_v1_zh.md`](../../../docs/harness/guides/PLAN_frontend_harness_kpi_migration_v1_zh.md)
+
+### 人工闸 `human_gate`（涉契约 / 跨仓时建议）
+
+| human_gate_id | status | blocks_hats | 说明 |
+|---------------|--------|-------------|------|
+| HG-TASK-DRAFT | pending | 22-R1,30 | 草案人扫 |
+| HG-AUDIT-R1 | pending | 30 | 22 R1 后 |
+| HG-REINSPECT | pending | done | 50 后 merge 前 |
+
+---
+
 ## 背景与目标
 
 <短段落，描述完成态行为。>
@@ -44,6 +73,14 @@
 
 ---
 
+## 失败路径（建议）
+
+| # | 触发条件 | 系统行为 | 可重试 | 用户可见 |
+|---|----------|----------|--------|----------|
+| F1 | | | | |
+
+---
+
 ## 实现备忘（由子 Agent 回填）
 
 | 项 | 内容 |
@@ -52,3 +89,17 @@
 | 新增路由 | `app/xxx/page.tsx` |
 | 新增组件 | `components/xxx/Xxx.tsx` |
 | 图谱变更点 | `<_tech_graph/ 中更新的文件>` |
+
+---
+
+## ### KPI（00）
+
+> **由 `kpi_aggregator` 填写**（默认 CLOSE）；格式见工作区 `KPI_RUBRIC_v1_2.md`。
+
+（占位 · 关账后删除）
+
+---
+
+## ### 自检结论（执行者）
+
+（40 帽回填）

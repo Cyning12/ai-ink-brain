@@ -113,8 +113,8 @@ task §实现备忘「契约增量键」仍为待填——**非 R1 阻塞**；�
 
 | gate_id | task 状态 | blocks_hats | R1 结论 |
 |---------|-----------|-------------|---------|
-| HG-TASK-DRAFT | pending | 22-R1, 30 | 人扫 task 后 **approved** → 方可 30 |
-| HG-AUDIT-R1 | pending | 30 | 本 R1 **供签收**；人置 **approved** 后 30 可开 |
+| HG-TASK-DRAFT | approved | 22-R1, 30 | 人扫 task 后 **approved** → 方可 30 |
+| HG-AUDIT-R1 | approved | 30 | 本 R1 **供签收**；人置 **approved** 后 30 可开 |
 | HG-REINSPECT | pending | done | 预期；不阻塞 30 |
 
 ---

@@ -15,6 +15,22 @@
 
 ---
 
+## Harness / KPI v1.2（2026-05-31 · P0）
+
+| 项 | 路径 |
+|----|------|
+| 模板 | [`templates/TASK_TEMPLATE.md`](templates/TASK_TEMPLATE.md) |
+| Harness 索引 | [`../harness/README.md`](../harness/README.md) |
+| KPI 细则 | 工作区 [`docs/harness/guides/KPI_RUBRIC_v1_2.md`](../../../docs/harness/guides/KPI_RUBRIC_v1_2.md) |
+| 字段政策 | 工作区 [`docs/harness/HARNESS_V2_PLAN.md`](../../../docs/harness/HARNESS_V2_PLAN.md) §5.8 |
+| 迁移方案 | 工作区 [`docs/harness/guides/PLAN_frontend_harness_kpi_migration_v1_zh.md`](../../../docs/harness/guides/PLAN_frontend_harness_kpi_migration_v1_zh.md) |
+
+- **新建** `task_*.md`：文首 **Harness 元信息** + 关账前 **`### KPI（00）`**；默认 **`kpi_aggregator: CLOSE`**。  
+- **50**：`reinspect_results/reinspect_<slug>_YYYYMMDD_vN.md`（Fresh Context）。  
+- **5-3 试点**：[`active/task_chatbi_v3_lowconf_rag_preview_frontend_v1.md`](active/task_chatbi_v3_lowconf_rag_preview_frontend_v1.md)。
+
+---
+
 ## 目录结构
 
 ```
@@ -51,6 +67,7 @@ content/tasks/
 - **新建位置**：一律放在 `content/tasks/active/`
 - **命名规则**：`task_<domain>_<topic>_vN.md`（与历史任务风格一致）
 - **必须字段**：任务头部必须包含 `> **状态**：...`（或等价一行状态说明）
+- **Harness（2026-05-31 起）**：新建 `task_*.md` 须含 **Harness 元信息** 表（`test_strategy`、`kpi_rubric`、`kpi_aggregator` 等）与关账前 **`### KPI（00）`**；模板见 [`templates/TASK_TEMPLATE.md`](templates/TASK_TEMPLATE.md)。真值：工作区 [`docs/harness/HARNESS_V2_PLAN.md`](../../../docs/harness/HARNESS_V2_PLAN.md) §5.8、[`KPI_RUBRIC_v1_2.md`](../../../docs/harness/guides/KPI_RUBRIC_v1_2.md)。
 
 允许状态集合：
 

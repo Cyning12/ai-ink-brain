@@ -78,6 +78,24 @@
 
 ---
 
+## Harness（Ink · KPI v1.2 · P0）
+
+> **真值目录**：`content/harness/README.md` · **prompts 单源**：工作区 `Projects/docs/harness/prompts/`（勿复制到本仓）。
+
+| 项 | 约定 |
+|----|------|
+| 新建 task | 用 `content/tasks/templates/TASK_TEMPLATE.md`；必填 `test_strategy`、`kpi_rubric`、`kpi_aggregator`（默认 **CLOSE**） |
+| 关账 | 正文 **`### KPI（00）`**；评分细则见工作区 [`docs/harness/guides/KPI_RUBRIC_v1_2.md`](../docs/harness/guides/KPI_RUBRIC_v1_2.md) |
+| 帽序 | 工作区 [`docs/harness/SDD_HAT_FLOW.md`](../docs/harness/SDD_HAT_FLOW.md) |
+| invoke | `content/harness/invokes/by-task/<task_slug>/` |
+| 50 | `content/tasks/reinspect_results/` |
+| 迁移方案 | 工作区 [`docs/harness/guides/PLAN_frontend_harness_kpi_migration_v1_zh.md`](../docs/harness/guides/PLAN_frontend_harness_kpi_migration_v1_zh.md) |
+| 合并前必绿 | `pnpm install --frozen-lockfile` → `pnpm lint` → `pnpm test` → `pnpm build`（工作区根 `AGENTS.md` §8） |
+
+**Open Folder**：仅改前端业务 / Harness 落盘 → **本仓** `ai-ink-brain/`；跨子仓 Harness task → Open **`Projects/`**。
+
+---
+
 ## 交付物约定
 
 - **配置真值表**：`docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md`（随代码演进持续更新）
@@ -130,7 +148,7 @@
 
 1. **先读** task 文首 `semi_auto`、`human_gate`、`audit_profile`；通则见工作区 `Projects/docs/harness/prompts/HANDOFF_SEMI_AUTO.md`（及 `HANDOFF_AUTO_COMMIT`、`HANDOFF_CLOSE_TRACE`）。
 2. **无阻塞则连续跑**：凡 `human_gate` 对下一棒 **非** `pending`（或 `blocks_hats` 不含该帽），**同会话**自动戴下一帽；**禁止**每棒要求用户重贴 `TEMPLATE-*` §3。
-3. **下一棒前必落盘**：将下一棒 §3 全文写入 `content/harness/invokes/invoke_*.md`（或工作区 `Projects/content/harness/invokes/` 若 invoke 在工作区），再 **commit** 本轮路径，然后执行。
+3. **下一棒前必落盘**：将下一棒 §3 全文写入 `content/harness/invokes/by-task/<task_slug>/invoke_*.md`，再 **commit** 本轮路径，然后执行。
 4. **人工闸**：仅 **人** 可将 `pending`→`approved`；遇 `pending` **停**，只输出须改的 `gate_id` 与文件路径，**不得**代填、不得标 `done`。
 5. **新会话续跑**：读 task + **最新** `content/harness/invokes/` 下与本 task 相关的 invoke，按其中 §3 继续；用户可说「按 semi_auto 继续」。
 6. **关账**：无下一棒时输出 **执行路线与 Commit 回溯**（`HANDOFF_CLOSE_TRACE`），非空 Prompt。
