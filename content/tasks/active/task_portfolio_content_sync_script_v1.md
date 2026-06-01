@@ -254,7 +254,7 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 | admin sync 烟测 | **环境阻塞**：`POST /api/admin/sync` → HTTP 403（未配置 curl token） |
 | 22 R1 审查 | `content/harness/reviews/task_portfolio_content_sync_v1_audit_R1_20260601.md` |
 | 22 R2 审查 | `content/harness/reviews/task_portfolio_content_sync_v1_audit_R2_20260601.md` |
-| 50 复检 | `content/tasks/specs/PROMPT_50_invoke_portfolio_content_sync_w5_v1_zh.md` |
+| 50 复检 | `content/tasks/reinspect_results/task_portfolio_content_sync_v1_reinspect_20260601.md`（**pass**） |
 
 ## 修订记录
 
