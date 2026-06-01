@@ -127,8 +127,7 @@
 - [ ] 元信息 **状态** → `active`（人明示「仍 draft」则保持）
 - [ ] 与 `{{BACKEND_SPEC}}` **无未决** 交叉矛盾（或 §8 已记录 accepted 差异）
 
-**冻结后下一棒（不在本 Prompt 内）**：人确认 → **20 短评**（可选）→ **10 帽** 出 task 草案（W1～W6）→ **22** 或 **30**。  
-**本 Epic 已拍板**：跳过 **20**，由 **§4.1 移交 Prompt** 直接进入 **10 帽**（路径 B · 人承担 20 闸）。
+**冻结后下一棒**：见 **§7 自动链路至 50**（本 Epic **已拍板** `semi_auto` 至 **50**，**50 须 Task 子 Agent**）。
 
 ---
 
@@ -230,17 +229,81 @@ W1 模式导航 → W5 内容同步脚本 → W2 内容页 → W3 访客鉴权�
 
 ---
 
-## 5. 会话留盘（可选）
+## 5. 自动链路至 50（Epic · semi_auto · 50 子 Agent）
+
+> **范围**：SPEC **`active`** 且人确认 **`semi_auto: true`** 后生效；**Prompt 00 细化轮** 仍只改 SPEC（§2.3 不变）。  
+> **关账**：**50 pass 后** 主会话 `HANDOFF_CLOSE_TRACE` + task → `done/`（非 Prompt 00 单轮完成）。
+
+### 5.1 帽序（主会话 vs 子 Agent）
+
+```text
+Prompt 00（≤5 轮，改 SPEC）
+  → §4.1 10 帽：创建 Epic task + semi_auto 元信息
+  → [跳过 20 · 路径 B]
+  → 22 R1（reviews 落盘）→ 30 实现（W1～W6 按 §7 顺序，可同 Epic 单 task）
+  → 40 自检（task ### 自检结论）
+  → 22 R2 签收
+  → 【分叉】Task 子 Agent · 50 独立复检（禁止主会话兼做）
+  → 主会话 CLOSE（50 pass + HG-AUDIT-CLOSE approved）
+```
+
+| 帽 | 执行者 | invoke 落盘 |
+| --- | --- | --- |
+| 00 细化 | 主会话 | 无（或 NOTES_*） |
+| 10 / 22 / 30 / 40 | 主会话 · `semi_auto` | `content/harness/invokes/by-task/portfolio-demo-site-epic/` |
+| **50** | **`Task` 子 Agent 专收** | 同上 + `content/tasks/reinspect_results/` |
+| CLOSE | 主会话 | — |
+
+### 5.2 Epic task 元信息（10 帽创建时必填）
+
+| 字段 | 建议值 |
+| --- | --- |
+| **task_slug** | `portfolio-demo-site-epic` |
+| **文件名** | `content/tasks/active/task_portfolio_demo_site_epic_v1.md` |
+| **semi_auto** | `true` |
+| **audit_profile** | `full`（22 R1 + R2） |
+| **test_strategy** | `recommended` |
+| **freeze_id** | 与 SPEC 一致（如 `PORTFOLIO-DEMO-SITE@2026-06-09`） |
+| **kpi_aggregator** | `CLOSE`（或 `00` 若总调度汇总） |
+| **git_branch** | `task/portfolio-demo-site-epic-v1` |
+
+**human_gate 建议**
+
+| human_gate_id | status | blocks_hats | 说明 |
+| --- | --- | --- | --- |
+| HG-TASK-DRAFT | pending → 人改 approved | 22-R1, 30 | Epic 草案人扫 |
+| HG-AUDIT-R1 | pending → approved | 30 | 22 R1 后 |
+| HG-AUDIT-CLOSE | pending → approved | done | 22 R2 + **50 pass** 后关账 |
+| HG-REINSPECT | pending → approved | merge | 50 报告后人签（可选，合并 PR 前） |
+
+### 5.3 主会话在 22 R2 后派发 50（硬）
+
+1. 读 [`PROMPT_50_invoke_portfolio_demo_site_v1_zh.md`](./PROMPT_50_invoke_portfolio_demo_site_v1_zh.md) **§2.2**  
+2. 替换 §1 占位符 → 落盘 invoke → **commit**  
+3. 调用 **Task** 子代理：`description` = `Harness 50 portfolio epic`；`prompt` = **§4 Handoff + §5 全文**（已替换占位符）  
+4. **禁止** 主会话在同一上下文中自行跑 50 验收表  
+5. 收短报告 → pass 则 **§6 CLOSE**；fail 则打回 **30** 并落盘打回 invoke
+
+### 5.4 仍须人做的闸（semi_auto 不替代）
+
+- `human_gate` 全部 `pending` 时，对应 `blocks_hats` **硬停**（见 `HANDOFF_SEMI_AUTO`）  
+- **50 子 Agent 不得** 将 `HG-*` 改为 `approved`  
+- 五问 **端到端联调** 若 deferred，50 须标 **warn** 并在 task 已声明 deferred 时 **非阻塞**
+
+---
+
+## 6. 会话留盘（可选）
 
 多轮跨会话时，可在本目录追加 **`NOTES_00_SPEC-refine_portfolio_demo_site_round{N}.md`**（**非 Git 必交**）。  
 **禁止**把长对话全文写入 SPEC 正文。
 
 ---
 
-## 6. 关联引用
+## 7. 关联引用
 
 | 用途 | 路径 |
 | --- | --- |
+| **50 子 Agent Prompt** | [`PROMPT_50_invoke_portfolio_demo_site_v1_zh.md`](./PROMPT_50_invoke_portfolio_demo_site_v1_zh.md) |
 | 目标 SPEC | [`SPEC-portfolio_demo_site_v1_zh.md`](./SPEC-portfolio_demo_site_v1_zh.md) |
 | 后端配对 SPEC | [`SPEC-Governance-Portfolio-RAG-Demo-v1_zh.md`](../../../../ai-ink-brain-api-python/docs/spec/governance/SPEC-Governance-Portfolio-RAG-Demo-v1_zh.md) |
 | 后端 Prompt 00 | [`PROMPT_00_SPEC-refine_Portfolio-RAG-Demo-v1_zh.md`](../../../../ai-ink-brain-api-python/docs/spec/governance/PROMPT_00_SPEC-refine_Portfolio-RAG-Demo-v1_zh.md) |
@@ -257,6 +320,7 @@ W1 模式导航 → W5 内容同步脚本 → W2 内容页 → W3 访客鉴权�
 | --- | --- |
 | 2026-06-01 | v1：Portfolio Demo Site 前端 SPEC · ≤5 轮读问解 + §4 可复制 Prompt |
 | 2026-06-01 | v1.1：§4.1 冻结后移交 10 帽 Prompt（跳过 20） |
+| 2026-06-01 | v1.2：§5 自动链路至 50；50 须 Task 子 Agent；链 PROMPT_50 |
 
 ---
 
