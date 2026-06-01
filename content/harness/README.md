@@ -19,6 +19,7 @@
 | 任务审核 22 | [`reviews/README.md`](reviews/README.md) · 工作区 `22-task-audit` |
 | 独立复检 50 | [`../tasks/reinspect_results/README.md`](../tasks/reinspect_results/README.md) |
 | 半自动 / 关账 | 工作区 `HANDOFF_SEMI_AUTO` · `HANDOFF_CLOSE_TRACE` |
+| LoopTask 止于 50 · 50 Prompt / 人改 gate 清单 | 本仓 [`.cursor/skills/harness-looptask-handoff/SKILL.md`](../.cursor/skills/harness-looptask-handoff/SKILL.md) |
 | 跨子仓 Harness task | 工作区 `docs/harness/tasks/`（Open **`Projects/`**） |
 
 **Cursor**：`.cursor/rules/05-harness-semi-auto.mdc`、`.cursor/rules/06-harness-content.mdc`。

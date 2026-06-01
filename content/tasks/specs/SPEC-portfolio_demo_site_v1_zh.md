@@ -289,7 +289,7 @@ content/
 2. 将 **卷一～五 release 后** 文章复制/链接到 `content/methodology/`（具体 release 路径 **待确认**）。
 3. 复制简历与证据到 `content/resume/`、`content/evidence/`。
 4. **幂等**、可重复执行；输出同步文件清单（stdout）。
-5. 文档化：执行后须 **`POST /api/py/admin/sync`**（BFF `app/api/admin/sync`）由人/脚本触发 ingest（后端 scope）。
+5. 文档化：执行后须 **`POST /api/py/admin/sync`**（BFF `app/api/admin/sync` 或直连 Python）由人/脚本触发 ingest；鉴权见 [`SPEC-portfolio_admin_sync_auth_v1_zh.md`](./SPEC-portfolio_admin_sync_auth_v1_zh.md)（**`SYNC_ADMIN_SECRET` / `ADMIN_TOKEN`**，**禁止** `NEXT_PUBLIC_ADMIN_SECRET`）。
 
 **禁止**：脚本内嵌 API Key；秘钥仅 env。
 

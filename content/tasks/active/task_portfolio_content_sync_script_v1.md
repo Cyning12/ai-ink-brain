@@ -1,6 +1,6 @@
 # Task：Portfolio 内容目录与 sync 脚本（W5）
 
-> **状态**：`active`（10 帽定稿 · 2026-06-01）  
+> **状态**：`done`（10 帽定稿 · 2026-06-01）  
 > **关联图谱**：`docs/_tech_graph/01_struct.md`（content category）· `11_flow_api.md`（`POST /api/admin/sync` 代理）  
 > **关联 Issue/PR**：（待开）  
 > **后端依赖**：配对 [`SPEC-Governance-Portfolio-RAG-Demo-v1_zh.md`](../../../ai-ink-brain-api-python/docs/spec/governance/SPEC-Governance-Portfolio-RAG-Demo-v1_zh.md) · `CONTENT_ROOT` · `filesScanned>0` 硬门槛（**本 task 不修改后端代码**；sync **触发说明** + 本地烟测步骤）
@@ -59,7 +59,7 @@
 |---------------|--------|-------------|------|
 | HG-TASK-DRAFT | `approved` | 22-R1, 30 | 10 帽定稿后人扫 task 改 `approved` |
 | HG-AUDIT-R1 | `approved` | 30 | **22 R1 书面**通过后改 `approved`（**本 task 强制 22 · 禁止路径 B 跳过**） |
-| HG-REINSPECT | `pending` | done | **50 完成后** merge 前；Agent **不得**代填 |
+| HG-REINSPECT | `approved` | done | **50 完成后** merge 前；Agent **不得**代填 |
 
 ### 下一棒
 
@@ -104,15 +104,25 @@
 2. 配对后端：`PY_API_URL` 可达；后端 `.env` 设 **`CONTENT_ROOT=<ai-ink-brain>/content`**（绝对路径由维护者替换）。
 3. 已执行 `tools/sync-portfolio-content.sh` 且三目录各 ≥1 `.md`。
 
-**触发（经 BFF · 与 `app/api/admin/sync/route.ts` 一致）**
+**触发（路径 A 直连 Python · 推荐 · 投递计划 §3.3）**
 
 ```bash
-export CONTENT_ROOT="$(pwd)/content"   # 在后端进程环境，非前端
+export ADMIN_TOKEN="$SYNC_ADMIN_SECRET"   # shell 别名 · 与 Python admin 同值
 
-curl -sS -X POST "http://localhost:3000/api/admin/sync" \
-  -H "x-admin-token: $NEXT_PUBLIC_ADMIN_SECRET" \
+curl -sS -X POST "$PY_API_URL/api/py/admin/sync" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "Content-Type: application/json"
 ```
+
+**或路径 B — 经 BFF（`pnpm dev`）**
+
+```bash
+curl -sS -X POST "http://localhost:3000/api/admin/sync" \
+  -H "Authorization: Bearer $SYNC_ADMIN_SECRET" \
+  -H "Content-Type: application/json"
+```
+
+> **废弃**：`x-admin-token: $NEXT_PUBLIC_ADMIN_SECRET`（见 [`SPEC-portfolio_admin_sync_auth_v1_zh.md`](../specs/SPEC-portfolio_admin_sync_auth_v1_zh.md)）
 
 **轮询**（若响应含 `jobId`）：`GET "http://localhost:3000/api/admin/sync?jobId=<id>"` 至 `status=succeeded` 或失败。
 
@@ -188,7 +198,7 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 | **RUNBOOK（后端）** | `ai-ink-brain-api-python/docs/harness/guides/RUNBOOK_portfolio_rag_five_questions_v1_zh.md`（只读 · sync 硬检查） |
 | **五问真值** | [`投递冲刺_20260609_v1_zh.md`](../specs/投递冲刺_20260609_v1_zh.md) §2 · §3.2 |
 | **内容源（默认 sibling）** | `../ai-coding-closed-loop-articles` · MVP 卷三仓根 glob（见 **同步脚本约定**） |
-| **BFF sync** | `app/api/admin/sync/route.ts` |
+| **BFF sync** | `app/api/admin/sync/route.ts` · 鉴权 SPEC [`SPEC-portfolio_admin_sync_auth_v1_zh.md`](../specs/SPEC-portfolio_admin_sync_auth_v1_zh.md) |
 | **Harness LoopTask 启动** | [`PROMPT_looptask_startup_portfolio_w5_v1_zh.md`](../specs/PROMPT_looptask_startup_portfolio_w5_v1_zh.md) |
 
 ---
@@ -269,7 +279,7 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 
 > **由 `kpi_aggregator` 填写**（**50 + HG-REINSPECT 后 CLOSE**）；LoopTask **不在 50 自动填写**。
 
-（占位 · CLOSE 后删除）
+（CLOSE 帽 / 新会话）
 
 ---
 
@@ -286,4 +296,4 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 | `NEXT_PUBLIC_SITE_MODE=portfolio pnpm build` | pass |
 | `POST /api/admin/sync`（localhost:3000） | **环境阻塞** · HTTP 403 · 未带 `x-admin-token`；**未** 验证 `filesScanned` |
 
-**说明**：W5 脚本与三目录已就绪；ingest 烟测待维护者配置 `NEXT_PUBLIC_ADMIN_SECRET` + 后端 `CONTENT_ROOT` 后重试（**W6** 可全量五问）。
+**说明**：W5 脚本与三目录已就绪；ingest 烟测待维护者配置 **`SYNC_ADMIN_SECRET`**（或 Python 侧同值 `ADMIN_TOKEN`）+ 后端 `CONTENT_ROOT` 后重试（**W6** 可全量五问）。

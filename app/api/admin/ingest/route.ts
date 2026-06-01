@@ -1,4 +1,4 @@
-import { requireNextPublicAdminSecret } from "@/lib/auth/require-next-public-admin-secret";
+import { requireSyncAdminAccess } from "@/lib/auth/require-sync-admin-access";
 import { forwardToPyAdmin } from "@/lib/py-service-proxy";
 
 export const runtime = "nodejs";
@@ -6,11 +6,10 @@ export const runtime = "nodejs";
 /**
  * 全量同步 content/ → Supabase documents（实现位于 Python api/ingest_pipeline.py）。
  *
- * 触发示例：
- * curl -sS -X POST -H "Authorization: Bearer $NEXT_PUBLIC_ADMIN_SECRET" http://localhost:3000/api/admin/ingest
+ * curl -sS -X POST -H "Authorization: Bearer $SYNC_ADMIN_SECRET" http://localhost:3000/api/admin/ingest
  */
 export async function POST(req: Request): Promise<Response> {
-  const denied = requireNextPublicAdminSecret(req);
+  const denied = requireSyncAdminAccess(req);
   if (denied) return denied;
 
   const res = await forwardToPyAdmin("/api/py/admin/ingest", {
