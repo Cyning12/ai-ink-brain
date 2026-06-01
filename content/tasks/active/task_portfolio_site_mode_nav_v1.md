@@ -186,4 +186,33 @@
 
 ## ### 自检结论（执行者）
 
-（40 帽回填）
+**工作目录**：`ai-ink-brain` · 分支 `task/portfolio-demo-site-v1` · impl `bed2baf`
+
+| 命令 | 退出码 | 要点 |
+|------|--------|------|
+| `pnpm lint` | 0 | eslint 无报错 |
+| `pnpm test` | 0 | 11 files · 43 tests passed（含 `lib/site-mode.test.ts`） |
+| `pnpm build` | 0 | development 默认 build 成功 · 142 static pages |
+| `NEXT_PUBLIC_SITE_MODE=portfolio pnpm build` | 0 | portfolio 模式 build 成功 |
+| `pnpm tech-graph:manifest-check` | 0 | OK frontend manifest (env=21) |
+| `pnpm tech-graph:graph-check` | 0 | graph.json 与 .ai.md 一致 |
+| `pnpm tech-graph:equivalence-check` | 0 | 等价门禁通过 |
+
+**验收 pass/fail（W1 子集）**
+
+| 项 | 结果 | 证据 |
+|----|------|------|
+| portfolio build | pass | 上表 portfolio build 行 |
+| development 回归 build | pass | 默认 build 行 |
+| SiteNav 四链 / 无 Blog 等 | pass | `site-nav.tsx` `PORTFOLIO_NAV` 4 项；无 admin 门控 |
+| HomeModules 四卡 | pass | `home-modules.tsx` `PORTFOLIO_MODULES` |
+| `/unified-chat` nav 常显 | pass | portfolio 分支不经 `isAdmin` 过滤 |
+| 副标题 Portfolio Demo | pass | `subtitle` 分支 |
+| PROJECT_CONFIG §C | pass（本地） | `docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md` 已增补；**该路径被 `.gitignore` 忽略未入 commit** |
+| tech graph CI | pass | 三门禁均 0 |
+
+**已知未测 / defer**
+
+- `/resume` · `/methodology` 点击 404（F6 · W2 依赖）
+- 浏览器手测 NAV 渲染（build 期 env 内联已覆盖逻辑）
+- HG-REINSPECT `pending` · 50 帽待独立复检
