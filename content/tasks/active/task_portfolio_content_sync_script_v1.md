@@ -1,6 +1,6 @@
 # Task：Portfolio 内容目录与 sync 脚本（W5）
 
-> **状态**：`draft`  
+> **状态**：`active`（10 帽定稿 · 2026-06-01）  
 > **关联图谱**：`docs/_tech_graph/01_struct.md`（content category）· `11_flow_api.md`（`POST /api/admin/sync` 代理）  
 > **关联 Issue/PR**：（待开）  
 > **后端依赖**：配对 [`SPEC-Governance-Portfolio-RAG-Demo-v1_zh.md`](../../../ai-ink-brain-api-python/docs/spec/governance/SPEC-Governance-Portfolio-RAG-Demo-v1_zh.md) · `CONTENT_ROOT` · `filesScanned>0` 硬门槛（**本 task 不修改后端代码**；sync **触发说明** + 本地烟测步骤）
@@ -57,7 +57,7 @@
 
 | human_gate_id | status | blocks_hats | 说明 |
 |---------------|--------|-------------|------|
-| HG-TASK-DRAFT | `pending` | 22-R1, 30 | 10 帽定稿后人扫 task 改 `approved` |
+| HG-TASK-DRAFT | `approved` | 22-R1, 30 | 10 帽定稿后人扫 task 改 `approved` |
 | HG-AUDIT-R1 | `pending` | 30 | **22 R1 书面**通过后改 `approved`（**本 task 强制 22 · 禁止路径 B 跳过**） |
 | HG-REINSPECT | `pending` | done | **50 完成后** merge 前；Agent **不得**代填 |
 
