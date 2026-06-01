@@ -75,6 +75,7 @@
 - **规范真值**：工作区 [`docs/harness/README.md`](../docs/harness/README.md) **并行分支与 Git worktree**；invoke 元信息 **`worktree_root`** + **`git_branch`**。
 - **graph_v2 parity 并行（2026-05-20）**：T5 manifest → 目录 **`ai-ink-brain`** · 分支 `task/tech-graph-v2-frontend-manifest-v1`；T3 mermaid → **`ai-ink-brain-wt-mermaid-audit`** · 分支 `task/tech-graph-v2-mermaid-audit-v1`。
 - **禁止**两线共用同一 checkout 或跨 worktree `git switch` 抢分支；Harness `reviews/` / `invokes/` / `task` 须在 **本线分支** commit。
+- **禁止在 `main` / `production` 上直接开发**（见 `.cursor/rules/07-git-branching.mdc`）：功能与 Harness 落盘一律在 **`task/*`**（或 worktree）完成 → PR 合并 → 再 `git pull` 同步本地 `main` / `production`。
 
 ---
 
@@ -148,10 +149,59 @@
 
 1. **先读** task 文首 `semi_auto`、`human_gate`、`audit_profile`；通则见工作区 `Projects/docs/harness/prompts/HANDOFF_SEMI_AUTO.md`（及 `HANDOFF_AUTO_COMMIT`、`HANDOFF_CLOSE_TRACE`）。
 2. **无阻塞则连续跑**：凡 `human_gate` 对下一棒 **非** `pending`（或 `blocks_hats` 不含该帽），**同会话**自动戴下一帽；**禁止**每棒要求用户重贴 `TEMPLATE-*` §3。
-3. **下一棒前必落盘**：将下一棒 §3 全文写入 `content/harness/invokes/by-task/<task_slug>/invoke_*.md`，再 **commit** 本轮路径，然后执行。
+3. **下一棒前必落盘**：将下一棒 §3 全文写入 `content/harness/invokes/by-task/<task_slug>/invoke_*.md`（历史根目录扁平 `invoke_*.md` 只读）；跨子仓 task 落工作区 `docs/harness/invokes/by-task/<slug>/`。再 **commit** 本轮路径，然后执行。
 4. **人工闸**：仅 **人** 可将 `pending`→`approved`；遇 `pending` **停**，只输出须改的 `gate_id` 与文件路径，**不得**代填、不得标 `done`。
-5. **新会话续跑**：读 task + **最新** `content/harness/invokes/` 下与本 task 相关的 invoke，按其中 §3 继续；用户可说「按 semi_auto 继续」。
+5. **新会话续跑**：读 task + **最新** `content/harness/invokes/by-task/<task_slug>/`（或历史扁平 invokes）下与本 task 相关的 invoke，按其中 §3 继续；用户可说「按 semi_auto 继续」。
 6. **关账**：无下一棒时输出 **执行路线与 Commit 回溯**（`HANDOFF_CLOSE_TRACE`），非空 Prompt。
+
+---
+
+## Harness Content
+
+> Harness 前端仓 — content/harness 落盘、工作区 prompts 单源、KPI v1.2 必填
+
+# Harness（Ink · content/harness）
+
+执行 Harness、`content/tasks/active/*.md` 或用户 `@task` 时：
+
+1. **入口**：[`content/harness/README.md`](content/harness/README.md) · [`content/tasks/README.md`](content/tasks/README.md)
+2. **prompts**：工作区 `Projects/docs/harness/prompts/`（`templates/` · `hats/` · `handoff/`）— **禁止**复制到本仓
+3. **落盘**：invoke → `content/harness/invokes/by-task/<task_slug>/`；22 → `content/harness/reviews/`；50 → `content/tasks/reinspect_results/`
+4. **新建 task**：必填 `test_strategy`、`kpi_rubric: KPI_RUBRIC_v1_2`、`kpi_aggregator`（默认 **CLOSE**）、关账前 **`### KPI（00）`** — 见 [`content/tasks/templates/TASK_TEMPLATE.md`](content/tasks/templates/TASK_TEMPLATE.md)
+5. **VERIFY（D5）**：`pnpm lint` → `pnpm test` → `pnpm build`（与根 `AGENTS.md` §8 一致）
+6. **跨子仓 Harness task**：Open **`Projects/`**，读 `docs/harness/tasks/`；遵守工作区 `05-harness-workspace.mdc`
+
+半自动续跑见 [`05-harness-semi-auto.mdc`](05-harness-semi-auto.mdc)。
+
+---
+
+## Git Branching
+
+> Git 分支 — 禁止在 main/production 直接改；task/* + PR 合并
+
+# Git 分支与合并（Ink 前端）
+
+## 保护分支（禁止直接 commit）
+
+- **`main`**、**`production`**：**只读/checkout 同步**；**禁止**在其上直接改代码、落盘 Harness、或 push 功能 commit。
+- 发现当前分支为 `main` / `production` 且任务涉及改文件：**先** `git fetch origin`，从 `origin/main` 切 **`task/<slug>`**（与 task 文首 `git_branch` 一致）或启用 **worktree**，再动手。
+
+## 标准流程
+
+1. `git fetch origin`
+2. `git checkout -b task/<slug> origin/main`（或已有 worktree）
+3. 开发 → commit → push → **PR → `main`**
+4. merge 后本地同步：`git checkout main && git pull --ff-only origin main`
+5. **`production`**（部署轨）：merge 后 `git checkout production && git merge --ff-only main`；**仅**在明确发布/部署时 push `origin/production`
+
+## 并行与 worktree
+
+- 多 task 并行须 **独立 worktree + 独立 `task/*` 分支**（见 `AGENTS.md` 并行 worktree · 工作区 `docs/harness/README.md`）。
+- **禁止**两线共用同一 checkout 或在保护分支间 `git switch` 抢未提交改动。
+
+## Agent 开工自检
+
+- 执行 `git branch --show-current`；若为 `main` / `production` 且将改代码 → **停止**，提示用户切到 `task/*` 或新建分支后再继续。
 
 ---
 

@@ -9,6 +9,7 @@
 - `00-core.mdc`：语言、职责边界、修改前确认、完成后报告（`globs: *`）
 - `05-harness-semi-auto.mdc`：Harness 半自动续跑、`content/tasks/active/` 与 `content/harness/invokes/by-task/`（`alwaysApply`）
 - `06-harness-content.mdc`：Harness 落盘 taxonomy、工作区 prompts 单源、KPI v1.2 新建 task 必填（`alwaysApply`）
+- `07-git-branching.mdc`：**禁止**在 `main`/`production` 直接改；`task/*` + PR + 同步（`alwaysApply`）
 - `08-docs-diary.mdc`：`docs/diary/`、`content/diary/` 非必读；实验轨 jsonPKmermaid 跨仓只读后端（`alwaysApply`）
 - `10-tech-graph.mdc`：`_tech_graph/` 生产轨 + `graph_query` 机器轨；globs 含 `app/`、`components/`、`lib/`
 - `20-tech-graph-update.mdc`：图谱增量更新规则
