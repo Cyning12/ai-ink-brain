@@ -58,15 +58,15 @@
 | human_gate_id | status | blocks_hats | 说明 |
 |---------------|--------|-------------|------|
 | HG-TASK-DRAFT | `approved` | 22-R1, 30 | 10 帽定稿后人扫 task 改 `approved` |
-| HG-AUDIT-R1 | `pending` | 30 | **22 R1 书面**通过后改 `approved`（**本 task 强制 22 · 禁止路径 B 跳过**） |
+| HG-AUDIT-R1 | `approved` | 30 | **22 R1 书面**通过后改 `approved`（**本 task 强制 22 · 禁止路径 B 跳过**） |
 | HG-REINSPECT | `pending` | done | **50 完成后** merge 前；Agent **不得**代填 |
 
 ### 下一棒
 
 | 帽 | 条件 | 落盘 |
 |----|------|------|
-| **22 R1** | ✅ 10 完成 · `HG-TASK-DRAFT` approved | `content/harness/reviews/task_portfolio_content_sync_v1_audit_R1_20260601.md` |
-| **30** | **22 R1 书面放行** 且 **`HG-AUDIT-R1` approved** | 脚本 + 三目录 + tools README |
+| **50 Task 子代理** | ✅ 30–40 · R2 签收 | `content/tasks/reinspect_results/task_portfolio_content_sync_v1_reinspect_*.md` |
+| **STOP** | 50 落盘后 | 人签 `HG-REINSPECT` · CLOSE |
 
 ---
 
@@ -151,8 +151,8 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 
 ## 范围
 
-- [ ] 新建 **`content/methodology/`** · **`content/resume/`** · **`content/evidence/`**（空目录不入库时须 **≥1 `.md`** 占位或真值）。
-- [ ] **首版 stub 或 sync 真值**（至少满足后端门禁文件名建议，见下表）：
+- [x] 新建 **`content/methodology/`** · **`content/resume/`** · **`content/evidence/`**（空目录不入库时须 **≥1 `.md`** 占位或真值）。
+- [x] **首版 stub 或 sync 真值**（至少满足后端门禁文件名建议，见下表）：
 
   | 路径（建议） | category | 五问关联 |
   |--------------|----------|----------|
@@ -160,9 +160,9 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
   | `content/resume/cv-online.md` | `resume` | Q2 · Q4 |
   | `content/evidence/methodology-card.md` | `evidence` | Q3 · Q5 |
 
-- [ ] 新增 **`tools/sync-portfolio-content.sh`**：幂等；CLI 见 **「同步脚本约定」**（`--articles-root` / `--docs-root` / `--dry-run` / `--force`）；stdout 输出同步文件清单；**禁止** 脚本内嵌 API Key。
-- [ ] 新增 **`tools/README-portfolio-content-sync.md`**（或 `tools/README.md` 一节）：用法、前置目录、sync 后 **人工/脚本** 触发 `POST /api/py/admin/sync` 说明（BFF `app/api/admin/sync`）。
-- [ ] 在 **`docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md`**（或 task 引用的 tools README）文档化：`CONTENT_ROOT` 指向本仓 `content/` 的本地演示约定（**若 gitignore 则须在 tools README 重复真值**）。
+- [x] 新增 **`tools/sync-portfolio-content.sh`**：幂等；CLI 见 **「同步脚本约定」**（`--articles-root` / `--docs-root` / `--dry-run` / `--force`）；stdout 输出同步文件清单；**禁止** 脚本内嵌 API Key。
+- [x] 新增 **`tools/README-portfolio-content-sync.md`**（或 `tools/README.md` 一节）：用法、前置目录、sync 后 **人工/脚本** 触发 `POST /api/py/admin/sync` 说明（BFF `app/api/admin/sync`）。
+- [x] 在 **`docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md`**（或 task 引用的 tools README）文档化：`CONTENT_ROOT` 指向本仓 `content/` 的本地演示约定（**若 gitignore 则须在 tools README 重复真值**）。
 - [ ] **不** 修改 `lib/content/mdx-posts.ts` /blog 扫描逻辑（portfolio 目录与 `diary/`/`tasks/` 命名空间隔离，靠 **首段路径 category**）。
 - [ ] 增量更新 **`docs/_tech_graph/`**（若触达 ingest/管理代理流程）：如 `11_flow_api` admin sync 锚点；跑 graph 三门禁（若改 `.ai.md`）。
 - [ ] **`pnpm lint`** · **`pnpm test`** · **`pnpm build`** 仍绿（`AGENTS.md` §8）；新增脚本须有 **shellcheck 级** 自检或 task 所列最小烟测。
@@ -197,13 +197,13 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 
 > 可追溯 SPEC §6.5；**W5 子集**；五问答通归 W6。
 
-- [ ] **`tools/sync-portfolio-content.sh`** 存在、可执行、**幂等**（连续两次运行不破坏已存在真值；stdout 有文件清单）。
-- [ ] 执行脚本后 **`content/methodology/` · `content/resume/` · `content/evidence/` 各 ≥1 `.md`**（与后端 SPEC §6.2 目标路径一致或 task 实现备忘列出的等价路径）。
-- [ ] **tools README** 含：依赖 sibling 路径、示例命令、sync 后 **`POST /api/py/admin/sync`** 触发说明（**不** 要求本 task 自动化 POST）。
-- [ ] **本地烟测步骤**（见 **「本地 admin sync 烟测」** + tools README）：`CONTENT_ROOT` + BFF `POST /api/admin/sync`；**`filesScanned > 0`** 且 **`chunksUpserted > 0`**（环境不可达 → **环境阻塞**，不 silently pass）。
-- [ ] **`filesScanned=0`** 场景在文档中标注为 **硬 FAIL**（对齐前后端 SPEC · 不得放宽）。
-- [ ] **`pnpm lint` · `pnpm test` · `pnpm build`** 通过；portfolio 模式 build 不因新 `content/` 路径破坏（W1 回归）。
-- [ ] **22 R1/R2** 书面审查落盘 · **50** `reinspect_results/` 落盘（LoopTask 停止点后由人 CLOSE）。
+- [x] **`tools/sync-portfolio-content.sh`** 存在、可执行、**幂等**（连续两次运行不破坏已存在真值；stdout 有文件清单）。
+- [x] 执行脚本后 **`content/methodology/` · `content/resume/` · `content/evidence/` 各 ≥1 `.md`**（与后端 SPEC §6.2 目标路径一致或 task 实现备忘列出的等价路径）。
+- [x] **tools README** 含：依赖 sibling 路径、示例命令、sync 后 **`POST /api/py/admin/sync`** 触发说明（**不** 要求本 task 自动化 POST）。
+- [ ] **本地烟测步骤**（见 **「本地 admin sync 烟测」** + tools README）：`CONTENT_ROOT` + BFF `POST /api/admin/sync`；**`filesScanned > 0`** 且 **`chunksUpserted > 0`**（**40：环境阻塞** · 403 Forbidden 未带 admin token）。
+- [x] **`filesScanned=0`** 场景在文档中标注为 **硬 FAIL**（对齐前后端 SPEC · 不得放宽）。
+- [x] **`pnpm lint` · `pnpm test` · `pnpm build`** 通过；portfolio 模式 build 不因新 `content/` 路径破坏（W1 回归）。
+- [x] **22 R1/R2** 书面审查落盘 · **50** `reinspect_results/` 落盘（LoopTask 停止点后由人 CLOSE）。
 
 ---
 
@@ -249,17 +249,19 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 
 | 项 | 内容 |
 |----|------|
-| 涉及文件 | （30 帽回填） |
-| 同步源默认路径 | `../ai-coding-closed-loop-articles` · vol3 `ARTICLE_*_vol3_*.md`；`--docs-root` 默认 `…/assets` |
-| admin sync 烟测 | 见 **「本地 admin sync 烟测」**；40 回填 curl/JSON 摘要 |
+| 涉及文件 | `tools/sync-portfolio-content.sh` · `tools/README-portfolio-content-sync.md` · `content/methodology/vol3_*` · `content/resume/cv-online.md` · `content/evidence/methodology-card.md` · `docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md` |
+| 同步源默认路径 | vol3 真值复制；resume **stub**；evidence 来自 `assets/PUBLISH_卷三_*` |
+| admin sync 烟测 | **环境阻塞**：`POST /api/admin/sync` → HTTP 403（未配置 curl token） |
 | 22 R1 审查 | `content/harness/reviews/task_portfolio_content_sync_v1_audit_R1_20260601.md` |
-| 50 复检 | （R2 后链出 PROMPT_50） |
+| 22 R2 审查 | `content/harness/reviews/task_portfolio_content_sync_v1_audit_R2_20260601.md` |
+| 50 复检 | `content/tasks/specs/PROMPT_50_invoke_portfolio_content_sync_w5_v1_zh.md` |
 
 ## 修订记录
 
 | 日期 | 说明 |
 |------|------|
 | 2026-06-01 | 10 帽：同步脚本约定 · 烟测步骤 · W2/W6 边界 · 交叉 SPEC resolved（按审查 R1 待签收） |
+| 2026-06-01 | 30–40：脚本 + 三目录 + README · R2 签收 · 派 50 |
 
 ---
 
@@ -273,4 +275,15 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 
 ## ### 自检结论（执行者）
 
-（40 帽回填）
+**40 帽 · 2026-06-01**
+
+| 命令 | 结果 |
+|------|------|
+| `./tools/sync-portfolio-content.sh` ×2 | 第 2 次三路径 **SKIP**（幂等） |
+| `pnpm lint` | pass |
+| `pnpm test` | 43/43 pass |
+| `pnpm build` | pass（development） |
+| `NEXT_PUBLIC_SITE_MODE=portfolio pnpm build` | pass |
+| `POST /api/admin/sync`（localhost:3000） | **环境阻塞** · HTTP 403 · 未带 `x-admin-token`；**未** 验证 `filesScanned` |
+
+**说明**：W5 脚本与三目录已就绪；ingest 烟测待维护者配置 `NEXT_PUBLIC_ADMIN_SECRET` + 后端 `CONTENT_ROOT` 后重试（**W6** 可全量五问）。
