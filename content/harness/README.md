@@ -59,7 +59,9 @@ content/harness/
 
 **当前 pilot slug**（5-3）：`chatbi-v3-lowconf-rag-preview-frontend` · 见 `content/tasks/active/task_chatbi_v3_lowconf_rag_preview_frontend_v1.md`。
 
-**Portfolio W1**（2026-06-01）：`portfolio-site-mode-nav-v1` · invoke 树 `invokes/by-task/portfolio-site-mode-nav-v1/` · 50 Prompt [`../tasks/specs/PROMPT_50_invoke_portfolio_site_mode_nav_w1_v1_zh.md`](../tasks/specs/PROMPT_50_invoke_portfolio_site_mode_nav_w1_v1_zh.md) · 对照后端 `portfolio-rag-demo` 50 invoke。
+**Portfolio W1**（2026-06-01 · done）：`portfolio-site-mode-nav-v1` · [`../tasks/done/task_portfolio_site_mode_nav_v1.md`](../tasks/done/task_portfolio_site_mode_nav_v1.md)
+
+**Portfolio W5**（2026-06-01 · active）：`portfolio-content-sync-v1` · LoopTask · [`../tasks/specs/PROMPT_looptask_startup_portfolio_w5_v1_zh.md`](../tasks/specs/PROMPT_looptask_startup_portfolio_w5_v1_zh.md)
 
 ---
 
