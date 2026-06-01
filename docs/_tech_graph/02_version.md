@@ -31,6 +31,7 @@ timeline
   2026-05-21 : 45455e0 auto: components/unified-chat/UnifiedChatExecutionTracePanel.tsx
   2026-05-23 : 7901b24 auto: lib/unified-chat/sse/chainEventFromSse.test.ts
   2026-05-31 : 34ade39 auto: components/chain-chat/ChainEventCard.tsx
+  2026-06-01 : portfolio W1 NEXT_PUBLIC_SITE_MODE SiteNav/HomeModules 四链分支 lib/site-mode.ts
 ```
 
 **Verify（P1）**：PR 门禁 workflow **`quality`** 含 **`pnpm test`**、**`tech_graph_graph_export --check`** 与 **`tech_graph_graph_equivalence_check`**（graph_v2，与 `content/tasks/specs/MIGRATION-tech_graph_v2_frontend_playbook_v1_zh.md` 一致）。

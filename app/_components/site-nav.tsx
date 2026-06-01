@@ -5,13 +5,14 @@ import { usePathname } from "next/navigation";
 import { PenTool, Wind } from "lucide-react";
 import SystemStatus from "@/components/SystemStatus";
 import { useAdminSession } from "@/lib/hooks/useAdminSession";
+import { isPortfolioMode } from "@/lib/site-mode";
 
 type NavItem = {
   href: string;
   label: string;
 };
 
-const NAV: NavItem[] = [
+const DEVELOPMENT_NAV: NavItem[] = [
   { href: "/blog", label: "Blog" },
   { href: "/learning", label: "Learning" },
   { href: "/projects", label: "Tasks" },
@@ -22,21 +23,42 @@ const NAV: NavItem[] = [
   { href: "/about", label: "About" },
 ];
 
+const PORTFOLIO_NAV: NavItem[] = [
+  { href: "/", label: "首页" },
+  { href: "/resume", label: "简历" },
+  { href: "/methodology", label: "方法论" },
+  { href: "/unified-chat", label: "对话" },
+];
+
+const ADMIN_GATED_HREFS = new Set([
+  "/chat",
+  "/text2sql",
+  "/chain-chat",
+  "/unified-chat",
+]);
+
+function isNavItemActive(pathname: string | null, href: string): boolean {
+  if (href === "/") {
+    return pathname === "/";
+  }
+  return pathname === href || (pathname?.startsWith(href + "/") ?? false);
+}
+
 export function SiteNav() {
   const pathname = usePathname();
   const { isAdmin } = useAdminSession();
+  const portfolio = isPortfolioMode();
 
-  const visibleNav = NAV.filter((item) => {
-    if (
-      item.href === "/chat" ||
-      item.href === "/text2sql" ||
-      item.href === "/chain-chat" ||
-      item.href === "/unified-chat"
-    ) {
-      return isAdmin;
-    }
-    return true;
-  });
+  const visibleNav = portfolio
+    ? PORTFOLIO_NAV
+    : DEVELOPMENT_NAV.filter((item) => {
+        if (ADMIN_GATED_HREFS.has(item.href)) {
+          return isAdmin;
+        }
+        return true;
+      });
+
+  const subtitle = portfolio ? "Portfolio Demo" : "RAG Blog";
 
   return (
     <header className="sticky top-0 z-20 border-b border-[color:var(--color-border)] bg-[color:var(--color-background)]/70 backdrop-blur">
@@ -55,15 +77,14 @@ export function SiteNav() {
           </span>
           <span className="hidden items-center gap-1 text-xs font-normal text-[color:var(--color-muted)] sm:inline-flex">
             <Wind aria-hidden className="h-3.5 w-3.5" strokeWidth={1.25} />
-            RAG Blog
+            {subtitle}
           </span>
         </Link>
 
         <div className="flex items-center gap-2">
           <nav className="flex items-center gap-1">
             {visibleNav.map((item) => {
-              const active =
-                pathname === item.href || pathname?.startsWith(item.href + "/");
+              const active = isNavItemActive(pathname, item.href);
               return (
                 <Link
                   key={item.href}
@@ -90,4 +111,3 @@ export function SiteNav() {
     </header>
   );
 }
-

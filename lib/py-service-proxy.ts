@@ -2,14 +2,20 @@
  * 将已鉴权的请求转发到 FastAPI（PY_API_URL），并注入服务端 Bearer。
  * 用于 /api/admin/sync、/api/admin/ingest 等与 api/index.py 对齐的管理接口。
  */
+import { getSyncAdminSecret } from "@/lib/auth/sync-admin-env";
+
 export async function forwardToPyAdmin(
   pathAndQuery: string,
   init?: RequestInit,
 ): Promise<Response> {
-  const secret = process.env.NEXT_PUBLIC_ADMIN_SECRET?.trim();
+  const secret = getSyncAdminSecret();
   if (!secret) {
     return Response.json(
-      { ok: false, error: "服务端未配置环境变量 NEXT_PUBLIC_ADMIN_SECRET" },
+      {
+        ok: false,
+        error:
+          "服务端未配置 SYNC_ADMIN_SECRET（或兼容 CHAT_API_SECRET）；无法转发 Python admin 接口",
+      },
       { status: 500 },
     );
   }

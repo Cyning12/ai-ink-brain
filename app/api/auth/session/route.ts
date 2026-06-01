@@ -1,10 +1,6 @@
 import { verifyAdminSessionCookie } from "@/lib/auth/admin-cookie";
 import { getAdminApiSecret } from "@/lib/auth/admin-env";
-import {
-  decodeChatbiTokenFromCookie,
-  readChatbiSiteCookieRaw,
-} from "@/lib/auth/chatbi-site-cookie";
-import { verifyChatbiPlainUpstream } from "@/lib/server/chatbi-access-verify-upstream";
+import { hasChatbiAdminSession } from "@/lib/auth/require-sync-admin-access";
 
 export const runtime = "nodejs";
 
@@ -15,14 +11,8 @@ export async function GET(request: Request): Promise<Response> {
   if (ink && verifyAdminSessionCookie(request.headers.get("cookie"), ink)) {
     admin = true;
   }
-  if (!admin) {
-    const raw = readChatbiSiteCookieRaw(request.headers.get("cookie"));
-    if (raw) {
-      const plain = decodeChatbiTokenFromCookie(raw);
-      if (plain && (await verifyChatbiPlainUpstream(plain))) {
-        admin = true;
-      }
-    }
+  if (!admin && (await hasChatbiAdminSession(request))) {
+    admin = true;
   }
   const configured =
     Boolean(ink) ||

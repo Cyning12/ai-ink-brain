@@ -5,12 +5,22 @@ import { Analytics } from "@vercel/analytics/react";
 import type { Metadata } from "next";
 
 import { SiteNav } from "@/app/_components/site-nav";
+import { getSiteMode } from "@/lib/site-mode";
 // SystemStatus 已移至顶部导航栏（SiteNav），避免右下角遮挡
 
-export const metadata: Metadata = {
+const DEVELOPMENT_METADATA: Metadata = {
   title: "AI-Ink-Brain",
   description: "RAG 驱动的个人知识库与智能博客",
 };
+
+const PORTFOLIO_METADATA: Metadata = {
+  title: "AI-Ink-Brain · Portfolio Demo",
+  description: "Portfolio 演示：方法论 · 简历 · RAG 对话",
+};
+
+export function generateMetadata(): Metadata {
+  return getSiteMode() === "portfolio" ? PORTFOLIO_METADATA : DEVELOPMENT_METADATA;
+}
 
 export default function RootLayout({
   children,

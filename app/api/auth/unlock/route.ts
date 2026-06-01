@@ -43,7 +43,7 @@ function setInkSessionResponse(inkSecret: string): Response {
 /**
  * 解锁：
  * - `token`：仅走 ChatBI（Python verify）。
- * - `secret`：若配置了 Ink 密钥且长度一致且 timingSafe 匹配则走 Ink；否则再走 ChatBI verify（兼容旧表单只传 secret）。
+ * - `secret`：匹配 Ink 则写 Ink 管理 Cookie；否则再走 ChatBI verify。
  */
 export async function POST(request: Request): Promise<Response> {
   let body: { token?: unknown; secret?: unknown };
@@ -74,7 +74,7 @@ export async function POST(request: Request): Promise<Response> {
         return setInkSessionResponse(inkSecret);
       }
     } catch {
-      /* 长度一致但比对异常时落入 ChatBI 尝试 */
+      /* 长度一致但比对异常时落入后续尝试 */
     }
   }
 

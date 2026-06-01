@@ -19,6 +19,7 @@
 | 任务审核 22 | [`reviews/README.md`](reviews/README.md) · 工作区 `22-task-audit` |
 | 独立复检 50 | [`../tasks/reinspect_results/README.md`](../tasks/reinspect_results/README.md) |
 | 半自动 / 关账 | 工作区 `HANDOFF_SEMI_AUTO` · `HANDOFF_CLOSE_TRACE` |
+| LoopTask 止于 50 · 50 Prompt / 人改 gate 清单 | 本仓 [`.cursor/skills/harness-looptask-handoff/SKILL.md`](../.cursor/skills/harness-looptask-handoff/SKILL.md) |
 | 跨子仓 Harness task | 工作区 `docs/harness/tasks/`（Open **`Projects/`**） |
 
 **Cursor**：`.cursor/rules/05-harness-semi-auto.mdc`、`.cursor/rules/06-harness-content.mdc`。
@@ -58,6 +59,10 @@ content/harness/
 **新落盘（2026-05-31 起）**：invoke **必须**进 `invokes/by-task/<task_slug>/`（与 task 文首 **`task_slug`** 一致）。根目录 `invokes/invoke_*.md` 为 P1-4 历史，**只读**。
 
 **当前 pilot slug**（5-3）：`chatbi-v3-lowconf-rag-preview-frontend` · 见 `content/tasks/active/task_chatbi_v3_lowconf_rag_preview_frontend_v1.md`。
+
+**Portfolio W1**（2026-06-01 · done）：`portfolio-site-mode-nav-v1` · [`../tasks/done/task_portfolio_site_mode_nav_v1.md`](../tasks/done/task_portfolio_site_mode_nav_v1.md)
+
+**Portfolio W5**（2026-06-01 · active）：`portfolio-content-sync-v1` · LoopTask · [`../tasks/specs/PROMPT_looptask_startup_portfolio_w5_v1_zh.md`](../tasks/specs/PROMPT_looptask_startup_portfolio_w5_v1_zh.md)
 
 ---
 
@@ -126,3 +131,4 @@ content/harness/
 |------|------|
 | 2026-05-27 | P1-4 parity 对照表 |
 | 2026-05-31 | KPI v1.2 P0：§1–§5、by-task invoke、关账与 VERIFY |
+| 2026-06-01 | Portfolio W1 slug · 50 Prompt 对齐后端 PROMPT_50_startup |
