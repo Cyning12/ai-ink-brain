@@ -27,7 +27,7 @@
 
 - **新建** `task_*.md`：文首 **Harness 元信息** + 关账前 **`### KPI（00）`**；默认 **`kpi_aggregator: CLOSE`**。  
 - **50**：`reinspect_results/reinspect_<slug>_YYYYMMDD_vN.md`（Fresh Context）。  
-- **5-3 试点**：[`active/task_chatbi_v3_lowconf_rag_preview_frontend_v1.md`](active/task_chatbi_v3_lowconf_rag_preview_frontend_v1.md)。
+- **5-3 试点（done）**：[`done/task_chatbi_v3_lowconf_rag_preview_frontend_v1.md`](done/task_chatbi_v3_lowconf_rag_preview_frontend_v1.md) — 2026-06-01 关账。
 
 ---
 
