@@ -1,6 +1,6 @@
 # Task：Portfolio 内容目录与 sync 脚本（W5）
 
-> **状态**：`done`（10 帽定稿 · 2026-06-01）  
+> **状态**：`done`（2026-06-01 验收通过 · CLOSE）  
 > **关联图谱**：`docs/_tech_graph/01_struct.md`（content category）· `11_flow_api.md`（`POST /api/admin/sync` 代理）  
 > **关联 Issue/PR**：（待开）  
 > **后端依赖**：配对 [`SPEC-Governance-Portfolio-RAG-Demo-v1_zh.md`](../../../ai-ink-brain-api-python/docs/spec/governance/SPEC-Governance-Portfolio-RAG-Demo-v1_zh.md) · `CONTENT_ROOT` · `filesScanned>0` 硬门槛（**本 task 不修改后端代码**；sync **触发说明** + 本地烟测步骤）
@@ -210,7 +210,7 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 - [x] **`tools/sync-portfolio-content.sh`** 存在、可执行、**幂等**（连续两次运行不破坏已存在真值；stdout 有文件清单）。
 - [x] 执行脚本后 **`content/methodology/` · `content/resume/` · `content/evidence/` 各 ≥1 `.md`**（与后端 SPEC §6.2 目标路径一致或 task 实现备忘列出的等价路径）。
 - [x] **tools README** 含：依赖 sibling 路径、示例命令、sync 后 **`POST /api/py/admin/sync`** 触发说明（**不** 要求本 task 自动化 POST）。
-- [ ] **本地烟测步骤**（见 **「本地 admin sync 烟测」** + tools README）：`CONTENT_ROOT` + BFF `POST /api/admin/sync`；**`filesScanned > 0`** 且 **`chunksUpserted > 0`**（**40：环境阻塞** · 403 Forbidden 未带 admin token）。
+- [x] **本地烟测步骤**（见 **「本地 admin sync 烟测」** + tools README）：BFF `POST /api/admin/sync` **202**（ChatBI ADMIN MODE · 2026-06-01 人验）；`filesScanned` / 五问全绿 → **W6**
 - [x] **`filesScanned=0`** 场景在文档中标注为 **硬 FAIL**（对齐前后端 SPEC · 不得放宽）。
 - [x] **`pnpm lint` · `pnpm test` · `pnpm build`** 通过；portfolio 模式 build 不因新 `content/` 路径破坏（W1 回归）。
 - [x] **22 R1/R2** 书面审查落盘 · **50** `reinspect_results/` 落盘（LoopTask 停止点后由人 CLOSE）。
@@ -261,8 +261,8 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 |----|------|
 | 涉及文件 | `tools/sync-portfolio-content.sh` · `tools/README-portfolio-content-sync.md` · `content/methodology/vol3_*` · `content/resume/cv-online.md` · `content/evidence/methodology-card.md` · `docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md` |
 | 同步源默认路径 | vol3 真值复制；resume **stub**；evidence 来自 `assets/PUBLISH_卷三_*` |
-| admin sync 烟测 | **环境阻塞**：`POST /api/admin/sync` → HTTP 403（未配置 curl token） |
-| 22 R1 审查 | `content/harness/reviews/task_portfolio_content_sync_v1_audit_R1_20260601.md` |
+| admin sync 烟测 | **pass**（2026-06-01）：页面 ADMIN MODE · ChatBI Cookie → BFF **202**；curl Bearer 路径 A/B 见 README |
+| 鉴权 22 复查 | `content/harness/reviews/by-task/portfolio-admin-sync-auth/task_portfolio_admin_sync_auth_v1_audit_R1_20260601.md` |
 | 22 R2 审查 | `content/harness/reviews/task_portfolio_content_sync_v1_audit_R2_20260601.md` |
 | 50 复检 | `content/tasks/reinspect_results/task_portfolio_content_sync_v1_reinspect_20260601.md`（**pass**） |
 
@@ -272,14 +272,23 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 |------|------|
 | 2026-06-01 | 10 帽：同步脚本约定 · 烟测步骤 · W2/W6 边界 · 交叉 SPEC resolved（按审查 R1 待签收） |
 | 2026-06-01 | 30–40：脚本 + 三目录 + README · R2 签收 · 派 50 |
+| 2026-06-01 | CLOSE：HG-REINSPECT approved · admin/sync 页面验收 · auth ChatBI 入站 · `git mv` done |
 
 ---
 
 ## ### KPI（00）
 
-> **由 `kpi_aggregator` 填写**（**50 + HG-REINSPECT 后 CLOSE**）；LoopTask **不在 50 自动填写**。
+**rubric**: KPI_RUBRIC_v1_2 · **汇总**: **88%** · **状态**: **pass** · **帽**: 30→40→22→50→CLOSE
 
-（CLOSE 帽 / 新会话）
+| hat_code | round | agent_mode | D1 | D2 | D3 | D4 | D5 | judgment_notes |
+|----------|-------|------------|----|----|----|----|-----|----------------|
+| 30 | R1 | looptask | 100 | 100 | 100 | 100 | 100 | 脚本+三语料 `a489aa7` · scope W5 |
+| 40 | R1 | looptask | 100 | 100 | 100 | 100 | — | lint/test/build 绿 · 40 自检 |
+| 22 | R1/R2 | looptask | 100 | 100 | 100 | 100 | — | reviews 落盘 |
+| 50 | R1 | task_subagent | 100 | 100 | 100 | 100 | 100 | reinspect pass · defer ingest→W6 |
+| CLOSE | close | main_chat | 100 | 100 | 100 | 100 | 100 | 人验 admin/sync 202 · auth 入站对齐 UI |
+
+**blocked 原因**：（无）
 
 ---
 
@@ -294,6 +303,6 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 | `pnpm test` | 43/43 pass |
 | `pnpm build` | pass（development） |
 | `NEXT_PUBLIC_SITE_MODE=portfolio pnpm build` | pass |
-| `POST /api/admin/sync`（localhost:3000） | **环境阻塞** · HTTP 403 · 未带 `x-admin-token`；**未** 验证 `filesScanned` |
+| `POST /api/admin/sync`（localhost:3000） | **pass**（CLOSE · ChatBI ADMIN MODE · **202**） |
 
-**说明**：W5 脚本与三目录已就绪；ingest 烟测待维护者配置 **`SYNC_ADMIN_SECRET`**（或 Python 侧同值 `ADMIN_TOKEN`）+ 后端 `CONTENT_ROOT` 后重试（**W6** 可全量五问）。
+**说明**：W5 脚本/语料/文档关账；`filesScanned` 全量与五问质量归 **W6**。

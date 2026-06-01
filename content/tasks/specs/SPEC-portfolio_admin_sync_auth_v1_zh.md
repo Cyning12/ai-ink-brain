@@ -17,7 +17,8 @@
 | --- | --- | --- |
 | **Unified Chat · 访客 RAG** | **已废弃** | `PORTFOLIO_VISITOR_*` → `/api/auth/unlock` |
 | **Legacy Ink**（`ChatPanel`、`/api/chat`） | **仍使用**（另 task 收敛） | `lib/auth/admin-env.ts` |
-| **admin/sync · admin/ingest BFF** | **已废弃（2026-06-01 实现）** | **`SYNC_ADMIN_SECRET`**（服务端 only） |
+| **admin/sync · admin/ingest BFF 入站** | **已废弃 NEXT_PUBLIC 示例** | **ChatBI admin Cookie**（`SystemStatus`）· Legacy Ink · Bearer `SYNC_ADMIN_SECRET`（curl） |
+| **admin/sync · BFF 出站 → Python** | — | **`SYNC_ADMIN_SECRET`**（服务端 only · `forwardToPyAdmin`） |
 | **Portfolio W5 文档 / curl** | **已移除示例** | 路径 A `$ADMIN_TOKEN` · 路径 B `$SYNC_ADMIN_SECRET` |
 
 ### 1.2 拍板摘要（原 Q1–Q5）
@@ -37,7 +38,7 @@
 | 模块 | 路径 | 行为 |
 | --- | --- | --- |
 | 密钥读取 | `lib/auth/sync-admin-env.ts` | `SYNC_ADMIN_SECRET` → `CHAT_API_SECRET` → `NEXT_PUBLIC_ADMIN_SECRET`（废弃 warn） |
-| 入站鉴权 | `lib/auth/require-sync-admin-access.ts` | Cookie · Bearer · 废弃 `x-admin-token` |
+| 入站鉴权 | `lib/auth/require-sync-admin-access.ts` | **ChatBI admin Cookie**（与 `/api/auth/session` · `hasChatbiAdminSession`）· `validateAdmin` Legacy · Bearer / `x-admin-token`（curl · 维护者） |
 | 出站转发 | `lib/py-service-proxy.ts` | `Authorization: Bearer ${getSyncAdminSecret()}` |
 | 路由 | `app/api/admin/sync/route.ts` · `app/api/admin/ingest/route.ts` | 调用 `requireSyncAdminAccess` |
 | 废弃 | `lib/auth/require-next-public-admin-secret.ts` | `@deprecated` · 无新引用 |
@@ -90,7 +91,8 @@ curl -sS -X POST "http://localhost:3000/api/admin/sync" \
 - [x] BFF 实现 + `.env.example` + `PROJECT_CONFIG`  
 - [x] 后端 RUNBOOK §1.3 · §8 · governance SPEC §4.4 同步  
 - [x] `11_flow_api.md` admin/sync 节  
-- [ ] `pnpm lint` / `pnpm test` / `pnpm build`（合并前人跑）  
+- [x] `pnpm lint` / `pnpm test` / `pnpm build`（合并前人跑）  
+- [x] **页面验收**（2026-06-01）：`SystemStatus` · ADMIN MODE + ChatBI Cookie → `POST /api/admin/sync` **202**
 
 ---
 
@@ -108,4 +110,4 @@ curl -sS -X POST "http://localhost:3000/api/admin/sync" \
 | --- | --- |
 | 2026-06-01 | v1 draft + Q1–Q5 |
 | 2026-06-01 | v2 **active**：实现 + 文档全面废弃 admin/sync 链 NEXT_PUBLIC 示例 · freeze `PORTFOLIO-ADMIN-SYNC-AUTH@2026-06-01` |
-| 2026-06-01 | 下游复查：[`PROMPT_22_review_portfolio_admin_sync_auth_v1_zh.md`](./PROMPT_22_review_portfolio_admin_sync_auth_v1_zh.md) |
+| 2026-06-01 | 验收关账：BFF 入站改为 ChatBI admin 会话（与 UI ADMIN MODE 一致）；出站仍 `SYNC_ADMIN_SECRET` |

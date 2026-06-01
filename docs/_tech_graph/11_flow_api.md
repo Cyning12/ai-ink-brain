@@ -77,8 +77,10 @@ flowchart LR
 ## admin/sync · admin/ingest（维护者 · 服务端密钥）
 
 - **维护者 → Python（推荐）**：`Authorization: Bearer <ADMIN_TOKEN>` → `POST /api/py/admin/sync`（投递计划 §3.3；`ADMIN_TOKEN` 为 shell 别名，值 = `SYNC_ADMIN_SECRET`）。
-- **维护者 → BFF**：`Authorization: Bearer <SYNC_ADMIN_SECRET>` → `POST /api/admin/sync`；BFF `forwardToPyAdmin` 出站注入同值 Bearer。
-- **入站还可**：Ink admin session Cookie（`validateAdmin` · Legacy 管理 UI）。
+- **维护者 → BFF（curl）**：`Authorization: Bearer <SYNC_ADMIN_SECRET>` → `POST /api/admin/sync`。
+- **页面 → BFF（SystemStatus）**：`chatbi_site_bearer` HttpOnly Cookie + 上游 verify 有效（与 `session.admin`）→ `POST /api/admin/sync`；`credentials: include`。
+- **入站还可**：Ink admin session Cookie（`validateAdmin` · Legacy）。
+- **出站 BFF → Python**：`forwardToPyAdmin` 注入 `SYNC_ADMIN_SECRET` Bearer（与 curl 路径分离）。
 - **已废弃**：`x-admin-token` + 文档示例 `NEXT_PUBLIC_ADMIN_SECRET`（admin/sync 链 · 2026-06-30 移除 `x-admin-token` 兼容）。
 - **真值**：`lib/auth/sync-admin-env.ts` · `require-sync-admin-access.ts` · [`SPEC-portfolio_admin_sync_auth_v1_zh.md`](../../content/tasks/specs/SPEC-portfolio_admin_sync_auth_v1_zh.md)
 

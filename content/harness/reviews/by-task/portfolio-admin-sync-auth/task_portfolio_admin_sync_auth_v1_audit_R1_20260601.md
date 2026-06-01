@@ -99,11 +99,21 @@
 
 ### merge_recommendation
 
-**yes-with-doc-patch**
+**yes**（2026-06-01 验收关账）
 
-- 实现与冻结 SPEC 一致，lint/test/build（含 portfolio）全绿。
-- 合并前：**commit 工作区鉴权 diff** + 可选修复 `11_flow_api.md` ChatBI 标题。
-- 分支名与 task 预期 slug 不一致（见 Judgment），不阻塞代码合并至 Epic PR。
+- 实现与冻结 SPEC 一致（含验收后 **ChatBI admin 入站** 修订 · SPEC v3 修订记录）。
+- 合并前 commit：`61f15b3` + 本关账 commit。
+
+---
+
+## 验收关账摘要（2026-06-01 · 人验）
+
+| 项 | 结论 |
+| --- | --- |
+| curl Bearer `SYNC_ADMIN_SECRET` | pass · 202 |
+| 页面 `SystemStatus` ADMIN MODE | pass · ChatBI Cookie → BFF 202 |
+| 入站鉴权修订 | ChatBI admin 与 `session.admin` 同口径；出站仍 `SYNC_ADMIN_SECRET` |
+| W5 task | CLOSE · KPI 88% · `git mv` → `done/` |
 
 ---
 

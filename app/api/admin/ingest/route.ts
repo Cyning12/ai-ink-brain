@@ -9,7 +9,7 @@ export const runtime = "nodejs";
  * curl -sS -X POST -H "Authorization: Bearer $SYNC_ADMIN_SECRET" http://localhost:3000/api/admin/ingest
  */
 export async function POST(req: Request): Promise<Response> {
-  const denied = requireSyncAdminAccess(req);
+  const denied = await requireSyncAdminAccess(req);
   if (denied) return denied;
 
   const res = await forwardToPyAdmin("/api/py/admin/ingest", {
