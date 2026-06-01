@@ -61,12 +61,81 @@
 | HG-AUDIT-R1 | `pending` | 30 | **22 R1 书面**通过后改 `approved`（**本 task 强制 22 · 禁止路径 B 跳过**） |
 | HG-REINSPECT | `pending` | done | **50 完成后** merge 前；Agent **不得**代填 |
 
-### 下一棒（00 开帽后）
+### 下一棒
 
-| 帽 | 条件 | invoke 落盘 |
-|----|------|-------------|
-| **10** | `HG-TASK-DRAFT` 仍 pending 可开工细化 | `content/harness/invokes/by-task/portfolio-content-sync-v1/` |
-| **22 R1** | 10 完成 · task 验收/failure_paths 可读 | `content/harness/reviews/task_portfolio_content_sync_v1_audit_R1_*.md` |
+| 帽 | 条件 | 落盘 |
+|----|------|------|
+| **22 R1** | ✅ 10 完成 · `HG-TASK-DRAFT` approved | `content/harness/reviews/task_portfolio_content_sync_v1_audit_R1_20260601.md` |
+| **30** | **22 R1 书面放行** 且 **`HG-AUDIT-R1` approved** | 脚本 + 三目录 + tools README |
+
+---
+
+## 同步脚本约定（10 帽定稿 · freeze_id 同源）
+
+> **MVP 范围**：首版 **仅同步三文件真值**（满足后端 §6.2 与五问路径前缀）；**不**在本 task 实现卷一～五全量。未来全量另开 task 或脚本 `--sync-all-volumes`（**非本 task**）。
+
+| CLI 参数 | 默认值 | 行为 |
+|----------|--------|------|
+| `--articles-root` | 工作区 sibling **`../ai-coding-closed-loop-articles`**（相对本仓根解析） | 不存在 → **exit 1**（F1）；stderr 提示克隆或改参 |
+| `--docs-root` | **`../ai-coding-closed-loop-articles/assets`**（证据卡粘贴版优先） | 不存在 → **不失败**；`resume`/`evidence` 走 **仓内最小 stub**（见下） |
+| `--dry-run` | 关 | 只打印将复制/跳过的路径，**不写** 目标文件 |
+| `--force` | 关 | 目标已存在则 **跳过**（幂等）；开则覆盖（须在 README 警告） |
+
+**MVP 映射（30 须实现）**
+
+| 源（相对 `--articles-root`） | 目标（本仓） | 说明 |
+|------------------------------|--------------|------|
+| `ARTICLE_*_vol3_*.md`（仓根 glob，取最新 1 个） | `content/methodology/vol3_<basename>.md` | 满足 Q1 `methodology/vol3_*` |
+| `--docs-root` 下 `PUBLISH_卷三_*` 或 `assets/README.md` 摘要 | 若缺则 **不复制** | 卷三正文以 articles 根 `ARTICLE_*_vol3*` 为准 |
+| `--docs-root` 无 `cv-online.md` 时 | `content/resume/cv-online.md` | **最小 stub**（frontmatter + 占位段，30 可内嵌模板） |
+| `assets/PUBLISH_卷三_*` 或 `methodology-card` 模板 | `content/evidence/methodology-card.md` | 无源时 **最小 stub**（Q3/Q5 锚点句） |
+
+**禁止 glob**：`content/diary/`、`content/tasks/`、`content/harness/`、`content/learning/` 不得作为 sync 源或目标。
+
+**SPEC §4.5「release 路径」拍板**：sibling 仓 **无** `release/` 子目录；MVP 以仓根 `ARTICLE_*_vol3_*.md` 为卷三真值；全量卷系 **延期**（与 task 非范围一致）。
+
+---
+
+## 本地 admin sync 烟测（10 帽 · 40 回填结果摘要）
+
+**前置**
+
+1. 本仓：`pnpm dev`（或已部署 Preview）可达 BFF。
+2. 配对后端：`PY_API_URL` 可达；后端 `.env` 设 **`CONTENT_ROOT=<ai-ink-brain>/content`**（绝对路径由维护者替换）。
+3. 已执行 `tools/sync-portfolio-content.sh` 且三目录各 ≥1 `.md`。
+
+**触发（经 BFF · 与 `app/api/admin/sync/route.ts` 一致）**
+
+```bash
+export CONTENT_ROOT="$(pwd)/content"   # 在后端进程环境，非前端
+
+curl -sS -X POST "http://localhost:3000/api/admin/sync" \
+  -H "x-admin-token: $NEXT_PUBLIC_ADMIN_SECRET" \
+  -H "Content-Type: application/json"
+```
+
+**轮询**（若响应含 `jobId`）：`GET "http://localhost:3000/api/admin/sync?jobId=<id>"` 至 `status=succeeded` 或失败。
+
+**硬 FAIL（不得放宽）**
+
+| 条件 | 判定 |
+|------|------|
+| `result.filesScanned === 0` | **FAIL**（F2） |
+| 后端不可达 / 未配置 `CONTENT_ROOT` | 40 记 **环境阻塞**，task 验收项 **不** 勾「烟测通过」 |
+
+**通过（本 task 烟测子集）**
+
+- `filesScanned > 0` 且 `chunksUpserted > 0`（语料非空）。
+- 五问 **sources 质量**、**5/5 全绿** → **W6**，非本 task。
+
+---
+
+## W2 / W6 边界（10 复述）
+
+| 包 | 本 task | 说明 |
+|----|---------|------|
+| **W2** | **不实现** `/resume` `/methodology` `/evidence` 路由与 MDX 页 | 仅保证 `content/{methodology,resume,evidence}/` 路径落盘；W2 只读这些路径 |
+| **W6** | **不实现** 五问 E2E、自动化 POST、Preview 全绿 | 本 task 只 **文档化** 烟测 curl；W6 负责联调与 sources ≥4/5 |
 
 ---
 
@@ -91,7 +160,7 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
   | `content/resume/cv-online.md` | `resume` | Q2 · Q4 |
   | `content/evidence/methodology-card.md` | `evidence` | Q3 · Q5 |
 
-- [ ] 新增 **`tools/sync-portfolio-content.sh`**：幂等；可选 `--articles-root`（默认 sibling `ai-coding-closed-loop-articles`）、`--docs-root`（简历源）；stdout 输出同步文件清单；**禁止** 脚本内嵌 API Key。
+- [ ] 新增 **`tools/sync-portfolio-content.sh`**：幂等；CLI 见 **「同步脚本约定」**（`--articles-root` / `--docs-root` / `--dry-run` / `--force`）；stdout 输出同步文件清单；**禁止** 脚本内嵌 API Key。
 - [ ] 新增 **`tools/README-portfolio-content-sync.md`**（或 `tools/README.md` 一节）：用法、前置目录、sync 后 **人工/脚本** 触发 `POST /api/py/admin/sync` 说明（BFF `app/api/admin/sync`）。
 - [ ] 在 **`docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md`**（或 task 引用的 tools README）文档化：`CONTENT_ROOT` 指向本仓 `content/` 的本地演示约定（**若 gitignore 则须在 tools README 重复真值**）。
 - [ ] **不** 修改 `lib/content/mdx-posts.ts` /blog 扫描逻辑（portfolio 目录与 `diary/`/`tasks/` 命名空间隔离，靠 **首段路径 category**）。
@@ -118,7 +187,7 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 | **配对 SPEC（后端）** | [`SPEC-Governance-Portfolio-RAG-Demo-v1_zh.md`](../../../ai-ink-brain-api-python/docs/spec/governance/SPEC-Governance-Portfolio-RAG-Demo-v1_zh.md) §4.1 · §4.2.3 · §6.2 |
 | **RUNBOOK（后端）** | `ai-ink-brain-api-python/docs/harness/guides/RUNBOOK_portfolio_rag_five_questions_v1_zh.md`（只读 · sync 硬检查） |
 | **五问真值** | [`投递冲刺_20260609_v1_zh.md`](../specs/投递冲刺_20260609_v1_zh.md) §2 · §3.2 |
-| **内容源（默认 sibling）** | `ai-coding-closed-loop-articles` release 路径（**10/22 须确认** 默认 `--articles-root`） |
+| **内容源（默认 sibling）** | `../ai-coding-closed-loop-articles` · MVP 卷三仓根 glob（见 **同步脚本约定**） |
 | **BFF sync** | `app/api/admin/sync/route.ts` |
 | **Harness LoopTask 启动** | [`PROMPT_looptask_startup_portfolio_w5_v1_zh.md`](../specs/PROMPT_looptask_startup_portfolio_w5_v1_zh.md) |
 
@@ -131,7 +200,7 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 - [ ] **`tools/sync-portfolio-content.sh`** 存在、可执行、**幂等**（连续两次运行不破坏已存在真值；stdout 有文件清单）。
 - [ ] 执行脚本后 **`content/methodology/` · `content/resume/` · `content/evidence/` 各 ≥1 `.md`**（与后端 SPEC §6.2 目标路径一致或 task 实现备忘列出的等价路径）。
 - [ ] **tools README** 含：依赖 sibling 路径、示例命令、sync 后 **`POST /api/py/admin/sync`** 触发说明（**不** 要求本 task 自动化 POST）。
-- [ ] **本地烟测步骤**（写在 task 自检或 tools README）：`CONTENT_ROOT=<ai-ink-brain>/content` + 后端可达时，sync 响应 **`filesScanned > 0`** 且 **`chunksUpserted > 0`**（失败时记录为 **环境阻塞** 而非 silently pass）。
+- [ ] **本地烟测步骤**（见 **「本地 admin sync 烟测」** + tools README）：`CONTENT_ROOT` + BFF `POST /api/admin/sync`；**`filesScanned > 0`** 且 **`chunksUpserted > 0`**（环境不可达 → **环境阻塞**，不 silently pass）。
 - [ ] **`filesScanned=0`** 场景在文档中标注为 **硬 FAIL**（对齐前后端 SPEC · 不得放宽）。
 - [ ] **`pnpm lint` · `pnpm test` · `pnpm build`** 通过；portfolio 模式 build 不因新 `content/` 路径破坏（W1 回归）。
 - [ ] **22 R1/R2** 书面审查落盘 · **50** `reinspect_results/` 落盘（LoopTask 停止点后由人 CLOSE）。
@@ -142,7 +211,8 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 
 | # | 触发条件 | 系统行为 | 可重试 | 用户可见 |
 |---|----------|----------|--------|----------|
-| F1 | sibling `ai-coding-closed-loop-articles` 不存在 | 脚本 **非 0 退出** + stderr 提示 `--articles-root` | 克隆/改路径后重跑 | 终端错误信息 |
+| F1 | `--articles-root` 不存在或不可读 | 脚本 **非 0 退出** + stderr 提示 `--articles-root` | 克隆/改路径后重跑 | 终端错误信息 |
+| F1b | `--articles-root` 内无 `ARTICLE_*_vol3_*.md` | **非 0 退出** + stderr「缺卷三源」 | 补 articles 或手建 stub | 终端错误信息 |
 | F2 | 三目录任一无 `.md` 即跑 admin sync | 后端 **`filesScanned=0` · FAIL** | 补文件 / 跑脚本后重 sync | 无（API JSON） |
 | F3 | 脚本覆盖用户手改且未 `--dry-run` | **缺陷**；须文档说明幂等策略 | 从 backup 或 git 恢复 | 内容丢失 |
 | F4 | 误将 `tasks/`/`harness/` 同步进 portfolio 目录 | **缺陷**；演示路径泄露 | 修脚本 glob | RAG 命中错误 category |
@@ -163,14 +233,15 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 
 ---
 
-## 交叉 SPEC 核对（10 帽 · 待 22 确认）
+## 交叉 SPEC 核对（10 帽 · R1 待签收）
 
 | 核对项 | 前端 SPEC | 后端 SPEC | 结论 |
 |--------|-----------|-----------|------|
 | category 三目录 | §5 表 | §4.1 同表 | **一致** |
 | `filesScanned=0` | §6.5 | §4.2.3 | **一致** |
 | Q3 evidence-only | §6.4 | §6.2 | **一致**（W6 验） |
-| release 路径默认值 | §4.5「待确认」 | — | **10/22 须拍板** `--articles-root` 默认 |
+| release / articles 源 | §4.5 | §6.2 目标路径 | **resolved**：sibling 仓根 vol3 glob + MVP 三文件；无 `release/` 子目录 |
+| 目标文件名 | §6.4 Q1–Q5 | §6.2 | **一致**：`vol3_*` · `cv-online.md` · `methodology-card.md` |
 
 ---
 
@@ -179,10 +250,16 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 | 项 | 内容 |
 |----|------|
 | 涉及文件 | （30 帽回填） |
-| 同步源默认路径 | （22 前 10 帽与维护者确认） |
-| admin sync 烟测 | （40 帽回填 curl/响应摘要） |
-| 22 R1 审查 | （路径） |
-| 50 复检 | （路径） |
+| 同步源默认路径 | `../ai-coding-closed-loop-articles` · vol3 `ARTICLE_*_vol3_*.md`；`--docs-root` 默认 `…/assets` |
+| admin sync 烟测 | 见 **「本地 admin sync 烟测」**；40 回填 curl/JSON 摘要 |
+| 22 R1 审查 | `content/harness/reviews/task_portfolio_content_sync_v1_audit_R1_20260601.md` |
+| 50 复检 | （R2 后链出 PROMPT_50） |
+
+## 修订记录
+
+| 日期 | 说明 |
+|------|------|
+| 2026-06-01 | 10 帽：同步脚本约定 · 烟测步骤 · W2/W6 边界 · 交叉 SPEC resolved（按审查 R1 待签收） |
 
 ---
 
