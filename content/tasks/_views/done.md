@@ -4,6 +4,7 @@
 
 ## 已完成
 
+- `../done/task_chatbi_v3_lowconf_rag_preview_frontend_v1.md` — 2026-06-01 验收通过（§5-3 RAG 低置信 preview + token · FE-5 联调烟测）
 - `../done/frontend-rag-chat-integration-完成.md`
 - `../done/task_frontend_unified_chat_agent_intent_cache_observability_v1.md`
 - `../done/task_chatbi_v3_text2sql_phase_sse_timeline_frontend_v1.md`
