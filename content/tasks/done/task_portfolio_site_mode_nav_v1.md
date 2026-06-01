@@ -1,6 +1,6 @@
 # Task：Portfolio 模式开关与四链导航（W1）
 
-> **状态**：`draft`  
+> **状态**：`done（2026-06-01 验收通过）`  
 > **关联图谱**：`docs/_tech_graph/10_flow_route.md` · `docs/_tech_graph/13_flow_components.md`（实施后须增量更新 `.ai.md`）  
 > **关联 Issue/PR**：（待开）  
 > **后端依赖**：无（本包纯前端导航/首页；RAG ingest 见 W5/W6 与配对后端 SPEC）
@@ -173,15 +173,27 @@
 | portfolio NAV 常量 | `{ /, /resume, /methodology, /unified-chat }` 标签：首页 / 简历 / 方法论 / 对话 |
 | 审查书面 | **无 R1 reviews 落盘**（HG-AUDIT-R1 approved · 路径 B 人择跳过 22） |
 | 帽 30 commit | `bed2baf` feat(portfolio-w1) |
-| PROJECT_CONFIG | 本地已更新 §C；**gitignore `docs/*` 未跟踪** |
+| 50 复检 | [`content/tasks/reinspect_results/task_portfolio_site_mode_nav_v1_reinspect_20260601.md`](../reinspect_results/task_portfolio_site_mode_nav_v1_reinspect_20260601.md) · **建议合并** · pass 13 / fail 0 |
+| PROJECT_CONFIG | 本地已更新 §C；**gitignore `docs/*` 未跟踪** · 50 warn |
 
 ---
 
 ## ### KPI（00）
 
-> **由 `kpi_aggregator` 填写**（默认 CLOSE）；格式见工作区 `KPI_RUBRIC_v1_2.md`。
+**rubric**: KPI_RUBRIC_v1_2 · **汇总**: **82%** · **状态**: **warn** · **帽**: 30→40→50→CLOSE
 
-（占位 · 关账后删除）
+| hat_code | round | agent_mode | D1 | D2 | D3 | D4 | D5 | judgment_notes |
+|----------|-------|------------|----|----|----|----|-----|----------------|
+| 30 | R1 | main_chat | 100 | 100 | 100 | 100 | 100 | W1 impl `bed2baf` · scope 未越界 |
+| 40 | R1 | main_chat | 100 | 100 | 100 | 100 | — | §自检结论 · 双模式 build 绿 |
+| 50 | v1 | task_subagent | 100 | 60 | 100 | 100 | 100 | pass-with-notes · 路径 B 无 22 书面 · defer W2–W6 |
+| CLOSE | close | main_chat | 100 | 60 | 100 | 60 | 100 | 2026-06-01 关账 · **HG-REINSPECT 仍 pending** |
+
+**Task 维聚合**：D1 avg 100 · D2 min 60 · D3 avg 100 · D4 min 60 · D5 min 100 → **Task_KPI% = 82%** · **blocked：无（W1 工程）**
+
+**merge 前硬条件**：人改 `HG-REINSPECT: approved`；确认 PROJECT_CONFIG §C 可达；PR 说明 W2 404。
+
+**关闭回溯**：`content/harness/invokes/by-task/portfolio-site-mode-nav-v1/` · reinspect 见上表 50 行
 
 ---
 
@@ -216,4 +228,4 @@
 
 - `/resume` · `/methodology` 点击 404（F6 · W2 依赖）
 - 浏览器手测 NAV 渲染（build 期 env 内联已覆盖逻辑）
-- HG-REINSPECT `pending` · 50 帽待独立复检
+- HG-REINSPECT：50 已完成 · [`reinspect_20260601.md`](../reinspect_results/task_portfolio_site_mode_nav_v1_reinspect_20260601.md) · **merge 前须人改 `approved`**
