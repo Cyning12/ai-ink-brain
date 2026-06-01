@@ -171,7 +171,8 @@
 | 图谱变更点 | `10_flow_route`：`getSiteMode()` · `portfolio?` 分支 · portfolio NAV/modules 四链切片 |
 | portfolio NAV 常量 | `{ /, /resume, /methodology, /unified-chat }` 标签：首页 / 简历 / 方法论 / 对话 |
 | 审查书面 | **无 R1 reviews 落盘**（HG-AUDIT-R1 approved · 路径 B 人择跳过 22） |
-| 帽 30 commit | 待本回合 `feat(portfolio-w1)` 提交 |
+| 帽 30 commit | `bed2baf` feat(portfolio-w1) |
+| PROJECT_CONFIG | 本地已更新 §C；**gitignore `docs/*` 未跟踪** |
 
 ---
 
