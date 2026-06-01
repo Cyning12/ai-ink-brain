@@ -95,6 +95,7 @@
 | **Session hook（只读 · W3 扩展）** | `lib/hooks/useAdminSession.ts` |
 | **路由图谱** | `docs/_tech_graph/10_flow_route.md` · `10_flow_route.ai.md` |
 | **Harness 10 帽** | 工作区 `docs/harness/prompts/10-requirements.md` |
+| **Harness 50（W1）** | [`content/tasks/specs/PROMPT_50_invoke_portfolio_site_mode_nav_w1_v1_zh.md`](../specs/PROMPT_50_invoke_portfolio_site_mode_nav_w1_v1_zh.md) · invoke `content/harness/invokes/by-task/portfolio-site-mode-nav-v1/invoke_*_50_*.md` |
 | **Harness 22 帽** | 工作区 `docs/harness/prompts/22-task-audit.md` |
 
 ---

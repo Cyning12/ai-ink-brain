@@ -59,6 +59,8 @@ content/harness/
 
 **当前 pilot slug**（5-3）：`chatbi-v3-lowconf-rag-preview-frontend` · 见 `content/tasks/active/task_chatbi_v3_lowconf_rag_preview_frontend_v1.md`。
 
+**Portfolio W1**（2026-06-01）：`portfolio-site-mode-nav-v1` · invoke 树 `invokes/by-task/portfolio-site-mode-nav-v1/` · 50 Prompt [`../tasks/specs/PROMPT_50_invoke_portfolio_site_mode_nav_w1_v1_zh.md`](../tasks/specs/PROMPT_50_invoke_portfolio_site_mode_nav_w1_v1_zh.md) · 对照后端 `portfolio-rag-demo` 50 invoke。
+
 ---
 
 ## 4. 新建 task 必填（KPI v1.2）
@@ -126,3 +128,4 @@ content/harness/
 |------|------|
 | 2026-05-27 | P1-4 parity 对照表 |
 | 2026-05-31 | KPI v1.2 P0：§1–§5、by-task invoke、关账与 VERIFY |
+| 2026-06-01 | Portfolio W1 slug · 50 Prompt 对齐后端 PROMPT_50_startup |

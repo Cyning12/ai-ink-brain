@@ -197,6 +197,7 @@ git_branch = {{GIT_BRANCH}}
 | 用途 | 路径 |
 | --- | --- |
 | Epic 编排 / semi_auto | [`PROMPT_00_SPEC-refine_portfolio_demo_site_v1_zh.md`](./PROMPT_00_SPEC-refine_portfolio_demo_site_v1_zh.md) §7 |
+| **W1 子 task 50** | [`PROMPT_50_invoke_portfolio_site_mode_nav_w1_v1_zh.md`](./PROMPT_50_invoke_portfolio_site_mode_nav_w1_v1_zh.md) |
 | 目标 SPEC | [`SPEC-portfolio_demo_site_v1_zh.md`](./SPEC-portfolio_demo_site_v1_zh.md) |
 | 50 帽真值 | 工作区 `docs/harness/prompts/50-independent-reinspect.md` |
 | 50 模板 | 工作区 `docs/harness/prompts/TEMPLATE-independent-reinspect-invoke.md` |
@@ -209,6 +210,7 @@ git_branch = {{GIT_BRANCH}}
 | 日期 | 摘要 |
 | --- | --- |
 | 2026-06-01 | v1：Portfolio Epic · 50 子 Agent Handoff + §5 可复制正文 |
+| 2026-06-01 | v1.1：链 W1 收窄变体 `PROMPT_50_invoke_portfolio_site_mode_nav_w1_v1_zh.md` |
 
 ---
 
