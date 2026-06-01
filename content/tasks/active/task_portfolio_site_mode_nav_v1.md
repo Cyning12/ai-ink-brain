@@ -30,8 +30,8 @@
 
 | human_gate_id | status | blocks_hats | 说明 |
 |---------------|--------|-------------|------|
-| HG-TASK-DRAFT | `pending` | 22-R1, 30 | 10 帽草案；人扫 task 正文与 SPEC 追溯表后改 `approved` |
-| HG-AUDIT-R1 | `pending` | 30 | 22 任务审核 R1 通过后改 `approved`（若人择路径 B 跳过 22，须书面承担审计缺口） |
+| HG-TASK-DRAFT | `approved` | 22-R1, 30 | 10 帽草案；人扫 task 正文与 SPEC 追溯表后改 `approved` |
+| HG-AUDIT-R1 | `approved` | 30 | 22 任务审核 R1 通过后改 `approved`（若人择路径 B 跳过 22，须书面承担审计缺口） |
 | HG-REINSPECT | `pending` | done | 50 独立复检后 merge 前 |
 
 ### 下一棒推荐路径（10 完成 · 已拍板跳过 20）
@@ -61,14 +61,14 @@
 
 ## 范围
 
-- [ ] 新增 **`lib/site-mode.ts`**（或等价模块）：读取 `process.env.NEXT_PUBLIC_SITE_MODE`；未设或非法值 **等同** `development`。
-- [ ] 在 **`docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md` §C** 增补 `NEXT_PUBLIC_SITE_MODE` 行（用途、取值、默认、谁读取）。
-- [ ] 改造 **`app/_components/site-nav.tsx`**：portfolio 四链 NAV；development 保持现有 8 项 + admin 门控逻辑。
-- [ ] 改造 **`app/_components/home-modules.tsx`**：portfolio 四卡；development 保持现有 BASE + ADMIN 模块逻辑。
-- [ ] portfolio 模式下 **`SiteNav` 品牌副标题** 显示 **「Portfolio Demo」**（替换「RAG Blog」）。
-- [ ] 按需更新 **`app/layout.tsx`**（或等价 metadata 出口）中 portfolio 模式 **title/description**（不破坏 development 默认 metadata）。
-- [ ] 增量更新 **`docs/_tech_graph/10_flow_route.ai.md`**（及同步 `.md`）：增加 `SITE_MODE` 分支节点与锚点；跑 `pnpm tech-graph:graph-export` 并提交 `graph.json`。
-- [ ] 双模式 **`pnpm lint`** · **`pnpm test`** · **`pnpm build`** 通过（`AGENTS.md` §8）。
+- [x] 新增 **`lib/site-mode.ts`**（或等价模块）：读取 `process.env.NEXT_PUBLIC_SITE_MODE`；未设或非法值 **等同** `development`。
+- [x] 在 **`docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md` §C** 增补 `NEXT_PUBLIC_SITE_MODE` 行（用途、取值、默认、谁读取）。
+- [x] 改造 **`app/_components/site-nav.tsx`**：portfolio 四链 NAV；development 保持现有 8 项 + admin 门控逻辑。
+- [x] 改造 **`app/_components/home-modules.tsx`**：portfolio 四卡；development 保持现有 BASE + ADMIN 模块逻辑。
+- [x] portfolio 模式下 **`SiteNav` 品牌副标题** 显示 **「Portfolio Demo」**（替换「RAG Blog」）。
+- [x] 按需更新 **`app/layout.tsx`**（或等价 metadata 出口）中 portfolio 模式 **title/description**（不破坏 development 默认 metadata）。
+- [x] 增量更新 **`docs/_tech_graph/10_flow_route.ai.md`**（及同步 `.md`）：增加 `SITE_MODE` 分支节点与锚点；跑 `pnpm tech-graph:graph-export` 并提交 `graph.json`。
+- [x] 双模式 **`pnpm lint`** · **`pnpm test`** · **`pnpm build`** 通过（`AGENTS.md` §8）。
 
 ## 非范围
 
@@ -103,14 +103,14 @@
 
 > 可追溯 SPEC §6；W1 **仅覆盖** 模式/导航/首页/build 子集；页面可读性与鉴权见 W2/W3。
 
-- [ ] **`NEXT_PUBLIC_SITE_MODE=portfolio`** 时 `pnpm run build` **通过**（SPEC §6.1）。
-- [ ] **`development`**（未设或显式 `development`）下 build 通过，且 NAV / HomeModules **与改前现网行为一致**（SPEC §6.1 回归）。
-- [ ] portfolio 模式下 **SiteNav 仅 4 项**：首页、`/resume`、`/methodology`、`/unified-chat`（标签含「对话」语义）；**无** Blog / Learning / Tasks / Chat / Text2SQL / Chain / About（SPEC §4.1 · §6.2 导航子集）。
-- [ ] portfolio 模式下 **HomeModules 仅 4 卡**，与四链 href 一致；**无** Blog/Learning/Tasks/Chain 卡（SPEC §6.2 首页子集）。
-- [ ] portfolio 模式下 **`/unified-chat` 在导航中可见**，且 **不** 以 `isAdmin` 作为是否显示该 nav 项的条件（SPEC §4.1 实现提示）。
-- [ ] portfolio 模式下品牌副标题为 **「Portfolio Demo」**（SPEC §4.1 · Q8=B deferred 占位）。
-- [ ] `PROJECT_CONFIG` §C 已文档化 `NEXT_PUBLIC_SITE_MODE`。
-- [ ] `_tech_graph` 已增量更新并通过 `pnpm tech-graph:manifest-check` · `graph-check` · `equivalence-check`（若本 task 触达图谱）。
+- [x] **`NEXT_PUBLIC_SITE_MODE=portfolio`** 时 `pnpm run build` **通过**（SPEC §6.1）。
+- [x] **`development`**（未设或显式 `development`）下 build 通过，且 NAV / HomeModules **与改前现网行为一致**（SPEC §6.1 回归）。
+- [x] portfolio 模式下 **SiteNav 仅 4 项**：首页、`/resume`、`/methodology`、`/unified-chat`（标签含「对话」语义）；**无** Blog / Learning / Tasks / Chat / Text2SQL / Chain / About（SPEC §4.1 · §6.2 导航子集）。
+- [x] portfolio 模式下 **HomeModules 仅 4 卡**，与四链 href 一致；**无** Blog/Learning/Tasks/Chain 卡（SPEC §6.2 首页子集）。
+- [x] portfolio 模式下 **`/unified-chat` 在导航中可见**，且 **不** 以 `isAdmin` 作为是否显示该 nav 项的条件（SPEC §4.1 实现提示）。
+- [x] portfolio 模式下品牌副标题为 **「Portfolio Demo」**（SPEC §4.1 · Q8=B deferred 占位）。
+- [x] `PROJECT_CONFIG` §C 已文档化 `NEXT_PUBLIC_SITE_MODE`。
+- [x] `_tech_graph` 已增量更新并通过 `pnpm tech-graph:manifest-check` · `graph-check` · `equivalence-check`（若本 task 触达图谱）。
 
 ---
 
@@ -165,11 +165,13 @@
 
 | 项 | 内容 |
 |----|------|
-| 涉及文件 | `lib/site-mode.ts`（新）· `app/_components/site-nav.tsx` · `app/_components/home-modules.tsx` · `app/layout.tsx`（按需）· `docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md` · `docs/_tech_graph/10_flow_route*.md` · `graph.json` |
-| 新增路由 | 无（W2 新增 `/resume` 等） |
+| 涉及文件 | `lib/site-mode.ts`（新）· `lib/site-mode.test.ts`（新）· `app/_components/site-nav.tsx` · `app/_components/home-modules.tsx` · `app/layout.tsx` · `docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md` · `docs/_tech_graph/10_flow_route*.md` · `graph.json` · `_manifest.json` · `02_version.md` |
+| 新增路由 | 无（W2 新增 `/resume` 等；点击 portfolio NAV 中 `/resume`/`/methodology` 暂 404 · F6） |
 | 新增组件 | 无（改造现有 Nav / HomeModules） |
-| 图谱变更点 | `10_flow_route`：`SITE_MODE` 分支 · `NAV[]` portfolio 切片 |
-| portfolio NAV 建议常量 | `{ /, /resume, /methodology, /unified-chat }` 标签见 SPEC §4.1 |
+| 图谱变更点 | `10_flow_route`：`getSiteMode()` · `portfolio?` 分支 · portfolio NAV/modules 四链切片 |
+| portfolio NAV 常量 | `{ /, /resume, /methodology, /unified-chat }` 标签：首页 / 简历 / 方法论 / 对话 |
+| 审查书面 | **无 R1 reviews 落盘**（HG-AUDIT-R1 approved · 路径 B 人择跳过 22） |
+| 帽 30 commit | 待本回合 `feat(portfolio-w1)` 提交 |
 
 ---
 
