@@ -4,6 +4,7 @@
 
 ## 已完成
 
+- `../done/task_portfolio_site_mode_nav_v1.md` — 2026-06-01 验收通过（Portfolio W1 · site-mode 四链 NAV · `PORTFOLIO-RAG-DEMO@2026-06-01` · reinspect pass 13/0 · 分支 `task/portfolio-demo-site-v1` · impl `bed2baf`）
 - `../done/task_chatbi_v3_lowconf_rag_preview_frontend_v1.md` — 2026-06-01 验收通过（§5-3 RAG 低置信 preview + token · FE-5 联调烟测）
 - `../done/frontend-rag-chat-integration-完成.md`
 - `../done/task_frontend_unified_chat_agent_intent_cache_observability_v1.md`
