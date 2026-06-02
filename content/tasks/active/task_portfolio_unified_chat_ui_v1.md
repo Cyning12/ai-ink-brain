@@ -1,6 +1,6 @@
 # Task：Portfolio Unified Chat 展示裁剪（W4 · debug / 五问 chip）
 
-> **状态**：`in_progress`（30 帽实现中）  
+> **状态**：`self_checked`（40 帽自检 · 待 22 R2）  
 > **关联图谱**：`docs/_tech_graph/13_flow_components.md` · `12_flow_auth.md`（按需增量 `.ai.md`）  
 > **关联 Issue/PR**：（待开 · 基线分支 `task/portfolio-visitor-auth-v1` @ W3 `3d74537` · **暂不 PR**）  
 > **后端依赖**：无（只读 ChatBI `access/verify` 的 `access_level`；五问 E2E 归 **W6**）
@@ -192,6 +192,38 @@ Epic Portfolio（`[SPEC-portfolio_demo_site_v1_zh.md](../specs/SPEC-portfolio_de
 
 ---
 
-## ### 自检结论（执行者）
+## ### 自检结论（执行者 · 40 帽 · 2026-06-02）
 
-（40 帽回填）
+### 构建
+
+| 命令 | 结果 |
+|------|------|
+| `pnpm lint` | ✅ 通过（0 error） |
+| `pnpm test` | ✅ 45/45 |
+| `pnpm build` | ✅ development |
+| `NEXT_PUBLIC_SITE_MODE=portfolio pnpm build` | ✅ portfolio |
+
+### §6.4 chip 逐字对照（`portfolio-demo-chips.ts` · 可见文案）
+
+| ID | SPEC / 投递 §2 | 代码 `label` | 一致 |
+|----|----------------|--------------|------|
+| Q1 | 《AI 编程可闭环协作》卷三讲什么？Harness 和签收是什么？ | 同左 | ✅ |
+| Q2 | RAG 混合检索怎么做的？ | 同左 | ✅ |
+| Q3 | 冷/温/热 和 架构三层 区别？ | 同左 | ✅ |
+| Q4 | 11 年经历里 AI Coding 相关成果？ | 同左 | ✅ |
+| Q5 | 按需读图相对整图灌入 token/效果？边界？ | 同左 | ✅ |
+
+> SPEC 表内 `**` 为 Markdown 强调；chip 按钮展示为纯文本（语义逐字一致）。
+
+### §4.4 / §6.6 裁剪（逻辑自检）
+
+| 场景 | 预期 | 实现锚点 |
+|------|------|----------|
+| portfolio + L2 | 无 Router Debug / Timeline / debug URL | `showRouterDebug=false` · `showTimelinePanels=false` · `debugUrlAllowed=false` |
+| portfolio + L0/L1 | Timeline 可见 · `?debug=1` 可开 · 仍无 Router Debug | `portfolioTimelineVisible` · `portfolioDebugUrlAllowed` |
+| development | 3 通用 chip + 全量 debug | `!portfolio` 分支 |
+| locked + portfolio | 5 chip · setDraft · send blocked | unlock 区 chip + readonly textarea |
+
+### 风险 / 待 W6
+
+- 五问 E2E 答通与 sources category 归 **W6**；本 task 仅 UI + chip 文案就绪。
