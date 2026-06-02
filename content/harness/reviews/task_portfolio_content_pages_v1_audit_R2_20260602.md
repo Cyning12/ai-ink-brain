@@ -2,7 +2,7 @@
 
 | 字段 | 值 |
 |------|-----|
-| **task** | `content/tasks/active/task_portfolio_content_pages_v1.md` |
+| **task** | `content/tasks/done/task_portfolio_content_pages_v1.md` |
 | **轮次** | R2（终轮签收） |
 | **日期** | 2026-06-02 |
 | **审查帽** | 22 |
@@ -28,24 +28,21 @@
 
 ## 签收 / 关闭
 
-本 task **代码与文档层可进入 50**；merge 前须 **HG-REINSPECT** + CLOSE + `git mv` done（LoopTask 不在此会话关账）。
+**2026-06-02 CLOSE**：HG-REINSPECT 人签 · 50 reinspect **warn** 可 merge · KPI **88% pass** · task 已归档 `done/`。
 
-## 下一棒可复制 Prompt（Task 50）
+## 执行路线与 Commit 回溯
 
-```text
-你正在扮演 Harness「独立复检帽（50）」Fresh Context，严格遵循：
-- docs/harness/prompts/50-independent-reinspect.md
-- content/tasks/active/task_portfolio_content_pages_v1.md
-- content/tasks/specs/SPEC-portfolio_demo_site_v1_zh.md §6.2 · §6.2.1
+| 序号 | 阶段 / 帽子 | 关键动作 | 落盘工件 | commit |
+|------|-------------|----------|----------|--------|
+| 1 | 00 | 开帽 · 派 10 | `invokes/by-task/portfolio-content-pages-v1/invoke_20260602_00_*.md` | ink@82b9a90 |
+| 2 | 10→22 R1 | task 定稿 · R1 放行 | `reviews/..._audit_R1_20260602.md` | ink@82b9a90 |
+| 3 | 30→40 | 三路由 · loader · §4.6 | task ### 自检结论 | ink@ee550ed |
+| 4 | 22 R2 | 终轮签收 | 本文件 | ink@ee550ed |
+| 5 | 50 | Task 子代理 warn | `reinspect_results/..._reinspect_20260602.md` | ink@8c00750 |
+| 6 | CLOSE | KPI · git mv done | task → `done/` | 关账 commit |
 
-Open Folder = ai-ink-brain
-task_slug = portfolio-content-pages-v1
-git_branch = task/portfolio-content-pages-v1
+### ai-ink-brain
 
-只读为主：对照 task 验收 + SPEC §6.2 子集逐条留证。
-落盘：content/tasks/reinspect_results/task_portfolio_content_pages_v1_reinspect_20260602.md
-
-禁止：改代码（除非发现 P0 须单列）；代填 HG-REINSPECT；CLOSE。
-
-输出短报告：pass|warn|fail · 合并建议 · 阻塞项
-```
+- `8c00750` docs(harness): W2 50 reinspect 落盘（warn）
+- `ee550ed` feat(portfolio): W2 三内容页 + 根演示首页 + loader
+- `82b9a90` docs(harness): W2 LoopTask 开帽

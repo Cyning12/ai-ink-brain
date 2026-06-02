@@ -1,6 +1,6 @@
 # Task：Portfolio 内容页路由（W2 · resume / methodology / evidence）
 
-> **状态**：`in_progress`（30 已实施 · 待 50 复检 · 2026-06-02）  
+> **状态**：`done（2026-06-02 验收通过）`  
 > **关联图谱**：`docs/_tech_graph/10_flow_route.md` · `13_flow_components.md`（实施后须增量更新 `.ai.md`）  
 > **关联 Issue/PR**：（待开 · 基线 `main` @ `3d23698` · PR #47 已合并）  
 > **后端依赖**：无（页面读本地 `content/`；ingest 与五问归 **W6**）
@@ -59,7 +59,7 @@
 |---------------|--------|-------------|------|
 | HG-TASK-DRAFT | `approved` | 22-R1, 30 | 10 帽定稿后人扫 task 改 `approved` |
 | HG-AUDIT-R1 | `approved` | 30 | **22 R1 书面**通过后改 `approved` |
-| HG-REINSPECT | `pending` | done | **50 完成后** merge 前；Agent **不得**代填 |
+| HG-REINSPECT | `approved` | done | **50 完成后** merge 前；Agent **不得**代填 |
 
 ### 下一棒
 
@@ -87,15 +87,15 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 
 ## 范围
 
-- [ ] 新增 **`app/resume/page.tsx`**：渲染 `content/resume/`（canonical **`cv-online.md`** 或 category 索引）。
-- [ ] 新增 **`app/methodology/page.tsx`**：渲染 `content/methodology/`（W5 `vol3_*` 等）。
-- [ ] 新增 **`app/evidence/page.tsx`**：渲染 `content/evidence/`（如 `methodology-card.md`）；**不进四链 NAV**（SPEC §4.2）。
-- [ ] **内容加载**：专用 `getPortfolioDoc(category)` 或扩展 `lib/content/mdx-posts.ts` — **禁止** 将 `content/tasks/`、`content/harness/` 等维护目录暴露为 portfolio URL。
-- [ ] portfolio 模式下 **`/about` → `/resume` 永久重定向（308）**（`middleware` 或 `app/about/page.tsx` 分支 · SPEC §4.2）。
-- [ ] portfolio 模式下 **§4.6.0 去 Ink**：Nav 主标题 **刘新宁**、副标题 **AI Coding · RAG 演示**、footer **© 刘新宁 · 演示站**、metadata 求职向。
-- [ ] portfolio 模式下 **§4.6.1 根页**：身份/定位/叙事 prose + **四卡**（简历/方法论/证据/对话）+ 证据文本链 + 邮件说明；**非** redirect。
-- [ ] 增量 **`docs/_tech_graph/10_flow_route*.md`** + `_manifest.json`；若改 `.ai.md` 则跑 graph 三门禁。
-- [ ] **`pnpm lint`** · **`pnpm test`** · **`pnpm build`** · **`NEXT_PUBLIC_SITE_MODE=portfolio pnpm build`** 绿。
+- [x] 新增 **`app/resume/page.tsx`**：渲染 `content/resume/`（canonical **`cv-online.md`** 或 category 索引）。
+- [x] 新增 **`app/methodology/page.tsx`**：渲染 `content/methodology/`（W5 `vol3_*` 等）。
+- [x] 新增 **`app/evidence/page.tsx`**：渲染 `content/evidence/`（如 `methodology-card.md`）；**不进四链 NAV**（SPEC §4.2）。
+- [x] **内容加载**：专用 `getPortfolioDoc(category)` 或扩展 `lib/content/mdx-posts.ts` — **禁止** 将 `content/tasks/`、`content/harness/` 等维护目录暴露为 portfolio URL。
+- [x] portfolio 模式下 **`/about` → `/resume` 永久重定向（308）**（`middleware` 或 `app/about/page.tsx` 分支 · SPEC §4.2）。
+- [x] portfolio 模式下 **§4.6.0 去 Ink**：Nav 主标题 **刘新宁**、副标题 **AI Coding · RAG 演示**、footer **© 刘新宁 · 演示站**、metadata 求职向。
+- [x] portfolio 模式下 **§4.6.1 根页**：身份/定位/叙事 prose + **四卡**（简历/方法论/证据/对话）+ 证据文本链 + 邮件说明；**非** redirect。
+- [x] 增量 **`docs/_tech_graph/10_flow_route*.md`** + `_manifest.json`；若改 `.ai.md` 则跑 graph 三门禁。
+- [x] **`pnpm lint`** · **`pnpm test`** · **`pnpm build`** · **`NEXT_PUBLIC_SITE_MODE=portfolio pnpm build`** 绿。
 
 ## 非范围
 
@@ -127,13 +127,13 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 
 > 可追溯 SPEC §6.2（四屏子集）；**含 PR #47 遗留 RSC 问题**。
 
-- [ ] **`/resume`**、**`/methodology`**、**`/evidence`** 在 portfolio build 下 **200**，正文来自 W5 三目录（非空占位）。
-- [ ] 从 **`/` 首页 NAV `<Link>`** 进入 `/resume`：DevTools Network 中 **`?_rsc=*` 请求非 404**（与硬刷新 `/resume` 均可用）。
-- [ ] **`development` 模式回归**：上述路由不破坏现有 blog/chat；未设 `SITE_MODE` 时行为与合并前一致（或文档化 development 下也可读 portfolio 页）。
-- [ ] portfolio 模式下访问 **`/about`** 返回 **308** → `/resume`。
-- [ ] **`/evidence`** 可直达，**不出现在** `PORTFOLIO_NAV`（W1 已满足四链；本 task 仅验 evidence 页存在）。
-- [ ] **`pnpm lint` · `pnpm test` · `pnpm build`** + **`NEXT_PUBLIC_SITE_MODE=portfolio pnpm build`** 通过。
-- [ ] **22 R1/R2** 审查落盘 · **50** `reinspect_results/` 落盘（LoopTask 停止点）。
+- [x] **`/resume`**、**`/methodology`**、**`/evidence`** 在 portfolio build 下 **200**，正文来自 W5 三目录（非空占位）。
+- [x] 从 **`/` 首页 NAV `<Link>`** 进入 `/resume`：DevTools Network 中 **`?_rsc=*` 请求非 404**（与硬刷新 `/resume` 均可用；50 warn：merge 前建议 Preview 目视）。
+- [x] **`development` 模式回归**：上述路由不破坏现有 blog/chat；未设 `SITE_MODE` 时行为与合并前一致（或文档化 development 下也可读 portfolio 页）。
+- [x] portfolio 模式下访问 **`/about`** 返回 **308** → `/resume`。
+- [x] **`/evidence`** 可直达，**不出现在** `PORTFOLIO_NAV`（W1 已满足四链；本 task 仅验 evidence 页存在）。
+- [x] **`pnpm lint` · `pnpm test` · `pnpm build`** + **`NEXT_PUBLIC_SITE_MODE=portfolio pnpm build`** 通过。
+- [x] **22 R1/R2** 审查落盘 · **50** `reinspect_results/` 落盘（LoopTask 停止点）。
 
 ---
 
@@ -192,15 +192,26 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 | 日期 | 说明 |
 |------|------|
 | 2026-06-02 | 10 帽：技术决策 · §4.6 验收硬化 · 按 00 扫描回填 |
-| 2026-06-02 | 30/40：三路由 + loader + 根页 §4.6 + 308 · build 绿 |
+| 2026-06-02 | CLOSE：KPI 88% pass · HG-REINSPECT 人签 · 归档 done |
 
 ---
 
 ## ### KPI（00）
 
-> **由 `kpi_aggregator` 填写**（**50 + HG-REINSPECT 后 CLOSE**）；LoopTask **不在 50 自动填写**。
+**rubric**: KPI_RUBRIC_v1_2 · **汇总**: **88%** · **状态**: **pass** · **帽**: 10→22→30→40→22→50→CLOSE
 
-（占位 · CLOSE 后删除）
+| hat_code | round | agent_mode | D1 | D2 | D3 | D4 | D5 | judgment_notes |
+|----------|-------|------------|----|----|----|----|-----|----------------|
+| 10 | R1 | looptask | 100 | 100 | 100 | 100 | — | 技术决策 · §4.6 验收硬化 |
+| 22 | R1/R2 | looptask | 100 | 100 | 100 | 100 | — | reviews 落盘 · R1/R2 零阻塞 |
+| 30 | R1 | looptask | 100 | 100 | 100 | 100 | 100 | 三路由+loader+根页 §4.6 · `ee550ed` |
+| 40 | R1 | looptask | 100 | 100 | 100 | 100 | — | lint/test/双 build 绿 |
+| 50 | R1 | task_subagent | 100 | 60 | 100 | 100 | 100 | J-evidence warn: `_rsc` 未浏览器留证；reinspect warn 可 merge |
+| CLOSE | close | main_chat | 100 | 100 | 100 | 100 | 100 | HG-REINSPECT 人签 · git mv done |
+
+**blocked 原因**：（无）
+
+**关闭回溯**：见 `content/harness/reviews/task_portfolio_content_pages_v1_audit_R2_20260602.md` §执行路线与 Commit 回溯
 
 ---
 
