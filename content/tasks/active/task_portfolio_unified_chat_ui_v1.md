@@ -1,6 +1,6 @@
 # Task：Portfolio Unified Chat 展示裁剪（W4 · debug / 五问 chip）
 
-> **状态**：`ready_for_impl`（22 R1 放行 · 待 **HG-AUDIT-R1** `approved` → 30）  
+> **状态**：`in_progress`（30 帽实现中）  
 > **关联图谱**：`docs/_tech_graph/13_flow_components.md` · `12_flow_auth.md`（按需增量 `.ai.md`）  
 > **关联 Issue/PR**：（待开 · 基线分支 `task/portfolio-visitor-auth-v1` @ W3 `3d74537` · **暂不 PR**）  
 > **后端依赖**：无（只读 ChatBI `access/verify` 的 `access_level`；五问 E2E 归 **W6**）
@@ -41,7 +41,7 @@
 | human_gate_id | status    | blocks_hats | 说明           |
 | ------------- | --------- | ----------- | ------------ |
 | HG-TASK-DRAFT | approved  | 22-R1, 30   | 10 定稿后人批     |
-| HG-AUDIT-R1   | `pending` | 30          | 22 R1 书面通过后  |
+| HG-AUDIT-R1   | approved  | 30          | 22 R1 书面通过后  |
 | HG-REINSPECT  | `pending` | done        | 50 后 CLOSE 前 |
 
 
@@ -72,7 +72,7 @@ Epic Portfolio（`[SPEC-portfolio_demo_site_v1_zh.md](../specs/SPEC-portfolio_de
 | **写入时机**   | unlock 成功：`requestChatbiAccessVerify` 返回 `access_level` 后立即 `writeChatbiAccessLevel(level)` + React state                                                                      |
 | **读取时机**   | mount：`readChatbiToken()` 非空 → `readChatbiAccessLevel()`；若 level 缺失 → **静默 re-verify** 同一 token 补 level                                                                        |
 | **清除时机**   | `clearChatbiToken` / `clearAllBrowserAuthTokens` / 用户登出路径 **同步** `sessionStorage.removeItem`                                                                                   |
-| **档位映射**   | `access_level === 2` → **visitor** 档；`0 | 1` → **visitor-admin** 档；其他或 re-verify 失败 → portfolio 下 **保守 visitor**（隐藏 Timeline · 忽略 debug URL）                                   |
+| **档位映射**   | `access_level === 2` → **visitor** 档；`0 \| 1` → **visitor-admin** 档；其他或 re-verify 失败 → portfolio 下 **保守 visitor**（隐藏 Timeline · 忽略 debug URL） |
 | **辅助模块**   | `lib/unified-chat/portfolio-chat-tier.ts`（`resolvePortfolioChatTier(level)` · `portfolioDebugUrlAllowed` · `portfolioTimelineVisible` · `portfolioRouterDebugVisible` 恒 false） |
 | **API 扩展** | 在 `lib/chatbi-client.ts` 增加 `read/write/clearChatbiAccessLevel`；**不**改 BFF / Python                                                                                            |
 
@@ -97,7 +97,7 @@ Epic Portfolio（`[SPEC-portfolio_demo_site_v1_zh.md](../specs/SPEC-portfolio_de
 - **档位映射**：unlock / re-verify 后读取 `**access_level`** — `0|1` → visitor-admin；`2` → visitor（与 SPEC §4.4 / §6.6 表对齐）。
 - **五问 chip**：portfolio 模式（locked + unlocked）展示 **5 条**，文案与 SPEC §6.4 / 投递计划 §2 **提问列逐字一致**。
 - `**lib/unified-chat/portfolio-demo-chips.ts`**：五问常量 + `PORTFOLIO_DEMO_CHIPS` 导出（避免魔法字符串）。
-- `**lib/unified-chat/portfolio-chat-tier.ts**`：档位解析与 UI 布尔 helper。
+- `**lib/unified-chat/portfolio-chat-tier.ts`**：档位解析与 UI 布尔 helper。
 - `**lib/chatbi-client.ts**`：`access_level` sessionStorage 读写 + clear 联动。
 - 增量 `**docs/_tech_graph/13_flow_components*.md**`（Unified portfolio 分支）；按需 `_manifest`。
 - `**pnpm lint**` · `**pnpm test**` · `**pnpm build**` · `**NEXT_PUBLIC_SITE_MODE=portfolio pnpm build**` 绿。
