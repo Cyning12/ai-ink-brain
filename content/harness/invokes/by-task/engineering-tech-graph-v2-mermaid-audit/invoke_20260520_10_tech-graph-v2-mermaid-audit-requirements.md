@@ -56,7 +56,7 @@ ai-ink-brain/content/tasks/active/task_engineering_tech_graph_v2_ci_equivalence_
 无
 
 你必须完成：
-0. Invoke：更新 ai-ink-brain/content/harness/invokes/invoke_20260520_10_tech-graph-v2-mermaid-audit-requirements.md 修订记录（勿重复新建同名）。
+0. Invoke：更新 content/harness/invokes/by-task/engineering-tech-graph-v2-mermaid-audit/invoke_20260520_10_tech-graph-v2-mermaid-audit-requirements.mdby-task/engineering-tech-graph-v2-mermaid-audit/invoke_20260520_10_tech-graph-v2-mermaid-audit-requirements.md 修订记录（勿重复新建同名）。
 1. 在 task/tech-graph-v2-mermaid-audit-v1 新建 content/tasks/active/task_engineering_tech_graph_v2_mermaid_audit_v1.md（draft、test_strategy、failure_paths、freeze_id TECH_GRAPH_S2_FREEZE_20260519_V2_3、验收、非范围）。
 2. 结构化输出：背景/范围/非范围/依赖/验收/failure_paths/给执行帽必读；矛盾单独小节。
 3. test_strategy：required。

@@ -41,5 +41,5 @@ ai-ink-brain/content/harness/reviews/task_frontend_vercel_ai_sdk_main_stream_v1_
 5. 按 HANDOFF_AUTO_COMMIT.md 提交本轮复检工件。
 
 上一棒 invoke：
-ai-ink-brain/content/harness/invokes/invoke_20260520_40_frontend-vercel-ai-sdk-main-stream-self-check-r3.md
+content/harness/invokes/by-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_40_frontend-vercel-ai-sdk-main-stream-self-check-r3.mdby-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_40_frontend-vercel-ai-sdk-main-stream-self-check-r3.md
 ```

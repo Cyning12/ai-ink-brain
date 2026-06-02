@@ -17,16 +17,17 @@
 
 | 阶段 | 路径 |
 |------|------|
-| **历史（≤2026-05-20）** | 本目录根下 `invoke_*.md`（**只读** · 勿再新增） |
-| **新文件（2026-05-31 起）** | **`by-task/<task_slug>/invoke_*.md`** |
+| **历史（≤2026-05-20）** | 已迁至 `by-task/<task_slug>/`（见 [`MIGRATION_flat_invoke_index.md`](MIGRATION_flat_invoke_index.md) · 2026-06-02） |
+| **新文件（2026-05-31 起）** | **`by-task/<task_slug>/invoke_*.md`**（**唯一**合法路径） |
 
 **规则**：
 
 1. **`task_slug`** 与 task 文首 Harness 元信息一致（kebab-case）。  
-2. 同一帽多轮追问 **不** 重复落盘；换帽才新建文件。  
-3. 与 task 同 **`git_branch`** 提交；并行任务用独立 worktree（见工作区 `docs/harness/README.md` · 根 `AGENTS.md` §8）。  
-4. **22 审查** 结论 → `content/harness/reviews/`，**不** 写入 invoke。  
-5. **50 复检** → `content/tasks/reinspect_results/`。
+2. **禁止**在根目录新增 `invoke_*.md`。
+3. 同一帽多轮追问 **不** 重复落盘；换帽才新建文件。  
+4. 与 task 同 **`git_branch`** 提交；并行任务用独立 worktree（见工作区 `docs/harness/README.md` · 根 `AGENTS.md` §8）。  
+5. **22 审查** 结论 → `content/harness/reviews/`，**不** 写入 invoke。  
+6. **50 复检** → `content/tasks/reinspect_results/`。
 
 ---
 

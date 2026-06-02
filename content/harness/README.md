@@ -38,8 +38,8 @@ content/harness/
   README.md                 # 本文件
   invokes/
     README.md
-    invoke_*.md             # 历史扁平快照（只读 · 勿再新增）
-    by-task/<task_slug>/    # 新 invoke 唯一推荐路径
+    MIGRATION_flat_invoke_index.md   # 扁平 → by-task 索引（2026-06-02）
+    by-task/<task_slug>/             # invoke 唯一合法路径
   reviews/
     README.md
     task_*_audit_*.md       # 22 审查结论
@@ -56,7 +56,7 @@ content/harness/
 | **reviews** | `reviews/` 或 `reviews/by-task/<task_slug>/` | `task_<slug>_audit_R<轮次>_YYYYMMDD.md` |
 | **50** | `content/tasks/reinspect_results/` | `reinspect_<slug>_YYYYMMDD_vN.md` |
 
-**新落盘（2026-05-31 起）**：invoke **必须**进 `invokes/by-task/<task_slug>/`（与 task 文首 **`task_slug`** 一致）。根目录 `invokes/invoke_*.md` 为 P1-4 历史，**只读**。
+**新落盘（2026-05-31 起 · 2026-06-02 迁移完成）**：invoke **必须**进 `invokes/by-task/<task_slug>/`。根目录 **禁止** 新增 `invoke_*.md`；历史见 [`invokes/MIGRATION_flat_invoke_index.md`](invokes/MIGRATION_flat_invoke_index.md)。
 
 **当前 pilot slug**（5-3）：`chatbi-v3-lowconf-rag-preview-frontend` · 见 `content/tasks/active/task_chatbi_v3_lowconf_rag_preview_frontend_v1.md`。
 
@@ -131,4 +131,4 @@ content/harness/
 |------|------|
 | 2026-05-27 | P1-4 parity 对照表 |
 | 2026-05-31 | KPI v1.2 P0：§1–§5、by-task invoke、关账与 VERIFY |
-| 2026-06-01 | Portfolio W1 slug · 50 Prompt 对齐后端 PROMPT_50_startup |
+| 2026-06-02 | invokes 扁平 → by-task 迁移完成 · MIGRATION 索引 |

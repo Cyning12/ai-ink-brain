@@ -26,7 +26,7 @@
 - 实现 commit：23a053b（V-BUILD fix）；分支 tip 906a062
 - 验证命令：pnpm lint && pnpm test && pnpm build
 - 变更范围：git diff 393f877..HEAD（normalizeRequestHeaders + task 自检回填）
-- 上一棒 invoke：content/harness/invokes/invoke_20260520_30_frontend-vercel-ai-sdk-main-stream-vbuild-fix.md
+- 上一棒 invoke：content/harness/invokes/by-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_30_frontend-vercel-ai-sdk-main-stream-vbuild-fix.mdby-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_30_frontend-vercel-ai-sdk-main-stream-vbuild-fix.md
 
 你必须完成：
 1. 对照 task §9，对 PR2 子集做 R3 核对（执行帽已报 V-LINT/V-TEST/V-BUILD/V-PARSER/V-TRANSPORT pass；V-NET/V-RAG/V-ABORT 标未测或补 DevTools 证据）。

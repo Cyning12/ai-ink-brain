@@ -20,7 +20,7 @@
 - task：ai-ink-brain/content/tasks/active/task_frontend_vercel_ai_sdk_main_stream_v1.md
 - 分支：feat/unified-chat-ai-sdk-stream-v1
 - 阻塞：40 R2 记录 V-BUILD fail — chatbiSseTransport.ts normalizeRequestHeaders TS
-- 上一棒：content/harness/invokes/invoke_20260520_40_frontend-vercel-ai-sdk-main-stream-self-check-pr2.md
+- 上一棒：content/harness/invokes/by-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_40_frontend-vercel-ai-sdk-main-stream-self-check-pr2.mdby-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_40_frontend-vercel-ai-sdk-main-stream-self-check-pr2.md
 
 须：修复 TS → pnpm lint && pnpm test && pnpm build 全绿 → 更新 task「### 自检结论」V-BUILD → 输出下一棒 40 或 50 Prompt。
 ```

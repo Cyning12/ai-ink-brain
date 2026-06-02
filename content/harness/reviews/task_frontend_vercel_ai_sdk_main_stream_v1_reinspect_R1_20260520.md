@@ -7,9 +7,9 @@
 | **关联 task** | [`../../tasks/active/task_frontend_vercel_ai_sdk_main_stream_v1.md`](../../tasks/active/task_frontend_vercel_ai_sdk_main_stream_v1.md) |
 | **轮次** | 复检 R1（50 帽） |
 | **复检日期** | 2026-05-18 |
-| **invoke_snapshot（50 帽）** | [`../invokes/invoke_20260520_50_frontend-vercel-ai-sdk-main-stream-reinspect-pr2.md`](../invokes/invoke_20260520_50_frontend-vercel-ai-sdk-main-stream-reinspect-pr2.md) |
+| **invoke_snapshot（50 帽）** | [`../invokes/by-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_50_frontend-vercel-ai-sdk-main-stream-reinspect-pr2.md`](../invokes/by-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_50_frontend-vercel-ai-sdk-main-stream-reinspect-pr2.md) |
 | **任务审核 R1** | [`task_frontend_vercel_ai_sdk_main_stream_v1_audit_R1_20260520.md`](task_frontend_vercel_ai_sdk_main_stream_v1_audit_R1_20260520.md) |
-| **自检 invoke（40 · R3）** | [`../invokes/invoke_20260520_40_frontend-vercel-ai-sdk-main-stream-self-check-r3.md`](../invokes/invoke_20260520_40_frontend-vercel-ai-sdk-main-stream-self-check-r3.md) |
+| **自检 invoke（40 · R3）** | [`../invokes/by-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_40_frontend-vercel-ai-sdk-main-stream-self-check-r3.md`](../invokes/by-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_40_frontend-vercel-ai-sdk-main-stream-self-check-r3.md) |
 | **diff 范围** | `git diff 393f877..906a062`（transport `normalizeRequestHeaders` + task/invoke 文档）；实现修复 `23a053b` |
 | **复检 cwd / 分支** | `ai-ink-brain` · `feat/unified-chat-ai-sdk-stream-v1` · 复检时 tip `0ca3ef8` |
 

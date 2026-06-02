@@ -3,8 +3,8 @@
 > **状态**：`active`（**v0 已验收 · 待 PR 合 `main`**）  
 > **母单**：[`task_frontend_vercel_ai_sdk_main_stream_v1.md`](task_frontend_vercel_ai_sdk_main_stream_v1.md)（PR2 `useUnifiedChat` 已合 `main`）  
 > **分支**：`feat/unified-chat-typewriter-v0`  
-> **10 帽 invoke**：[`../harness/invokes/invoke_20260520_10_frontend-unified-chat-typewriter-v0.md`](../harness/invokes/invoke_20260520_10_frontend-unified-chat-typewriter-v0.md)  
-> **40 自检 invoke**：[`../harness/invokes/invoke_20260520_40_frontend-unified-chat-typewriter-v0-self-check.md`](../harness/invokes/invoke_20260520_40_frontend-unified-chat-typewriter-v0-self-check.md)
+> **10 帽 invoke**：[`../harness/content/harness/invokes/by-task/frontend-unified-chat-typewriter-v0/invoke_20260520_10_frontend-unified-chat-typewriter-v0.mdby-task/frontend-unified-chat-typewriter-v0/invoke_20260520_10_frontend-unified-chat-typewriter-v0.md`](../harness/content/harness/invokes/by-task/frontend-unified-chat-typewriter-v0/invoke_20260520_10_frontend-unified-chat-typewriter-v0.mdby-task/frontend-unified-chat-typewriter-v0/invoke_20260520_10_frontend-unified-chat-typewriter-v0.md)  
+> **40 自检 invoke**：[`../harness/content/harness/invokes/by-task/frontend-unified-chat-typewriter-v0/invoke_20260520_40_frontend-unified-chat-typewriter-v0-self-check.mdby-task/frontend-unified-chat-typewriter-v0/invoke_20260520_40_frontend-unified-chat-typewriter-v0-self-check.md`](../harness/content/harness/invokes/by-task/frontend-unified-chat-typewriter-v0/invoke_20260520_40_frontend-unified-chat-typewriter-v0-self-check.mdby-task/frontend-unified-chat-typewriter-v0/invoke_20260520_40_frontend-unified-chat-typewriter-v0-self-check.md)
 
 ---
 

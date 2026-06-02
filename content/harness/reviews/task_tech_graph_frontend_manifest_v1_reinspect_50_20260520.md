@@ -3,7 +3,7 @@
 | 项 | 内容 |
 |----|------|
 | **关联 task** | [`../tasks/active/task_engineering_tech_graph_frontend_manifest_v1.md`](../tasks/active/task_engineering_tech_graph_frontend_manifest_v1.md) |
-| **invoke** | [`../invokes/invoke_20260520_50_tech-graph-v2-frontend-manifest-reinspect.md`](../invokes/invoke_20260520_50_tech-graph-v2-frontend-manifest-reinspect.md) |
+| **invoke** | [`../invokes/by-task/frontend-tech-graph-v2-manifest/invoke_20260520_50_tech-graph-v2-frontend-manifest-reinspect.md`](../invokes/by-task/frontend-tech-graph-v2-manifest/invoke_20260520_50_tech-graph-v2-frontend-manifest-reinspect.md) |
 | **审查 R1** | `task_tech_graph_frontend_manifest_v1_audit_R1_20260520.md`（**本仓路径未入库**；见 worktree 同名校本） |
 | **复检日期** | 2026-05-20 |
 | **结论** | **不建议合并前端 PR**（须先 api-python `54c976b` → `main`）；本地实现与 40 帽一致，§6 除 CI/关账外 **pass** |

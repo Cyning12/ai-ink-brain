@@ -4,7 +4,7 @@
 > **类型**：前端图谱质量（`content/tasks/active/`）  
 > **关联 SPEC**：`content/tasks/specs/SPEC-tech_graph_v2_frontend_parity_v1.md` §4 W2、§8 T3、§11 顺序 5  
 > **关联路线图**：`docs/tech_graph/tasks/PRIORITY_ROADMAP_v1_zh.md` §2.2 **T3**（关账后 **必须** 按 §0 回填）  
-> **Invoke**：`content/harness/invokes/invoke_20260520_10_tech-graph-v2-mermaid-audit-requirements.md` · **30 执行**：`invoke_20260520_30_tech-graph-v2-mermaid-audit-execute.md`  
+> **Invoke**：`content/harness/invokes/by-task/engineering-tech-graph-v2-mermaid-audit/invoke_20260520_10_tech-graph-v2-mermaid-audit-requirements.mdby-task/engineering-tech-graph-v2-mermaid-audit/invoke_20260520_10_tech-graph-v2-mermaid-audit-requirements.md` · **30 执行**：`invoke_20260520_30_tech-graph-v2-mermaid-audit-execute.md`  
 > **git_branch**：`task/tech-graph-v2-mermaid-audit-v1`（**禁止** 与 T5 共用 `task/tech-graph-v2-frontend-manifest-v1`）  
 > **worktree_root**：`ai-ink-brain-wt-mermaid-audit`（相对 `Projects/`；git worktree；Cursor Open Folder 对准此目录；**禁止**在 `ai-ink-brain` 主 checkout 改图）  
 > **parity 基线**：含 commit `36acb5e`（或已合并 parity 的 `main` / `f4f77b5` 及以后）  
@@ -76,7 +76,7 @@
 | 实现规约 | `ai-ink-brain/docs/_tech_graph/99_spec.md` |
 | T1 / T2（已落地） | `ai-ink-brain/content/tasks/active/task_engineering_tech_graph_v2_docs_and_scripts_v1.md`、`task_engineering_tech_graph_v2_ci_equivalence_v1.md` |
 | 路线图 | `docs/tech_graph/tasks/PRIORITY_ROADMAP_v1_zh.md` §2、§0 |
-| 10 帽 Invoke | `ai-ink-brain/content/harness/invokes/invoke_20260520_10_tech-graph-v2-mermaid-audit-requirements.md` |
+| 10 帽 Invoke | `content/harness/invokes/by-task/engineering-tech-graph-v2-mermaid-audit/invoke_20260520_10_tech-graph-v2-mermaid-audit-requirements.mdby-task/engineering-tech-graph-v2-mermaid-audit/invoke_20260520_10_tech-graph-v2-mermaid-audit-requirements.md` |
 | 导出/等价脚本 | `ai-ink-brain-api-python/tools/tech_graph_graph_export.py`、`tech_graph_graph_equivalence_check.py`（经 `pnpm tech-graph:*` 调用） |
 
 ---
@@ -133,7 +133,7 @@
 
 | 项 | 内容 |
 | --- | --- |
-| 涉及文件 | `docs/_tech_graph/{00_main,10_flow_route,11_flow_api,12_flow_auth,13_flow_components}.{ai.md,md}`、`02_version.md`、`graph.json`；`content/harness/invokes/invoke_20260520_30_*.md`；本 task → `done/` |
+| 涉及文件 | `docs/_tech_graph/{00_main,10_flow_route,11_flow_api,12_flow_auth,13_flow_components}.{ai.md,md}`、`02_version.md`、`graph.json`；`content/harness/invokes/by-task/engineering-tech-graph-v2-mermaid-audit/invoke_20260520_30_*.md`；本 task → `done/` |
 | 基线 equivalence | 修图前已绿：**anchor 100%**、**label 100%**、topology_ok=true、exit **0**；freeze_id 未变 |
 | 每图修复摘要 | **00_main**：裸边 0，锚点 +0（已合规）。**10_flow_route**：裸边 0，锚点 **+22**（HOME_LINKS/NAV_ITEMS/FILTER/PAGE 分支）。**11_flow_api**：裸边 0，锚点 +0。**12_flow_auth**：裸边 0，锚点 **+8**（Unlock/Session/Gate 主干）。**13_flow_components**：裸边 0，锚点 **+4**（CP→MD/SC、CCP/T2P→SID）。人读轨 `.md` 与 `.ai.md` 语义一致，未改流程 |
 | PR / CI | 分支 `task/tech-graph-v2-mermaid-audit-v1` · worktree `ai-ink-brain-wt-mermaid-audit`；未改 `package.json`/`quality.yml`；`pnpm tech-graph:*` 全绿 |
@@ -179,7 +179,7 @@
 ai-ink-brain/content/tasks/active/task_engineering_tech_graph_v2_mermaid_audit_v1.md
 
 【关联】
-- Invoke：ai-ink-brain/content/harness/invokes/invoke_20260520_10_tech-graph-v2-mermaid-audit-requirements.md
+- Invoke：content/harness/invokes/by-task/engineering-tech-graph-v2-mermaid-audit/invoke_20260520_10_tech-graph-v2-mermaid-audit-requirements.mdby-task/engineering-tech-graph-v2-mermaid-audit/invoke_20260520_10_tech-graph-v2-mermaid-audit-requirements.md
 - SPEC：ai-ink-brain/content/tasks/specs/SPEC-tech_graph_v2_frontend_parity_v1.md §4 W2
 - HARNESS_V2_PLAN.md §5（test_strategy: required、failure_paths）
 

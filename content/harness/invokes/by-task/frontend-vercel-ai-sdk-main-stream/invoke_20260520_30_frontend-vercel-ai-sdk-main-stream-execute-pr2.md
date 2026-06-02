@@ -25,7 +25,7 @@
 - 分支（已存在）：feat/unified-chat-ai-sdk-stream-v1
 - 验证：pnpm lint && pnpm test && pnpm build
 - 审核：ai-ink-brain/content/harness/reviews/task_frontend_vercel_ai_sdk_main_stream_v1_audit_R1_20260520.md
-- 上一节 invoke：ai-ink-brain/content/harness/invokes/invoke_20260520_30_frontend-vercel-ai-sdk-main-stream-execute.md
+- 上一节 invoke：content/harness/invokes/by-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_30_frontend-vercel-ai-sdk-main-stream-execute.mdby-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_30_frontend-vercel-ai-sdk-main-stream-execute.md
 - SPEC（只读）：ai-ink-brain-api-python/docs/spec/v2-agent/SPEC-ChatBI-V2-Incremental-SSE-Timeline-vNext.md、SPEC-ChatBI-V2-Events.md
 
 本轮范围（PR2 / T2 Phase 1）：
