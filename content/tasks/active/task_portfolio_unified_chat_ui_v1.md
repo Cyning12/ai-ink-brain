@@ -1,6 +1,6 @@
 # Task：Portfolio Unified Chat 展示裁剪（W4 · debug / 五问 chip）
 
-> **状态**：`draft`（10 帽定稿 · 待 **HG-TASK-DRAFT** `approved`）  
+> **状态**：`ready_for_impl`（22 R1 放行 · 待 **HG-AUDIT-R1** `approved` → 30）  
 > **关联图谱**：`docs/_tech_graph/13_flow_components.md` · `12_flow_auth.md`（按需增量 `.ai.md`）  
 > **关联 Issue/PR**：（待开 · 基线分支 `task/portfolio-visitor-auth-v1` @ W3 `3d74537` · **暂不 PR**）  
 > **后端依赖**：无（只读 ChatBI `access/verify` 的 `access_level`；五问 E2E 归 **W6**）
