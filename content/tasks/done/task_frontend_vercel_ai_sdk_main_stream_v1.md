@@ -1,14 +1,14 @@
 # Task：主流程流式体验 — 迁移 Vercel AI SDK（面试演示核心路径）
 
 > **状态**：`done（2026-05-21 验收通过）`
-> **执行帽 invoke（30 · PR3）**：`content/harness/invokes/invoke_20260521_30_frontend-vercel-ai-sdk-pr3-timeline.md`  
-> **执行帽 invoke（30）**：`content/harness/invokes/invoke_20260520_30_frontend-vercel-ai-sdk-main-stream-execute.md`  
+> **执行帽 invoke（30 · PR3）**：`content/harness/invokes/by-task/frontend-vercel-ai-sdk-main-stream/invoke_20260521_30_frontend-vercel-ai-sdk-pr3-timeline.mdby-task/frontend-vercel-ai-sdk-main-stream/invoke_20260521_30_frontend-vercel-ai-sdk-pr3-timeline.md`  
+> **执行帽 invoke（30）**：`content/harness/invokes/by-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_30_frontend-vercel-ai-sdk-main-stream-execute.mdby-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_30_frontend-vercel-ai-sdk-main-stream-execute.md`  
 > **登记日期**：2026-05-20  
 > **需求帽回填**：2026-05-20  
 > **任务审核 R1**：`content/harness/reviews/task_frontend_vercel_ai_sdk_main_stream_v1_audit_R1_20260520.md`（工作区指针：`docs/harness/reviews/pointer_task_frontend_vercel_ai_sdk_main_stream_v1_audit_R1_20260520.md`）  
 > **分支建议**：`feat/unified-chat-ai-sdk-stream-v1`（自 `main`；当前文档分支 `docs/vercel-ai-sdk-streaming-backlog-v1` 仅含 Harness 落盘）  
-> **需求帽 invoke**：`content/harness/invokes/invoke_20260520_10_frontend-vercel-ai-sdk-main-stream-requirements.md`  
-> **审核帽 invoke**：`content/harness/invokes/invoke_20260520_22_frontend-vercel-ai-sdk-main-stream-audit.md`  
+> **需求帽 invoke**：`content/harness/invokes/by-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_10_frontend-vercel-ai-sdk-main-stream-requirements.md`（**未入库** · 审查全文为准）  
+> **审核帽 invoke**：`content/harness/invokes/by-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_22_frontend-vercel-ai-sdk-main-stream-audit.md`（**未入库** · 审查全文为准）  
 > **关联图谱**：`docs/_tech_graph/11_flow_api.md`、`13_flow_components.md`（Unified SSE 段）  
 > **配对后端**：`POST /api/py/unified/chat/stream`（契约 **`X-ChatBI-Sse-Contract: 2`**，事件 `chain` / `done`）— **本阶段不要求改 Python 协议**
 
@@ -267,9 +267,9 @@
 | 分支 | `feat/unified-chat-ai-sdk-stream-v1` |
 | 实现 HEAD | **`62e85fb`**（PR3 代码）；自检复跑时工作树 **`73d9252`**（+1 仅 task 回填，无业务 diff） |
 | 本轮范围 | **PR3（T3 Timeline hook + 瘦身）· 40 帽自检** |
-| 执行帽 invoke | `content/harness/invokes/invoke_20260521_30_frontend-vercel-ai-sdk-pr3-timeline.md` |
+| 执行帽 invoke | `content/harness/invokes/by-task/frontend-vercel-ai-sdk-main-stream/invoke_20260521_30_frontend-vercel-ai-sdk-pr3-timeline.mdby-task/frontend-vercel-ai-sdk-main-stream/invoke_20260521_30_frontend-vercel-ai-sdk-pr3-timeline.md` |
 | `UnifiedChatPageClient.tsx` 行数 | **923**（目标 ≤1200；SSE 逻辑 100% 在 `lib/unified-chat/`；页面无 `ReadableStream`/`parseSseBlocks`） |
-| 上一棒 PR2 自检 | `content/harness/invokes/invoke_20260520_40_frontend-vercel-ai-sdk-main-stream-self-check-r3.md` |
+| 上一棒 PR2 自检 | `content/harness/invokes/by-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_40_frontend-vercel-ai-sdk-main-stream-self-check-r3.mdby-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_40_frontend-vercel-ai-sdk-main-stream-self-check-r3.md` |
 
 #### 命令与退出码（40 · PR3 · 2026-05-21）
 

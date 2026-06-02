@@ -33,7 +33,7 @@ ai-ink-brain-api-python/docs/spec/v2-agent/SPEC-ChatBI-V2-Incremental-SSE-Timeli
 ai-ink-brain-api-python/docs/spec/v2-agent/SPEC-ChatBI-V2-Events.md
 
 你必须完成：
-0. **Invoke 快照（开帽起点）**：在输出下列第 1 条起的实质性结果之前，先将 **本用户消息全文** 落盘至 `ai-ink-brain/content/harness/invokes/invoke_YYYYMMDD_30_frontend-vercel-ai-sdk-main-stream-execute.md`（元数据表 + fenced 快照；规则见 `docs/harness/invokes/README.md`）。同一会话内追问 **不** 再新增快照文件。
+0. **Invoke 快照（开帽起点）**：在输出下列第 1 条起的实质性结果之前，先将 **本用户消息全文** 落盘至 `ai-ink-brain/content/harness/invokes/by-task/frontend-vercel-ai-sdk-main-stream/invoke_YYYYMMDD_30_frontend-vercel-ai-sdk-main-stream-execute.md`（元数据表 + fenced 快照；规则见 `docs/harness/invokes/README.md`）。同一会话内追问 **不** 再新增快照文件。
 0b. **人工闸**：扫描 task / 关联 reviews 的 `human_gate`（见 `docs/harness/prompts/HANDOFF_SEMI_AUTO.md`）。若任一对 **本帽（30）** 为 `pending` → 仅输出须人改的 `gate_id` 与路径，**拒开工**。
 1. 从 `main` 切分支 **`feat/unified-chat-ai-sdk-stream-v1`**（勿在纯 docs 分支上叠业务 PR）。
 2. 通读 task §11–§13、done `task_frontend_unified_chat_streaming_sse_v1.md`；vNext SPEC **只读不实现** `single_panel`。

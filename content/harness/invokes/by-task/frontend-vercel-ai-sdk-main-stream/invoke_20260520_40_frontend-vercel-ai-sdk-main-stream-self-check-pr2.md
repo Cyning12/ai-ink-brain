@@ -25,7 +25,7 @@
 - 分支：feat/unified-chat-ai-sdk-stream-v1
 - 实现 commit：4ea7cef（PR2 Phase 1）
 - 验证命令：pnpm lint && pnpm test && pnpm build
-- 上一棒 invoke：ai-ink-brain/content/harness/invokes/invoke_20260520_30_frontend-vercel-ai-sdk-main-stream-execute-pr2.md
+- 上一棒 invoke：content/harness/invokes/by-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_30_frontend-vercel-ai-sdk-main-stream-execute-pr2.mdby-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_30_frontend-vercel-ai-sdk-main-stream-execute-pr2.md
 
 你必须完成：
 1. 对照 task §9 验收表，逐条核对 PR2 范围（V-TRANSPORT 已有 vitest；V-NET / V-RAG / V-ABORT 等人测标「未测」或补 DevTools 证据）。

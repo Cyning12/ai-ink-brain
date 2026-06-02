@@ -7,8 +7,8 @@
 | **关联 task** | [`../../tasks/active/task_frontend_vercel_ai_sdk_main_stream_v1.md`](../../tasks/active/task_frontend_vercel_ai_sdk_main_stream_v1.md) |
 | **轮次** | R1 |
 | **审查日期** | 2026-05-20 |
-| **invoke_snapshot（22 帽）** | [`../invokes/invoke_20260520_22_frontend-vercel-ai-sdk-main-stream-audit.md`](../invokes/invoke_20260520_22_frontend-vercel-ai-sdk-main-stream-audit.md) |
-| **需求帽 invoke** | [`../invokes/invoke_20260520_10_frontend-vercel-ai-sdk-main-stream-requirements.md`](../invokes/invoke_20260520_10_frontend-vercel-ai-sdk-main-stream-requirements.md) |
+| **invoke_snapshot（22 帽）** | `../invokes/by-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_22_frontend-vercel-ai-sdk-main-stream-audit.md`（**未入库** · 本 review 全文为准） |
+| **需求帽 invoke** | `../invokes/by-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_10_frontend-vercel-ai-sdk-main-stream-requirements.md`（**未入库**） |
 | **上一轮审查** | 无 |
 | **关联 SPEC** | `ai-ink-brain-api-python/docs/spec/v2-agent/SPEC-ChatBI-V2-Incremental-SSE-Timeline-vNext.md`、`ai-ink-brain-api-python/docs/spec/v2-agent/SPEC-ChatBI-V2-Events.md` |
 | **对照规约** | `docs/harness/prompts/22-task-audit.md`、`docs/harness/HARNESS_V2_PLAN.md` §5（工作区根） |

@@ -9,7 +9,7 @@
 | **轮次** | R1 |
 | **审查日期** | 2026-05-20 |
 | **slug** | `engineering_tech_graph_v2_mermaid_audit_v1` |
-| **invoke_snapshot（10 帽）** | [`../invokes/invoke_20260520_10_tech-graph-v2-mermaid-audit-requirements.md`](../invokes/invoke_20260520_10_tech-graph-v2-mermaid-audit-requirements.md) |
+| **invoke_snapshot（10 帽）** | [`../invokes/by-task/engineering-tech-graph-v2-mermaid-audit/invoke_20260520_10_tech-graph-v2-mermaid-audit-requirements.md`](../invokes/by-task/engineering-tech-graph-v2-mermaid-audit/invoke_20260520_10_tech-graph-v2-mermaid-audit-requirements.md) |
 | **上一轮审查** | 无 |
 | **对照规约** | `docs/harness/prompts/22-task-audit.md`、`docs/harness/HARNESS_V2_PLAN.md` §5（工作区根） |
 | **建议分支** | `task/tech-graph-v2-mermaid-audit-v1`（**禁止** 与 T5 共用 `task/tech-graph-v2-frontend-manifest-v1`） |

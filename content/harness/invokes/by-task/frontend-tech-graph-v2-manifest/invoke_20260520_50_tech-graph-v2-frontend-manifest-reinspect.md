@@ -10,7 +10,7 @@
 | worktree_root | **ai-ink-brain** |
 | diff_note | 前端 `git diff origin/main...HEAD`；api-python `54c976b` vs `main`（`tools/tech_graph_manifest_check.py`） |
 | created | 2026-05-20 CST |
-| prev_invoke | content/harness/invokes/invoke_20260520_40_tech-graph-v2-frontend-manifest-self-check.md |
+| prev_invoke | content/harness/invokes/by-task/frontend-tech-graph-v2-manifest/invoke_20260520_40_tech-graph-v2-frontend-manifest-self-check.mdby-task/frontend-tech-graph-v2-manifest/invoke_20260520_40_tech-graph-v2-frontend-manifest-self-check.md |
 
 ## 可复制 Prompt 快照（与对话首条 user 一致）
 
@@ -28,12 +28,12 @@
 - 任务审核书面结论路径：ai-ink-brain/content/harness/reviews/task_tech_graph_frontend_manifest_v1_audit_R1_20260520.md
 
 你必须完成：
-0. Invoke 落盘：content/harness/invokes/invoke_20260520_50_tech-graph-v2-frontend-manifest-reinspect.md（同会话追问不重复）
+0. Invoke 落盘：content/harness/invokes/by-task/frontend-tech-graph-v2-manifest/invoke_20260520_50_tech-graph-v2-frontend-manifest-reinspect.mdby-task/frontend-tech-graph-v2-manifest/invoke_20260520_50_tech-graph-v2-frontend-manifest-reinspect.md（同会话追问不重复）
 1. 读取 task「### 自检结论（执行者）」；对 §6 每条输出 pass/fail + 证据（含 PR CI 若可 gh 查询）
 2. 重点：跨仓合并顺序（api-python main 是否含 --repo frontend）；quality.yml manifest step 与 40 帽结论一致性
 3. 汇总是否建议合并；阻塞项清单
 4. 无返工且人签后 → HANDOFF_CLOSE_TRACE；有返工 → 打回 30/40 的下一棒 Prompt
 5. 按 HANDOFF_AUTO_COMMIT 分仓 commit
 
-上一节 invoke（40）：content/harness/invokes/invoke_20260520_40_tech-graph-v2-frontend-manifest-self-check.md
+上一节 invoke（40）：content/harness/invokes/by-task/frontend-tech-graph-v2-manifest/invoke_20260520_40_tech-graph-v2-frontend-manifest-self-check.mdby-task/frontend-tech-graph-v2-manifest/invoke_20260520_40_tech-graph-v2-frontend-manifest-self-check.md
 ```

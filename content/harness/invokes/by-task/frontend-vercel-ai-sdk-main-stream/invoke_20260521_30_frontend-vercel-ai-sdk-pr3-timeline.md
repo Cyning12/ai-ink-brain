@@ -10,7 +10,7 @@
 | worktree_root | **ai-ink-brain** |
 | verify_command | pnpm lint && pnpm test && pnpm exec vitest run lib/unified-chat/sse lib/unified-chat/transport && pnpm build |
 | created | 2026-05-21 CST |
-| prev_invoke | content/harness/invokes/invoke_20260520_30_frontend-vercel-ai-sdk-main-stream-execute.md |
+| prev_invoke | content/harness/invokes/by-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_30_frontend-vercel-ai-sdk-main-stream-execute.mdby-task/frontend-vercel-ai-sdk-main-stream/invoke_20260520_30_frontend-vercel-ai-sdk-main-stream-execute.md |
 
 ## 背景
 

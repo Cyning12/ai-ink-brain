@@ -11,7 +11,7 @@
 | verify_command | `pnpm tech-graph:manifest-check && pnpm tech-graph:graph-check && pnpm tech-graph:equivalence-check && pnpm lint && pnpm test && pnpm build` |
 | diff_note | api-python @ 54c976b（--repo frontend）；本地 sibling `../ai-ink-brain-api-python` main 工作区含同内容未提交改动；CI checkout 后端 main 须先合并 api-python PR |
 | created | 2026-05-20 CST |
-| prev_invoke | content/harness/invokes/invoke_20260520_30_tech-graph-v2-frontend-manifest-execute.md |
+| prev_invoke | content/harness/invokes/by-task/frontend-tech-graph-v2-manifest/invoke_20260520_30_tech-graph-v2-frontend-manifest-execute.mdby-task/frontend-tech-graph-v2-manifest/invoke_20260520_30_tech-graph-v2-frontend-manifest-execute.md |
 
 ## 可复制 Prompt 快照（与对话首条 user 一致）
 
@@ -28,12 +28,12 @@
 - 变更范围说明：api-python @ 54c976b（--repo frontend）；前端分支 task/tech-graph-v2-frontend-manifest-v1 含 manifest/CI；本地 sibling `../ai-ink-brain-api-python` 须与已合并 main 或 worktree 脚本一致后再验
 
 你必须完成：
-0. Invoke 落盘：content/harness/invokes/invoke_20260520_40_tech-graph-v2-frontend-manifest-self-check.md（同会话追问不重复）
+0. Invoke 落盘：content/harness/invokes/by-task/frontend-tech-graph-v2-manifest/invoke_20260520_40_tech-graph-v2-frontend-manifest-self-check.mdby-task/frontend-tech-graph-v2-manifest/invoke_20260520_40_tech-graph-v2-frontend-manifest-self-check.md（同会话追问不重复）
 1. 逐条跑验收命令并给 exit code / 关键输出
 2. 验收表 pass/fail + 证据
 3. 复核/更新 task「### 自检结论（执行者）」
 4. 下一棒：50 独立复检 或 关账（HG-AUDIT-CLOSE 若已设闸）
 5. 按 HANDOFF_AUTO_COMMIT 分仓 commit
 
-上一节 invoke（30）：content/harness/invokes/invoke_20260520_30_tech-graph-v2-frontend-manifest-execute.md
+上一节 invoke（30）：content/harness/invokes/by-task/frontend-tech-graph-v2-manifest/invoke_20260520_30_tech-graph-v2-frontend-manifest-execute.mdby-task/frontend-tech-graph-v2-manifest/invoke_20260520_30_tech-graph-v2-frontend-manifest-execute.md
 ```

@@ -3,7 +3,7 @@
 > **状态**：`done（2026-05-20 · PR #36 → main · b9a5ccd）`  
 > **关联 SPEC**：`content/tasks/specs/SPEC-tech_graph_v2_frontend_parity_v1.md` §4 W6、§8 T5、§11 顺序 6  
 > **关联图谱**：`docs/_tech_graph/99_spec.md`、`00_main.ai.md`、`10_flow_route.ai.md`、`11_flow_api.ai.md`  
-> **invoke_snapshot**：`content/harness/invokes/invoke_20260520_10_tech-graph-v2-frontend-manifest-requirements.md`  
+> **invoke_snapshot**：`content/harness/invokes/by-task/frontend-tech-graph-v2-manifest/invoke_20260520_10_tech-graph-v2-frontend-manifest-requirements.mdby-task/frontend-tech-graph-v2-manifest/invoke_20260520_10_tech-graph-v2-frontend-manifest-requirements.md`  
 > **路线图**：`docs/tech_graph/tasks/PRIORITY_ROADMAP_v1_zh.md` §2.2 **T5**（关账后 §0 回填）  
 > **git_branch**：`task/tech-graph-v2-frontend-manifest-v1`  
 > **worktree_root**：`ai-ink-brain`（相对工作区根 `Projects/`；所有 git/pnpm 默认 cwd；并行 T3 见 `ai-ink-brain-wt-mermaid-audit`）  
@@ -161,8 +161,8 @@
 | 执行日期 | 2026-05-20（40 帽复跑；30 帽结论保留在下文） |
 | 分支 | `task/tech-graph-v2-frontend-manifest-v1`（`ai-ink-brain`）；api-python 脚本 **`54c976b`**（`task/tech-graph-v2-frontend-manifest-v1`，**未**合 `main`） |
 | cwd | `Projects/ai-ink-brain` |
-| invoke_snapshot（40） | `content/harness/invokes/invoke_20260520_40_tech-graph-v2-frontend-manifest-self-check.md` |
-| invoke_snapshot（30） | `content/harness/invokes/invoke_20260520_30_tech-graph-v2-frontend-manifest-execute.md` |
+| invoke_snapshot（40） | `content/harness/invokes/by-task/frontend-tech-graph-v2-manifest/invoke_20260520_40_tech-graph-v2-frontend-manifest-self-check.mdby-task/frontend-tech-graph-v2-manifest/invoke_20260520_40_tech-graph-v2-frontend-manifest-self-check.md` |
+| invoke_snapshot（30） | `content/harness/invokes/by-task/frontend-tech-graph-v2-manifest/invoke_20260520_30_tech-graph-v2-frontend-manifest-execute.mdby-task/frontend-tech-graph-v2-manifest/invoke_20260520_30_tech-graph-v2-frontend-manifest-execute.md` |
 | 审查 R1 | `content/harness/reviews/task_tech_graph_frontend_manifest_v1_audit_R1_20260520.md` |
 
 **命令与退出码（40 帽 · cwd=`ai-ink-brain`）**

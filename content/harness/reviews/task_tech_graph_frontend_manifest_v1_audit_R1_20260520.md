@@ -9,7 +9,7 @@
 | **轮次** | R1 |
 | **审查日期** | 2026-05-20 |
 | **slug** | `tech_graph_frontend_manifest_v1` |
-| **invoke_snapshot（10 帽）** | [`../invokes/invoke_20260520_10_tech-graph-v2-frontend-manifest-requirements.md`](../invokes/invoke_20260520_10_tech-graph-v2-frontend-manifest-requirements.md) |
+| **invoke_snapshot（10 帽）** | [`../invokes/by-task/frontend-tech-graph-v2-manifest/invoke_20260520_10_tech-graph-v2-frontend-manifest-requirements.md`](../invokes/by-task/frontend-tech-graph-v2-manifest/invoke_20260520_10_tech-graph-v2-frontend-manifest-requirements.md) |
 | **上一轮审查** | 无 |
 | **对照规约** | `docs/harness/prompts/22-task-audit.md`、`docs/harness/HARNESS_V2_PLAN.md` §5（工作区根） |
 | **建议分支** | `task/tech-graph-v2-frontend-manifest-v1`（前端）；后端扩展同主题分支或独立 `api-python` PR |
