@@ -173,16 +173,15 @@ Epic Portfolio（`[SPEC-portfolio_demo_site_v1_zh.md](../specs/SPEC-portfolio_de
 
 ---
 
-## 实现备忘（30 帽回填）
+## 实现备忘（30 帽回填 · 2026-06-02）
 
 
 | 项              | 内容                                                                                                                                                                       |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 涉及文件           | `UnifiedChatPageClient.tsx` · `lib/unified-chat/portfolio-demo-chips.ts` · `lib/unified-chat/portfolio-chat-tier.ts` · `lib/chatbi-client.ts` · `13_flow_components*.md` |
 | 档位状态           | sessionStorage `chatbi_access_level`；与 token 同清；mount re-verify 补 level                                                                                                  |
-| 条件渲染锚点         | `portfolio && !portfolioRouterDebugVisible(tier)` 包 Router Debug 整块；`portfolio && portfolioTimelineVisible(tier)` 控制双栏 Timeline/Trace                                    |
-| `debugEnabled` | development：`debugFromUrl`；portfolio visitor：恒 false；portfolio admin：`debugFromUrl`                                                                                      |
-| 图谱变更点          | `docs/_tech_graph/13_flow_components.md` + `.ai.md` portfolio 分支节点                                                                                                       |
+| 条件渲染锚点         | `showRouterDebug` · `showTimelinePanels` · `debugUrlAllowed` / `debugEnabled`                                                                                              |
+| commit         | （30 帽 feat commit · 本分支）                                                                                                                                                |
 
 
 ---

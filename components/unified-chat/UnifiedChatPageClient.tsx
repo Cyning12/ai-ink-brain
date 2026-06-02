@@ -5,8 +5,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ChatHistoryRow } from "@/lib/chat/chatApi";
 import { fetchChatHistory } from "@/lib/chat/chatApi";
 import {
+  readChatbiAccessLevel,
   readChatbiToken,
   requestChatbiAccessVerify,
+  writeChatbiAccessLevel,
   writeChatbiToken,
 } from "@/lib/chatbi-client";
 import { useSessionId } from "@/lib/hooks/useSessionId";
@@ -25,6 +27,16 @@ import { buildExecutionTraceCopyText } from "@/lib/unified-chat/executionTrace";
 import { useTypewriterReveal } from "@/lib/unified-chat/hooks/useTypewriterReveal";
 import { useUnifiedChatStream } from "@/lib/unified-chat/hooks/useUnifiedChatStream";
 import { safeStringify } from "@/lib/unified-chat/stringify";
+import {
+  DEVELOPMENT_SUGGESTED_PROMPTS,
+  PORTFOLIO_DEMO_CHIPS,
+} from "@/lib/unified-chat/portfolio-demo-chips";
+import {
+  portfolioDebugUrlAllowed,
+  portfolioRouterDebugVisible,
+  portfolioTimelineVisible,
+  resolvePortfolioChatTier,
+} from "@/lib/unified-chat/portfolio-chat-tier";
 
 type PreferMode = "auto" | "rag" | "text2sql";
 
@@ -64,6 +76,9 @@ export function UnifiedChatPageClient() {
   /** 假登录：仅 ChatBI DB 明文；校验在「解锁」按钮触发 */
   const [credentialInput, setCredentialInput] = useState("");
   const [chatbiToken, setChatbiToken] = useState("");
+  const [accessLevel, setAccessLevel] = useState<number | null>(null);
+  /** re-verify 失败时 portfolio 保守 visitor，可选提示（F5） */
+  const [tierUnknownHint, setTierUnknownHint] = useState(false);
   const [unlockBusy, setUnlockBusy] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
   const tokenInputRef = useRef<HTMLInputElement | null>(null);
@@ -111,7 +126,28 @@ export function UnifiedChatPageClient() {
   useEffect(() => {
     setMounted(true);
     setChatbiToken(readChatbiToken());
+    setAccessLevel(readChatbiAccessLevel());
   }, []);
+
+  /** token 在 LS 但 level 缺失时静默 re-verify（10 帽定稿） */
+  useEffect(() => {
+    if (!mounted) return;
+    const token = readChatbiToken().trim();
+    if (!token) return;
+    if (readChatbiAccessLevel() != null) return;
+
+    void (async () => {
+      const gate = await requestChatbiAccessVerify({ plain: token });
+      if (gate.ok) {
+        writeChatbiAccessLevel(gate.access_level);
+        setAccessLevel(gate.access_level);
+        setTierUnknownHint(false);
+      } else {
+        setTierUnknownHint(true);
+        setAccessLevel(-1);
+      }
+    })();
+  }, [mounted]);
 
   useEffect(() => {
     if (mounted && locked) tokenInputRef.current?.focus();
@@ -165,7 +201,18 @@ export function UnifiedChatPageClient() {
     setDebugFromUrl(on);
   }, []);
 
-  const debugEnabled = debugFromUrl;
+  const portfolioTier = useMemo(
+    () => resolvePortfolioChatTier(accessLevel),
+    [accessLevel],
+  );
+  const showTimelinePanels = !portfolio || portfolioTimelineVisible(portfolioTier);
+  const debugUrlAllowed = !portfolio || portfolioDebugUrlAllowed(portfolioTier);
+  const showRouterDebug = !portfolio || portfolioRouterDebugVisible();
+  const suggestedChips = portfolio
+    ? PORTFOLIO_DEMO_CHIPS.map((c) => c.label)
+    : [...DEVELOPMENT_SUGGESTED_PROMPTS];
+
+  const debugEnabled = debugUrlAllowed && debugFromUrl;
 
   const handlePlanPreviewChain = useCallback(
     (ev: ChainEvent, roundEvents: ChainEvent[]) => {
@@ -540,7 +587,10 @@ export function UnifiedChatPageClient() {
                       return;
                     }
                     writeChatbiToken(plain);
+                    writeChatbiAccessLevel(gate.access_level);
                     setChatbiToken(plain);
+                    setAccessLevel(gate.access_level);
+                    setTierUnknownHint(false);
                     setCredentialInput("");
                   } finally {
                     setUnlockBusy(false);
@@ -551,10 +601,41 @@ export function UnifiedChatPageClient() {
             >
               {unlockBusy ? "校验中…" : "解锁"}
             </button>
+            {portfolio ? (
+              <div className="space-y-2 border-t border-[color:var(--color-border)] pt-3">
+                <div className="text-[11px] text-slate-500">推荐问法（解锁后可发送）</div>
+                <div className="flex flex-wrap gap-2">
+                  {PORTFOLIO_DEMO_CHIPS.map((chip) => (
+                    <button
+                      key={chip.id}
+                      type="button"
+                      onClick={() => setDraft(chip.label)}
+                      className="rounded-full border border-[color:var(--color-border)] bg-[#f9f9f7] px-3 py-1.5 text-[11px] text-slate-700 hover:bg-white/70"
+                    >
+                      {chip.label}
+                    </button>
+                  ))}
+                </div>
+                {draft.trim() ? (
+                  <textarea
+                    readOnly
+                    value={draft}
+                    rows={2}
+                    className="w-full resize-none rounded-xl border border-dashed border-[color:var(--color-border)] bg-white/50 px-3 py-2 text-sm text-slate-600"
+                    placeholder="点击上方 chip 可预览问题…"
+                  />
+                ) : null}
+              </div>
+            ) : null}
           </div>
         </section>
       ) : (
         <>
+          {portfolio && tierUnknownHint ? (
+            <p className="text-[12px] leading-relaxed text-amber-800/90">
+              档位未知，已按访客视图展示（Timeline / 调试 URL 已隐藏）。请重新解锁或稍后重试。
+            </p>
+          ) : null}
           <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40 px-4 py-3">
             <div className="flex flex-wrap items-end gap-4">
               <div className="min-w-0 flex-1 space-y-2 text-[11px] text-slate-600">
@@ -590,6 +671,7 @@ export function UnifiedChatPageClient() {
                   <option value="text2sql">text2sql</option>
                 </select>
               </label>
+              {debugUrlAllowed ? (
               <div className="flex shrink-0 flex-col gap-1">
                 <span className="text-[11px] text-slate-500">页面调试</span>
                 {debugEnabled ? (
@@ -612,6 +694,7 @@ export function UnifiedChatPageClient() {
                   </button>
                 )}
               </div>
+              ) : null}
             </div>
           </section>
 
@@ -682,11 +765,13 @@ export function UnifiedChatPageClient() {
             </section>
           ) : null}
 
-          {/* Timeline（左）| 执行链路 + Timeline 输出（右）：固定左右双栏 */}
+          {/* Timeline（左）| 执行链路（右）：portfolio visitor 档隐藏 */}
+          {showTimelinePanels ? (
           <div className="grid min-h-0 grid-cols-2 gap-4 [&>section]:min-w-0">
             {timelineSection}
             {executionLinkSection}
           </div>
+          ) : null}
 
           <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
             <div className="border-b border-[color:var(--color-border)] px-4 py-3">
@@ -739,6 +824,7 @@ export function UnifiedChatPageClient() {
           </section>
 
           <section className="space-y-3 rounded-2xl border border-[color:var(--color-border)] bg-white/40 px-4 py-4">
+            {showRouterDebug ? (
             <div className="rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/70 p-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
@@ -771,6 +857,7 @@ export function UnifiedChatPageClient() {
                 </button>
               </div>
             </div>
+            ) : null}
 
             {debugEnabled ? (
               <div className="rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/70 p-3">
@@ -814,7 +901,9 @@ export function UnifiedChatPageClient() {
               </div>
             ) : null}
 
+              {showRouterDebug ? (
               <UnifiedChatRouterDebugPanel events={events} debugRouter={debugRouter} />
+              ) : null}
 
               {debugEnabled ? (
                 <details className="rounded-2xl border border-[color:var(--color-border)] bg-white/60 p-3">
@@ -837,11 +926,7 @@ export function UnifiedChatPageClient() {
 
               <div className="text-[11px] text-slate-500">推荐问法</div>
               <div className="flex flex-wrap gap-2">
-                {[
-                  "统计 agent_info 表里有多少条数据",
-                  "这篇日志主要讲了什么？请给出引用来源",
-                  "总结一下 RRF 融合策略的核心思想",
-                ].map((s) => (
+                {suggestedChips.map((s) => (
                   <button
                     key={s}
                     type="button"
