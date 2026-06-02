@@ -39,4 +39,25 @@
 
 ## 签收
 
-→ 派发 **Task 50**（`HG-REINSPECT` 人签后 CLOSE）。
+**2026-06-02 CLOSE**：HG-REINSPECT approved · 50 reinspect **warn** · KPI **90%** · task 已归档 `done/`。
+
+## 执行路线与 Commit 回溯
+
+| 序号 | 阶段 / 帽子 | 关键动作 | 落盘工件 | commit |
+|------|-------------|----------|----------|--------|
+| 1 | 00→10 | task 定稿 | `invokes/.../invoke_20260602_00_*.md` | `2973731` |
+| 2 | 10 | HG-TASK-DRAFT | task 10 帽定稿 | `25e4b86` |
+| 3 | 22 R1 | 审计放行 | `reviews/..._audit_R1_20260602.md` | `00f28aa` |
+| 4 | 30 | feat 实现 | chip + tier + 裁剪 | `99015b7` |
+| 5 | 40→22 R2 | 自检 + 签收 | `reviews/..._audit_R2_20260602.md` | `db98823` |
+| 6 | 50 | reinspect warn | `reinspect_results/..._reinspect_20260602.md` | `f029fb9` |
+| 7 | CLOSE | KPI · git mv done | task → `done/` | 关账 commit |
+
+### ai-ink-brain（`task/portfolio-visitor-auth-v1` · 暂不 PR）
+
+- 关账 commit — docs(tasks): W4 unified-chat-ui CLOSE
+- `f029fb9` — 50 reinspect
+- `db98823` — 40 + R2
+- `99015b7` — **feat W4**
+- `3c5917a` — HG-AUDIT-R1
+- `2973731` — 00→10 开帽

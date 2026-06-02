@@ -4,6 +4,7 @@
 
 ## 已完成
 
+- `../done/task_portfolio_unified_chat_ui_v1.md` — 2026-06-02 验收通过（Portfolio W4 · Unified Chat 档位裁剪 + 五问 chip · `PORTFOLIO-RAG-DEMO@2026-06-01` · KPI 90% · reinspect warn · 分支 `task/portfolio-visitor-auth-v1` · impl `99015b7`）
 - `../done/task_harness_frontend_invokes_by_task_migration_v1.md` — 2026-06-02 验收通过（Harness invokes 扁平 → by-task · 17 文件迁移 · `HARNESS-FRONTEND-INVOKES-BY-TASK@2026-06-02` · HG-MIGRATION-REVIEW approved）
 - `../done/task_portfolio_visitor_auth_v1.md` — 2026-06-02 验收通过（Portfolio W3 · 访客秘钥 unlock/session · `PORTFOLIO-RAG-DEMO@2026-06-01` · KPI 90% · reinspect warn · 分支 `task/portfolio-visitor-auth-v1`）
 - `../done/task_portfolio_content_pages_v1.md` — 2026-06-02 验收通过（Portfolio W2 · 三内容页 + §4.6 根页 + loader · `PORTFOLIO-RAG-DEMO@2026-06-01` · KPI 88% · reinspect warn · 分支 `task/portfolio-content-pages-v1` · impl `ee550ed`）
