@@ -10,6 +10,7 @@ import {
   writeChatbiToken,
 } from "@/lib/chatbi-client";
 import { useSessionId } from "@/lib/hooks/useSessionId";
+import { isPortfolioMode } from "@/lib/site-mode";
 import type { ChainEvent } from "@/components/chain-chat/types";
 import { UnifiedChatExecutionTracePanel } from "@/components/unified-chat/UnifiedChatExecutionTracePanel";
 import { UnifiedChatRouterDebugPanel } from "@/components/unified-chat/UnifiedChatRouterDebugPanel";
@@ -102,6 +103,9 @@ export function UnifiedChatPageClient() {
   const [finalAnswer, setFinalAnswer] = useState<string>("");
   const [transcript, setTranscript] = useState<TranscriptTurn[]>([]);
 
+  const portfolio = isPortfolioMode();
+
+  /** portfolio / development 均以 ChatBI 明文 token + Python verify 解锁（对话/历史/SSE 同源） */
   const locked = !chatbiToken.trim();
 
   useEffect(() => {
@@ -464,15 +468,34 @@ export function UnifiedChatPageClient() {
         <section className="mx-auto max-w-lg rounded-2xl border border-[color:var(--color-border)] bg-white/40 p-4">
           <div className="space-y-2">
             <p className="text-sm leading-relaxed text-slate-700">
-              请输入 <strong>ChatBI DB 明文访问令牌</strong>（
-              <span className="font-mono">chatbi_access_tokens</span>
-              ），点击<strong>解锁</strong>：由 Next BFF 转发 <span className="font-mono">GET /api/py/chatbi/access/verify</span>{" "}
-              到 Python 校验；**不**使用 <span className="font-mono">NEXT_PUBLIC_ADMIN_SECRET</span>
-              。通过后令牌写入 <span className="font-mono">localStorage</span>，后续 Unified / 历史请求均带{" "}
-              <span className="font-mono">Authorization: Bearer &lt;明文&gt;</span>（与 Python 约定一致）。
+              {portfolio ? (
+                <>
+                  RAG 对话需 <strong>邮件申请临时访问令牌</strong>（
+                  <a
+                    href="mailto:231127227@qq.com"
+                    className="underline underline-offset-2"
+                  >
+                    231127227@qq.com
+                  </a>
+                  ）。邮件将返回带有效期的 ChatBI 明文 token；在此输入并解锁后，对话与历史请求均走
+                  Python 校验。
+                </>
+              ) : (
+                <>
+                  请输入 <strong>ChatBI DB 明文访问令牌</strong>（
+                  <span className="font-mono">chatbi_access_tokens</span>
+                  ），点击<strong>解锁</strong>：由 Next BFF 转发{" "}
+                  <span className="font-mono">GET /api/py/chatbi/access/verify</span>{" "}
+                  到 Python 校验；**不**使用{" "}
+                  <span className="font-mono">NEXT_PUBLIC_ADMIN_SECRET</span>
+                  。
+                </>
+              )}
+              通过后令牌写入 <span className="font-mono">localStorage</span>，后续 Unified / 历史请求均带{" "}
+              <span className="font-mono">Authorization: Bearer &lt;明文&gt;</span>。
             </p>
             <label className="block text-[11px] text-slate-500">
-              访问令牌（明文）
+              {portfolio ? "演示访问令牌（明文）" : "访问令牌（明文）"}
               <input
                 ref={tokenInputRef}
                 type="password"
@@ -482,7 +505,11 @@ export function UnifiedChatPageClient() {
                   setUnlockError(null);
                 }}
                 className="mt-1 w-full rounded-xl border border-[color:var(--color-border)] bg-white/70 px-3 py-2 text-sm text-[#2c2c2c] outline-none focus:border-slate-400"
-                placeholder="解锁后请求带 Authorization: Bearer <明文>"
+                placeholder={
+                  portfolio
+                    ? "邮件收到的 ChatBI 明文 token"
+                    : "解锁后请求带 Authorization: Bearer <明文>"
+                }
                 autoComplete="off"
               />
             </label>
@@ -500,13 +527,13 @@ export function UnifiedChatPageClient() {
                     setUnlockError("请输入 ChatBI 明文 token");
                     return;
                   }
-                  const plain = v.replace(/^bearer\s+/i, "").trim();
-                  if (!plain) {
-                    setUnlockError("请输入有效的 ChatBI 明文 token");
-                    return;
-                  }
                   setUnlockBusy(true);
                   try {
+                    const plain = v.replace(/^bearer\s+/i, "").trim();
+                    if (!plain) {
+                      setUnlockError("请输入有效的 ChatBI 明文 token");
+                      return;
+                    }
                     const gate = await requestChatbiAccessVerify({ plain });
                     if (!gate.ok) {
                       setUnlockError(gate.message);

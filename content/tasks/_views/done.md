@@ -5,6 +5,7 @@
 ## 已完成
 
 - `../done/task_harness_frontend_invokes_by_task_migration_v1.md` — 2026-06-02 验收通过（Harness invokes 扁平 → by-task · 17 文件迁移 · `HARNESS-FRONTEND-INVOKES-BY-TASK@2026-06-02` · HG-MIGRATION-REVIEW approved）
+- `../done/task_portfolio_visitor_auth_v1.md` — 2026-06-02 验收通过（Portfolio W3 · 访客秘钥 unlock/session · `PORTFOLIO-RAG-DEMO@2026-06-01` · KPI 90% · reinspect warn · 分支 `task/portfolio-visitor-auth-v1`）
 - `../done/task_portfolio_content_pages_v1.md` — 2026-06-02 验收通过（Portfolio W2 · 三内容页 + §4.6 根页 + loader · `PORTFOLIO-RAG-DEMO@2026-06-01` · KPI 88% · reinspect warn · 分支 `task/portfolio-content-pages-v1` · impl `ee550ed`）
 - `../done/task_portfolio_site_mode_nav_v1.md` — 2026-06-01 验收通过（Portfolio W1 · site-mode 四链 NAV · `PORTFOLIO-RAG-DEMO@2026-06-01` · reinspect pass 13/0 · 分支 `task/portfolio-demo-site-v1` · impl `bed2baf`）
 - `../done/task_portfolio_content_sync_script_v1.md` — 2026-06-01 验收通过（Portfolio W5 · sync 脚本 + 三语料 + admin/sync 页面 202 · `PORTFOLIO-RAG-DEMO@2026-06-01` · KPI 88% · 分支 `task/portfolio-demo-site-v1`）
