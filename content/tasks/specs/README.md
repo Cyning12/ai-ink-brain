@@ -19,4 +19,5 @@
 | [`PROMPT_semi_auto_startup_portfolio_w1_v1_zh.md`](PROMPT_semi_auto_startup_portfolio_w1_v1_zh.md) | W1 · gates approved 后 **§3 一键启动** 30→40→22 R2→Task 50 |
 | [`PROMPT_looptask_startup_portfolio_w5_v1_zh.md`](PROMPT_looptask_startup_portfolio_w5_v1_zh.md) | **W5 LoopTask** · 00 开帽 → 10⇄22 → 30→40→22 R2→50 **STOP** |
 | [`PROMPT_looptask_startup_portfolio_w2_v1_zh.md`](PROMPT_looptask_startup_portfolio_w2_v1_zh.md) | **W2 LoopTask** · 三内容页 + §4.6 根页/去 Ink · `_rsc` 验收 · 止于 50 |
-| [`PROMPT_looptask_startup_portfolio_w3_v1_zh.md`](PROMPT_looptask_startup_portfolio_w3_v1_zh.md) | **W3 LoopTask（当前）** · 访客秘钥 unlock/session · **关账至 CLOSE+KPI** |
+| [`PROMPT_looptask_startup_portfolio_w3_v1_zh.md`](PROMPT_looptask_startup_portfolio_w3_v1_zh.md) | **W3 LoopTask** · 访客鉴权 · 关账至 CLOSE+KPI |
+| [`PROMPT_looptask_startup_portfolio_w4_v1_zh.md`](PROMPT_looptask_startup_portfolio_w4_v1_zh.md) | **W4 LoopTask（当前）** · Unified 裁剪 + 五问 chip · 同分支 · CLOSE |
