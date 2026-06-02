@@ -1,6 +1,6 @@
 # Task：Portfolio 内容页路由（W2 · resume / methodology / evidence）
 
-> **状态**：`draft`（10 帽待细化 · 2026-06-01）  
+> **状态**：`in_progress`（30 已实施 · 待 50 复检 · 2026-06-02）  
 > **关联图谱**：`docs/_tech_graph/10_flow_route.md` · `13_flow_components.md`（实施后须增量更新 `.ai.md`）  
 > **关联 Issue/PR**：（待开 · 基线 `main` @ `3d23698` · PR #47 已合并）  
 > **后端依赖**：无（页面读本地 `content/`；ingest 与五问归 **W6**）
@@ -92,7 +92,8 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 - [ ] 新增 **`app/evidence/page.tsx`**：渲染 `content/evidence/`（如 `methodology-card.md`）；**不进四链 NAV**（SPEC §4.2）。
 - [ ] **内容加载**：专用 `getPortfolioDoc(category)` 或扩展 `lib/content/mdx-posts.ts` — **禁止** 将 `content/tasks/`、`content/harness/` 等维护目录暴露为 portfolio URL。
 - [ ] portfolio 模式下 **`/about` → `/resume` 永久重定向（308）**（`middleware` 或 `app/about/page.tsx` 分支 · SPEC §4.2）。
-- [ ] portfolio 模式下 **首页 `/` 叙事文案** 微调（四屏 + 对话入口；水墨风 `#F9F9F7` / `#2C2C2C`）。
+- [ ] portfolio 模式下 **§4.6.0 去 Ink**：Nav 主标题 **刘新宁**、副标题 **AI Coding · RAG 演示**、footer **© 刘新宁 · 演示站**、metadata 求职向。
+- [ ] portfolio 模式下 **§4.6.1 根页**：身份/定位/叙事 prose + **四卡**（简历/方法论/证据/对话）+ 证据文本链 + 邮件说明；**非** redirect。
 - [ ] 增量 **`docs/_tech_graph/10_flow_route*.md`** + `_manifest.json`；若改 `.ai.md` 则跑 graph 三门禁。
 - [ ] **`pnpm lint`** · **`pnpm test`** · **`pnpm build`** · **`NEXT_PUBLIC_SITE_MODE=portfolio pnpm build`** 绿。
 
@@ -111,7 +112,7 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 
 | 依赖项 | 路径/说明 |
 |--------|-----------|
-| **冻结 SPEC** | [`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-portfolio_demo_site_v1_zh.md) §4.2 · §6.2 · §7 W2 |
+| **冻结 SPEC** | [`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-portfolio_demo_site_v1_zh.md) §4.2 · §4.6 · §6.2 · §6.2.1 · §7 W2 |
 | **Epic W1（done）** | [`content/tasks/done/task_portfolio_site_mode_nav_v1.md`](../done/task_portfolio_site_mode_nav_v1.md) |
 | **Epic W5（done）** | [`content/tasks/done/task_portfolio_content_sync_script_v1.md`](../done/task_portfolio_content_sync_script_v1.md) |
 | **语料真值** | `content/resume/cv-online.md` · `content/methodology/vol3_*` · `content/evidence/methodology-card.md` |
@@ -146,6 +147,20 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 | F4 | development 下 `/blog` 回归失败 | **阻塞合并** | 修 SITE_MODE 分支 | CI 红 |
 | F5 | 22 R1 阻塞仍进 30 | **Harness 违规** | 回 10 改 task | — |
 | F6 | 主会话兼做 50 | **Harness 违规** | Task 子代理重跑 50 | — |
+| F7 | portfolio build 下根页仍 Cyning/Ink 文案 | **缺陷** | 修 §4.6.0 分支 | 品牌不符 |
+
+---
+
+## 技术决策（10 帽 · 2026-06-02）
+
+| 决策 | 选择 | 理由 |
+|------|------|------|
+| 内容 loader | **新建** `lib/content/get-portfolio-doc.ts` | allowlist `methodology|resume|evidence`；不扩展 blog 扫描 |
+| `/methodology` | **索引页** + `app/methodology/[...slug]/page.tsx` | 对齐 SPEC §4.6.3 |
+| `/about`→308 | **`app/about/page.tsx`** + `permanentRedirect` | 仅 `getSiteMode()==='portfolio'`；development 保持原页 |
+| Nav 主标题 | **刘新宁** | §4.6.0 默认（非 Cyning · 刘新宁） |
+| development 下 portfolio 路由 | **可读** | 路由不 SITE_MODE 门控；仅首页/Nav 文案分支 |
+| W3/W4/W6 | **非本 task** | unlock · chip · 五问 E2E 另开 LoopTask |
 
 ---
 
@@ -165,9 +180,9 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 
 | 项 | 内容 |
 |----|------|
-| 涉及文件 | `app/resume/page.tsx` · `app/methodology/page.tsx` · `app/evidence/page.tsx` · `lib/content/*` · `app/about/*` 或 `middleware.ts` · `app/_components/home-modules.tsx`（文案） |
+| 涉及文件 | `app/resume/page.tsx` · `app/methodology/page.tsx` · `app/methodology/[...slug]/page.tsx` · `app/evidence/page.tsx` · `lib/content/get-portfolio-doc.ts` · `app/_components/portfolio-home.tsx` · `app/_components/portfolio-markdown.tsx` · `app/about/page.tsx` · `app/page.tsx` · `app/_components/site-nav.tsx` · `app/_components/home-modules.tsx` · `app/layout.tsx` · `docs/_tech_graph/10_flow_route.md` · `_manifest.json` |
 | 内容源 | W5 已落盘三目录（只读） |
-| RSC 404 | 验收：`Link` + `?_rsc` 非 404 |
+| RSC 404 | 三路由 `page.tsx` 已补；build 列出 `/resume` `/methodology` `/evidence` 静态页 |
 | git 基线 | `main` @ `3d23698`（#47） · 分支 `task/portfolio-content-pages-v1` |
 
 ---
@@ -176,7 +191,8 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 
 | 日期 | 说明 |
 |------|------|
-| 2026-06-01 | 草案：W2 task · 含 `_rsc` 404 验收 · LoopTask 帽链 · 基线 #47 合并后 |
+| 2026-06-02 | 10 帽：技术决策 · §4.6 验收硬化 · 按 00 扫描回填 |
+| 2026-06-02 | 30/40：三路由 + loader + 根页 §4.6 + 308 · build 绿 |
 
 ---
 
@@ -190,4 +206,17 @@ Epic **Portfolio 演示**（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-
 
 ## ### 自检结论（执行者）
 
-（40 帽回填）
+**40 帽 · 2026-06-02**
+
+| 命令 | 结果 |
+|------|------|
+| `pnpm lint` | pass |
+| `pnpm test` | pass（43 tests） |
+| `pnpm build` | pass |
+| `NEXT_PUBLIC_SITE_MODE=portfolio pnpm build` | pass；根页/Nav 为 portfolio 分支 |
+
+**路由**：build 输出 `/` · `/resume` · `/methodology` · `/evidence` 均为静态（○）；`/methodology/[...slug]` SSG 1 篇。
+
+**`_rsc`**：`app/resume/page.tsx` 等已存在，客户端 `<Link>` 可拉 RSC payload（原 W1 无 page 致 404 已消除）；建议 merge 前 DevTools 目视确认一次。
+
+**development 回归**：未设 `SITE_MODE` 时首页仍为 Cyning/水墨；blog/chat 路由未改；portfolio 内容页在 development build 下同样可访问（路由无 mode 门控）。
