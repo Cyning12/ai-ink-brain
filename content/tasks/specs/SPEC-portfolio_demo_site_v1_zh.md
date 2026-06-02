@@ -2,13 +2,13 @@
 
 | 项 | 内容 |
 | --- | --- |
-| **状态** | **`active`**（Prompt 00 轮 4 · R4-2=A · 2026-06-01 冻结） |
-| **类型** | 规格真值（`content/tasks/specs/`）；实施拆为 `content/tasks/active/task_*.md`（**由 10 帽创建，本 Prompt 00 不创建**） |
+| **状态** | **`draft`**（v1.2 · Harness 10 需求帽 · **post-PR #47** 实现态 rescan · 待人复审后重冻结） |
+| **类型** | 规格真值（`content/tasks/specs/`）；实施拆为 `content/tasks/active/task_*.md` |
 | **关联图谱** | `docs/_tech_graph/10_flow_route.md` · `12_flow_auth.md` · `13_flow_components.md`（实施后须增量更新 `.ai.md`） |
 | **test_strategy（建议）** | `recommended`（模式开关与导航为关键路径；全量 E2E 五问联调依赖后端 ingest，见 §6） |
-| **freeze_id** | **`PORTFOLIO-RAG-DEMO@2026-06-01`**（与配对后端 Epic **同源**；task 正文须引用） |
+| **freeze_id（候选 · 续用）** | **`PORTFOLIO-RAG-DEMO@2026-06-01`**（v1.0 已冻结 · W1/W5 task 已引用；v1.2 增量不改 id，人审通过后恢复 **`active`**） |
 | **配对 SPEC** | 后端 [`SPEC-Governance-Portfolio-RAG-Demo-v1_zh.md`](../../../ai-ink-brain-api-python/docs/spec/governance/SPEC-Governance-Portfolio-RAG-Demo-v1_zh.md) **`active`** — 交叉验收以该文为准 |
-| **Harness 下一棒（已拍板 · R4-5=B）** | **20 规格短评** → **10 需求帽** → task（W1 起）；**不**跳过 20 |
+| **实现基线（扫描）** | `main` @ **`3d23698`**（`feat(portfolio): W1 + W5 + auth` · PR #47）；W2 分支 `task/portfolio-content-pages-v1` 草案中 |
 | **硬 deadline（里程碑，非本回合实施）** | **2026-06-09 上午**：四屏可演示 + RAG 五问（与后端 sync 联调）；**2026-06-06**：简历一次性同步（URL 占位 `[DEMO_URL]` 可后填） |
 
 ---
@@ -23,7 +23,7 @@
 | **非范围** | 见 §3 |
 | **依赖** | 见 §9 · 跨仓 `CONTENT_ROOT` · 后端 Portfolio RAG SPEC |
 | **验收口径草案** | 见 §6 |
-| **Prompt 00** | 已收口（见文末清单）；**冻结** `PORTFOLIO-RAG-DEMO@2026-06-01` |
+| **Prompt 00** | v1.0 已收口；**v1.2** 为 post-#47 实现态 rescan，待确认项见文末清单 |
 
 **方向确认（已拍板，SPEC 不得推翻）**：不新建前端仓；`NEXT_PUBLIC_SITE_MODE=portfolio` 切换演示导航与首页；访客不开放，邮件申请秘钥；内容目录 `content/{methodology,resume,evidence}` 与 RAG ingest 同源；Unified Chat 保留 Text2SQL、裁剪调试 UI。
 
@@ -76,72 +76,84 @@
 
 ---
 
-## §2 现状差距（基于本仓扫描 · 2026-06-01）
+## §2 现状差距（基于本仓扫描 · **2026-06-01 post-PR #47**）
+
+> **说明**：W1（site-mode + 四链 NAV）与 W5（语料目录 + sync 脚本 + admin/sync 鉴权）已合并 `main`（#47）。本节区分 **已交付** 与 **仍缺**，供 W2～W6 与 §4.6 验收对照。
 
 ### 2.1 模式与环境
 
-| 项 | 现状 | 差距 |
+| 项 | 现状（#47 后） | 差距 |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SITE_MODE` | **未出现**于 `docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md` 与代码检索 | 需新增 env 约定、读取工具函数、portfolio 分支 |
-| 站点 branding | `SiteNav` 标题 **AI-Ink-Brain · RAG Blog**；`metadata` 为 RAG 博客描述 | Portfolio：**作者向**（§4.6.0）；**禁止** 导航/页脚/首页再出现 Ink / RAG Blog 副标题 |
+| `NEXT_PUBLIC_SITE_MODE` | **`lib/site-mode.ts`** 已实现 `parseSiteMode` / `getSiteMode` / `isPortfolioMode`；`site-nav` · `home-modules` 已分支 | **`docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md` 尚未登记** env 说明（W3 或文档子 task 补） |
+| 站点 branding | `SiteNav` 仍 **AI-Ink-Brain** · 副标题 **Portfolio Demo**（portfolio 模式）；`app/page.tsx` 仍为 **Cyning / 水墨**；footer **© Cyning · Ink** | **§4.6.0 未落地**：须 **刘新宁** 主标题、去 Ink、`layout` metadata 求职向文案 |
 
-### 2.2 导航与首页（`site-nav.tsx` · `home-modules.tsx`）
+### 2.2 导航与首页（`site-nav.tsx` · `home-modules.tsx` · `app/page.tsx`）
 
-**`app/_components/site-nav.tsx`（扫描）**：
+**`app/_components/site-nav.tsx`（#47 后）**：
 
-- `NAV` 固定 8 项：`/blog`、`/learning`、`/projects`、`/chat`、`/text2sql`、`/chain-chat`、`/unified-chat`、`/about`。
-- `useAdminSession().isAdmin` 为真时才显示 chat / text2sql / chain / **unified**；非 admin 仍可见 Blog、Learning、Tasks、About。
-- **无** portfolio 模式分支；**无** 简历/方法论/证据路由。
+- **`PORTFOLIO_NAV` 四链已实现**：`/` · `/resume` · `/methodology` · `/unified-chat`（W1 ✓）。
+- **`DEVELOPMENT_NAV`** 仍为 8 项 + admin 门控；development 模式 **回归行为保持**（W1 ✓）。
+- **品牌区未改**：主标题仍 **AI-Ink-Brain**（§4.6.0 ✗）。
 
-**`app/_components/home-modules.tsx`（扫描）**：
+**`app/_components/home-modules.tsx`（#47 后）**：
 
-- 非 admin：`学习日志`、`学习资源`、`任务` 三卡（`/blog`、`/learning`、`/projects`）。
-- admin 追加：`对话`、`Text2SQL`、`Chain Chat`、`Unified Chat`。
-- **无** 简历/方法论/证据入口；与 portfolio 四屏目标不一致。
+- **`PORTFOLIO_MODULES` 四卡**：首页 / 简历 / 方法论 / 对话 — **缺 §4.6.1 要求的「证据」卡**（应链 `/evidence`）。
+- development 模式三卡 + admin 扩展 **未变**（W1 ✓）。
 
-**`docs/_tech_graph/10_flow_route.md`**：图谱已记录上述真实 `NAV[]` / `HomeModules` 结构；实施后须更新 `.ai.md` 增加 `SITE_MODE` 分支节点。
+**`app/page.tsx`（扫描）**：
 
-### 2.3 鉴权（`useAdminSession` · `/api/auth/*`）
+- 根页 **未** 按 §4.6.1 重写：仍为 Cyning + 水墨顶栏 + 通用 footer；**依赖** `HomeModules` 切换卡片，**非** 作者演示首页 prose 区块。
 
-| 项 | 现状 | 差距 |
+**`docs/_tech_graph/10_flow_route.md`**：W1 后须增量更新 portfolio 分支；W2 三路由落地后须再改 `.ai.md` + `_manifest.json`。
+
+### 2.3 鉴权（`useAdminSession` · `/api/auth/*` · admin/sync）
+
+| 项 | 现状（#47 后） | 差距 |
 | --- | --- | --- |
-| `lib/hooks/useAdminSession.ts` | 仅 `isAdmin: boolean` + `configured` | 需 **`role`**（至少区分 `none` / `visitor` / `visitor-admin` / `admin`）或等价字段供 UI 裁剪 |
-| `GET /api/auth/session` | `admin` 由 Ink Cookie 或 ChatBI Cookie 上游校验 | 需识别访客秘钥 session、TTL 过期 |
-| `POST /api/auth/unlock` | `token`→ChatBI；`secret`→Ink **或** ChatBI；Cookie **Max-Age 7 天**（Ink / ChatBI 各一套） | 需 **多秘钥映射**（`visitor` 72h、`visitor-admin` 24h）、env 配置面；与已拍板 TTL 对齐 |
-| 无 session UX | Unified Chat 展示 ChatBI DB 明文解锁文案 | **仅** `/unified-chat` 发消息区门控；静态页 **不因** 无 session 整页拦截；Unified 内展示邮件申请 + unlock 表单 |
+| `lib/hooks/useAdminSession.ts` | 仍仅 `isAdmin: boolean` + `configured` | W3：需 **`role`**（`none` / `visitor` / `visitor-admin` / `admin`） |
+| `GET /api/auth/session` · `POST /api/auth/unlock` | Ink / ChatBI 路径；**无** portfolio 访客秘钥 | W3：§4.3 双 env + TTL Cookie |
+| `app/api/admin/sync` · `ingest` | **`requireSyncAdminAccess`**：ChatBI admin 会话 **或** Bearer `SYNC_ADMIN_SECRET`（W5 鉴权 SPEC ✓） | 与 portfolio **访客** unlock **无关**；维护者 sync 已可用 |
+| 无 session UX | Unified Chat 仍展示 ChatBI 明文解锁 | W4：portfolio 下 **仅** 邮件 + portfolio unlock；静态页 **零 gate** |
 
-### 2.4 内容目录与 MDX
+### 2.4 内容目录、路由与 MDX
 
-| 项 | 现状 | 差距 |
+| 项 | 现状（#47 后） | 差距 |
 | --- | --- | --- |
-| `content/` 顶层 | 存在 `diary/`、`learning/`、`tasks/`、`harness/` 等；**无** `methodology/`、`resume/`、`evidence/` | 需新建目录 + 同步脚本 |
-| `lib/content/mdx-posts.ts` | 扫描全 `content/`；`category` = 首段路径；`generateStaticParams` 对 blog 过滤 `diary`/`learning`/`tasks` | 需 **portfolio 页路由** 绑定三分类（或专用 loader），避免与 `/blog` 混用 |
-| `app/about/page.tsx` | 占位「后续接入简历」 | **已拍板** canonical **`/resume`**；`/about` 在 portfolio 下宜 **308** → `/resume`（W2 实现） |
+| `content/methodology/` · `resume/` · `evidence/` | **已存在**（W5）：`vol3_*`、`cv-online.md`、`methodology-card.md` | — |
+| `app/resume/` · `methodology/` · `evidence/` | **无 `page.tsx`** | **W2 必交付**；见 §2.8 |
+| `lib/content/mdx-posts.ts` | 全仓扫描；blog 过滤 diary/learning/tasks | W2：**专用** `getPortfolioDoc(category)` 或等价 loader |
+| `app/about/page.tsx` | 占位「后续接入简历」 | W2：portfolio 下 **308** → `/resume` |
 
 ### 2.5 Unified Chat（`components/unified-chat/`）
 
-| 项 | 现状 | 差距 |
+| 项 | 现状 | 差距（W4） |
 | --- | --- | --- |
-| 解锁 | 依赖 **ChatBI 明文 token** + `localStorage`；文案强调不用 `NEXT_PUBLIC_ADMIN_SECRET` | 招聘访客走 **portfolio unlock API** + 邮件说明；**已拍板** 保留 ChatBI 明文路径作 **维护后门**（仅 admin/内部，默认不对访客展示） |
-| 调试 UI | `Router Debug` 开关、`UnifiedChatRouterDebugPanel`（intent router details）、`?debug=1` 下 LLM Prompt / SSE done / Timeline / ExecutionTrace | 已拍板：**隐藏** RouterDebugPanel 等；**保留** Text2SQL 能力（`prefer` 含 `text2sql` / `auto`） |
-| 推荐问法 chip | 3 条通用 SQL/RAG 示例（非五问） | 需替换或增补为 docs 计划 **Q1～Q5** 文案（§6.4） |
-| `useAdminSession` | 与 SiteNav 门控独立；Unified 页 **不** 用 `isAdmin` 控制入口 | Portfolio 下 `/unified-chat` 为 **公开导航项**，但页内仍须秘钥解锁 |
+| 解锁 | ChatBI 明文 token + `localStorage` | portfolio unlock + 邮件 UX（§4.3） |
+| 调试 UI | Router Debug · Timeline · `?debug=1` 等 **全开** | §4.4 按 role 裁剪 |
+| 推荐 chip | 3 条通用示例 | **五问 Q1～Q5** 逐字（§6.4） |
+| NAV | portfolio 下 **常显** `/unified-chat`（W1 ✓） | 页内发消息门控（W3/W4） |
 
 ### 2.6 工具链
 
-| 项 | 现状 | 差距 |
+| 项 | 现状（#47 后） | 差距 |
 | --- | --- | --- |
-| `tools/sync-portfolio-content.sh` | **不存在** | 需新增（§4.5） |
-| 后端 ingest | `ingest_pipeline.py`：`CONTENT_ROOT` 指向前端 `content/` 时按 **首段目录名** 为 `category` | 与 §5 一致；依赖后端 sync API |
+| `tools/sync-portfolio-content.sh` | **已存在** + `tools/README-portfolio-content-sync.md`（W5 ✓） | 卷一～五 **release 后** 全量 sync 路径 **待确认**（§4.5） |
+| `tools/gen-portfolio-secrets.sh` | **不存在** | W3 **必交付**（§4.3） |
+| 后端 ingest | `CONTENT_ROOT` → 本仓 `content/`；category = 首段目录 | W6 联调五问 |
 
-### 2.7 外部文档可读性（Prompt 00 轮 2 更新）
+### 2.7 外部文档可读性
 
 | 路径 | 结果 |
 | --- | --- |
-| `content/tasks/specs/投递冲刺_20260609_v1_zh.md` | **可读**（v1.2 · §2 五问真值；原 `Projects/docs/planning/` 路径未 clone 时以本路径为准） |
-| `ai-ink-brain-api-python/docs/spec/governance/SPEC-Governance-Portfolio-RAG-Demo-v1_zh.md` | **可读**（`draft` · category 硬约束与 RUNBOOK 大纲） |
+| `content/tasks/specs/投递冲刺_20260609_v1_zh.md` | **可读**（§2 五问真值） |
+| `ai-ink-brain-api-python/docs/spec/governance/SPEC-Governance-Portfolio-RAG-Demo-v1_zh.md` | **可读**（`active` · 交叉 §6.4 Q3 evidence-only） |
 
-→ 五问 chip **逐字文案** 已自投递计划 §2 粘贴至 §6.4（Prompt 00 轮 2 · 人答复 Q1=A）。
+### 2.8 已知缺陷（W2 须修复 · 生产观测）
+
+| 现象 | 根因 | 验收口径 |
+| --- | --- | --- |
+| `GET /resume?_rsc=*` **404** | W1 NAV 链向 `/resume`，**无** App Router `page.tsx`，客户端 `<Link>` RSC payload 失败 | 从 `/` NAV **`<Link>`** 进入三内容页：**`?_rsc` 非 404**（§6.2） |
+| 四屏缺正文 | W5 仅落盘语料，无独立路由 | `/resume` · `/methodology` · `/evidence` **200** 且渲染 W5 md |
 
 ---
 
@@ -159,7 +171,7 @@
 | **非范围** | 新建 Vue 仓、ChatBI v3 preview 全 UI、删旧路由 | 路由保留，仅隐藏入口 |
 | **非范围** | 静态站另起炉灶、双能力 handoff 完整实现 | 属后端 **P1-B**；本 SPEC 仅 **脚注依赖** |
 | **非范围** | 生产级多租户、自助注册、公开匿名 RAG | 演示不对外开放 |
-| **非范围** | 本回合创建 `task_*.md`、invoke、实现、PR | 仅 SPEC |
+| **非范围** | 本 Harness 10 回合写业务代码、invoke、PR | 本稿仅 SPEC 刷新 |
 
 ---
 
@@ -465,7 +477,8 @@ content/
 - [ ] **`/` 为根演示首页**（非二级路由）；无秘钥 **200** 且见 §4.6.1 四卡 + 作者文案。
 - [ ] **无 Ink 品牌**：Nav / 根页 / footer / metadata 符合 §4.6.0。
 - [ ] `/resume` · `/methodology` · `/evidence` **无秘钥** 可完整阅读 md。
-- [ ] 根页 **无** Blog/Learning/Tasks 卡片。
+- [ ] 从 **`/` NAV `<Link>`** 进入 `/resume`（及 methodology/evidence）：DevTools **`?_rsc=*` 请求非 404**（§2.8 · W2）。
+- [ ] 根页 **无** Blog/Learning/Tasks 卡片；**含** 证据卡或链 `/evidence`（§4.6.1）。
 - [ ] `/unified-chat` 导航常显；无 session 时 **页壳 200** + 邮件文案 + unlock；解锁后可发消息。
 
 ### 6.3 鉴权
@@ -517,29 +530,40 @@ content/
 
 ---
 
-## §7 工作包拆分建议（→ 未来 task slug · 本回合不创建 task）
+### 6.2.1 W2 失败路径（SPEC 级 · 并入 task 验收）
 
-| 包 | 建议 slug | 范围摘要 |
+| # | 触发 | 期望行为 |
 | --- | --- | --- |
-| **W1** | `task_portfolio_site_mode_nav_v1` | `site-mode` · Nav 四链 · **根页 `/` 演示首页组件** · §4.6.0 去 Ink 品牌 · metadata |
-| **W2** | `task_portfolio_content_pages_v1` | `/resume` `/methodology` `/evidence` · `/about`→308 · **§4.6.2–4.6.4 内容结构** |
-| **W3** | `task_portfolio_visitor_auth_v1` | unlock/session Cookie · role TTL · **`tools/gen-portfolio-secrets.sh`（必交）** · `PROJECT_CONFIG` 用法 · 无 session UX |
-| **W4** | `task_portfolio_unified_chat_ui_v1` | 裁剪 debug · 五问 chip · 解锁文案 |
-| **W5** | `task_portfolio_content_sync_script_v1` | `tools/sync-portfolio-content.sh` · README 用法 |
-| **W6** | `task_portfolio_e2e_demo_qa_v1` | 与后端 sync 联调五问 · 演示 checklist（可 `test_strategy: recommended`） |
-
-**建议实施顺序**：W1 → W5（内容可先落盘）→ W2 → W3 → W4 → W6。
+| F1 | W5 语料缺失 | 页内「内容未同步」说明，**非** 500 |
+| F2 | `<Link>` / `_rsc` 仍 404 | **缺陷**；须补 `page.tsx` |
+| F3 | loader 误扫 `content/tasks/` 等 | **缺陷**；URL 不得泄露维护路径 |
 
 ---
 
-## §8 风险与残余项（冻结后）
+## §7 工作包拆分建议（→ task slug · **含交付态**）
 
-1. **Vercel Secrets 轮换**：`PORTFOLIO_VISITOR_*` 泄露时须本机重生成并更新平台 env；**禁止** 写进 Git（见 §4.3）。
-2. **Nav 主标题**「刘新宁」vs「Cyning · 刘新宁」：W1 定稿（§4.6.0）。
-3. **ingest / 五问质量**：以配对后端 **`active`** SPEC + RUNBOOK 为准；前端 W6 仅保证同源路径与 chip 文案。
-4. **实现期发现 SPEC 缺口**：30 帽 **停工** 回 20/人，**禁止** 在 PR 内偷偷改 SPEC。
+| 包 | 建议 slug | 交付态（2026-06-01） | 范围摘要 |
+| --- | --- | --- | --- |
+| **W1** | `task_portfolio_site_mode_nav_v1` | **部分 done**（#47）：`site-mode` · 四链 NAV · `PORTFOLIO_MODULES`（**缺 evidence 卡**）· **§4.6.0/§4.6.1 未完** | 归档见 `content/tasks/done/`；余量 **并入 W2** 或 W1 补丁 task |
+| **W2** | `task_portfolio_content_pages_v1` | **draft**（active task 草案） | 三路由 + `getPortfolioDoc` · `/about`→308 · **§4.6.1 根页** · **§4.6.0 去 Ink** · `_rsc` 验收（§2.8） |
+| **W3** | `task_portfolio_visitor_auth_v1` | 未开工 | unlock/session · role TTL · **`gen-portfolio-secrets.sh`** |
+| **W4** | `task_portfolio_unified_chat_ui_v1` | 未开工 | debug 裁剪 · 五问 chip · 解锁文案 |
+| **W5** | `task_portfolio_content_sync_script_v1` | **done**（#47） | `sync-portfolio-content.sh` · README · admin/sync 鉴权 SPEC |
+| **W6** | `task_portfolio_e2e_demo_qa_v1` | 未开工 | 后端 sync 联调五问 · 录屏 checklist |
 
-**Prompt 00 轮 4 已对齐后端 `active` SPEC**：Q3 evidence-only · Preview/生产同项目 · `freeze_id` 同日 · 交叉项已写入 §6.4–§6.7。
+**建议实施顺序（剩余）**：**W2**（含 W1 余量）→ **W3** → **W4** → **W6**。
+
+---
+
+## §8 风险与待确认（v1.2 · ≤5 条）
+
+1. **`[DEMO_URL]`**：简历与 Vercel Preview/生产域须 **同一项目**（§6.7）；6/6 前可占位。
+2. **W1 余量归属**：§4.6.0 去 Ink + §4.6.1 根页 **是否全部并入 W2**（当前 task 草案已含）— 人审 SPEC 后定稿。
+3. **Nav 主标题**：「**刘新宁**」vs「**Cyning · 刘新宁**」（§4.6.0）— W2 实现前拍板。
+4. **Vercel env**：Preview 须 `NEXT_PUBLIC_SITE_MODE=portfolio` + `PORTFOLIO_VISITOR_*`（W3 后）+ 与生产同 Supabase/`CONTENT_ROOT` 语义。
+5. **ingest / 五问质量**：以配对后端 **`active`** SPEC + RUNBOOK 为准；前端 W6 保证同源路径与 chip 文案；**Q3 evidence-only** 已交叉对齐。
+
+**实现期发现 SPEC 缺口**：30 帽 **停工** 回 22/人，**禁止** PR 内偷偷改 SPEC。
 
 ---
 
@@ -580,17 +604,18 @@ content/
 | 2026-06-01 | **v1.0 active** | Prompt 00 轮 4：R4-1～R4-3、R4-5 已拍板；对齐后端 `active` SPEC；`PORTFOLIO-RAG-DEMO@2026-06-01` |
 | 2026-06-01 | v1.0.1 active | 人补拍板 R4-4=A：`gen-portfolio-secrets.sh` 由 deferred 改为 W3 **必交付** |
 | 2026-06-01 | v1.1 active | §4.6 演示页示例；**`/`=根演示首页**；公开区零鉴权；**去 Ink 化**作者定制 |
+| 2026-06-01 | **v1.2 draft** | Harness 10 帽 · **post-PR #47** rescan：§2 实现态 · §2.8 `_rsc` · §6.2.1 · §7 交付态 · W2 并入 |
 
 ---
 
-## SPEC 待确认清单（Prompt 00 已收口）
+## SPEC 待确认清单（v1.2 · 人审后恢复 `active`）
 
 | # | 决策点 | 状态 |
 | --- | --- | --- |
-| 1～9 | 轮 2～3 决策点 | **resolved** / **deferred**（#8 → W1） |
-| 10 | 冻结时机 | **resolved**（R4-2=A） |
-| R4-1～R4-3 | 后端交叉 | **resolved** |
-| R4-4 | `gen-portfolio-secrets.sh` | **resolved**（R4-4=A · W3 必交付 · §4.3 · §6.3） |
-| R4-5 | Harness 路径 | **resolved** · **20 → 10** |
+| 1 | W1 余量（§4.6.0 + §4.6.1）**全部归 W2** 还是另开 W1 补丁 task | **pending** |
+| 2 | Nav 主标题：「刘新宁」vs「Cyning · 刘新宁」 | **pending**（§4.6.0） |
+| 3 | `[DEMO_URL]` 正式域 vs Preview 链接写进简历 | **pending**（6/6 前） |
+| 4 | `development` 模式下 `/resume` 等 portfolio 路由 **是否可读**（W2 task 建议可读或文档化） | **pending** |
+| 5 | v1.2 人审通过后 **是否恢复 `active`** 而不改 `freeze_id` | **pending** |
 
-**无 `pending`**。30 帽须在 task 引用 **`freeze_id`** 后开工。
+> v1.0 Prompt 00 决策（Q1～Q10 · R4-1～R4-5）仍有效；上表仅 **post-#47 增量**。
