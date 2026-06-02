@@ -36,10 +36,20 @@ const DEVELOPMENT_ADMIN_MODULES: HomeModule[] = [
 ];
 
 const PORTFOLIO_MODULES: HomeModule[] = [
-  { id: "home", title: "首页", href: "/", hint: "Portfolio 演示入口" },
-  { id: "resume", title: "简历", href: "/resume", hint: "content/resume" },
-  { id: "methodology", title: "方法论", href: "/methodology", hint: "content/methodology" },
-  { id: "unified-chat", title: "对话", href: "/unified-chat", hint: "RAG + Text2SQL" },
+  { id: "resume", title: "简历", href: "/resume", hint: "在线简历 · 与 RAG 同源" },
+  {
+    id: "methodology",
+    title: "方法论",
+    href: "/methodology",
+    hint: "连载卷一～五",
+  },
+  { id: "evidence", title: "证据", href: "/evidence", hint: "1 页证据 · 五问参考" },
+  {
+    id: "unified-chat",
+    title: "对话",
+    href: "/unified-chat",
+    hint: "RAG + 流式 · 需秘钥发消息",
+  },
 ];
 
 export function HomeModules() {

@@ -14,8 +14,12 @@
     "/chain-chat",
     "/chat",
     "/diary",
+    "/evidence",
     "/learning",
+    "/methodology",
+    "/methodology/[...slug]",
     "/projects",
+    "/resume",
     "/text2sql",
     "/unified-chat"
   ],

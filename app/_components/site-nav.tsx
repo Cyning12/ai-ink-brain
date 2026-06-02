@@ -58,7 +58,8 @@ export function SiteNav() {
         return true;
       });
 
-  const subtitle = portfolio ? "Portfolio Demo" : "RAG Blog";
+  const brandTitle = portfolio ? "刘新宁" : "AI-Ink-Brain";
+  const subtitle = portfolio ? "AI Coding · RAG 演示" : "RAG Blog";
 
   return (
     <header className="sticky top-0 z-20 border-b border-[color:var(--color-border)] bg-[color:var(--color-background)]/70 backdrop-blur">
@@ -68,15 +69,19 @@ export function SiteNav() {
           className="group inline-flex items-center gap-2 text-[15px] font-semibold tracking-tight"
         >
           <span className="inline-flex items-center gap-2">
-            <PenTool
-              aria-hidden
-              className="h-4 w-4 text-[color:var(--color-foreground)]/80"
-              strokeWidth={1.25}
-            />
-            <span className="font-semibold">AI-Ink-Brain</span>
+            {!portfolio ? (
+              <PenTool
+                aria-hidden
+                className="h-4 w-4 text-[color:var(--color-foreground)]/80"
+                strokeWidth={1.25}
+              />
+            ) : null}
+            <span className="font-semibold">{brandTitle}</span>
           </span>
           <span className="hidden items-center gap-1 text-xs font-normal text-[color:var(--color-muted)] sm:inline-flex">
-            <Wind aria-hidden className="h-3.5 w-3.5" strokeWidth={1.25} />
+            {!portfolio ? (
+              <Wind aria-hidden className="h-3.5 w-3.5" strokeWidth={1.25} />
+            ) : null}
             {subtitle}
           </span>
         </Link>

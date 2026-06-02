@@ -21,8 +21,9 @@ flowchart TD
   %% Home 卡片入口（真实：HomeModules）
   HOME --> HM[HomeModules: app/_components/home-modules.tsx]
   HM_PF --> P_HOME["/"]
-  HM_PF --> P_RESUME["/resume (W2)"]
-  HM_PF --> P_METH["/methodology (W2)"]
+  HM_PF --> P_RESUME["/resume"]
+  HM_PF --> P_METH["/methodology"]
+  HM_PF --> P_EVID["/evidence"]
   HM_PF --> P_UNI["/unified-chat"]
   HM_DEV --> HOME_LINKS{modules[]}
   HOME_LINKS --> L_BLOG["/blog"]
@@ -37,6 +38,12 @@ flowchart TD
   NAV_PF --> N_RESUME["/resume"]
   NAV_PF --> N_METH["/methodology"]
   NAV_PF --> N_UNI_PF["/unified-chat（常显）"]
+  NAV_PF --> P_ABOUT_PF["/about → 308 /resume (portfolio)"]
+
+  P_RESUME --> R_RESUME["app/resume/page.tsx"]
+  P_METH --> R_METH_IDX["app/methodology/page.tsx"]
+  P_METH --> R_METH_SLUG["app/methodology/[...slug]/page.tsx"]
+  P_EVID --> R_EVID["app/evidence/page.tsx"]
   NAV_DEV --> NAV_ITEMS{NAV[]}
   NAV_ITEMS --> N_BLOG["/blog"]
   NAV_ITEMS --> N_LEARNING["/learning"]

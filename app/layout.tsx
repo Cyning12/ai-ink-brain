@@ -14,8 +14,8 @@ const DEVELOPMENT_METADATA: Metadata = {
 };
 
 const PORTFOLIO_METADATA: Metadata = {
-  title: "AI-Ink-Brain · Portfolio Demo",
-  description: "Portfolio 演示：方法论 · 简历 · RAG 对话",
+  title: "刘新宁 · AI Coding / Agent 应用",
+  description: "个人全栈 RAG 演示：方法论 · 简历 · 证据 · Unified Chat",
 };
 
 export function generateMetadata(): Metadata {

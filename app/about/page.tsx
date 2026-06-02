@@ -1,6 +1,12 @@
 import { BackButton } from "@/app/_components/back-button";
+import { getSiteMode } from "@/lib/site-mode";
+import { permanentRedirect } from "next/navigation";
 
 export default function AboutPage() {
+  if (getSiteMode() === "portfolio") {
+    permanentRedirect("/resume");
+  }
+
   return (
     <main className="mx-auto w-full max-w-5xl px-6 py-16">
       <BackButton />
@@ -11,4 +17,3 @@ export default function AboutPage() {
     </main>
   );
 }
-
