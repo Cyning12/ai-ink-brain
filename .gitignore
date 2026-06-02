@@ -118,3 +118,5 @@ docs/diary/*
 !docs/diary/samples/
 docs/diary/samples/*
 !docs/diary/samples/**
+
+/tmp

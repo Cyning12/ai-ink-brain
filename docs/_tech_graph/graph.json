@@ -2007,6 +2007,21 @@
       "type": "depends_on"
     },
     {
+      "anchors": [
+        {
+          "path": "lib/unified-chat/portfolio-chat-tier.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "UCP",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "?>",
+      "sync": true,
+      "to": "UC_PORT",
+      "type": "condition"
+    },
+    {
       "anchors": [],
       "from": "UCP",
       "graph_id": "13_flow_components",
@@ -2042,6 +2057,26 @@
       "type": "depends_on"
     },
     {
+      "anchors": [],
+      "from": "UC_PORT",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "[visitor]",
+      "sync": true,
+      "to": "UC_HIDE",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "UC_PORT",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "[visitor-admin]",
+      "sync": true,
+      "to": "UC_PART",
+      "type": "depends_on"
+    },
+    {
       "anchors": [
         {
           "path": "components/unified-chat/UnifiedChatPageClient.tsx",
@@ -2058,7 +2093,7 @@
     }
   ],
   "freeze_id": "TECH_GRAPH_S2_FREEZE_20260519_V2_3",
-  "generated_at": "2026-06-02T11:58:46Z",
+  "generated_at": "2026-06-02T13:38:04Z",
   "graphs": [
     {
       "id": "00_main",
@@ -2614,6 +2649,11 @@
     },
     {
       "graph_id": "13_flow_components",
+      "id": "UC_HIDE",
+      "label": "隐藏 Router Debug Timeline debug URL"
+    },
+    {
+      "graph_id": "13_flow_components",
       "id": "UC_HIST",
       "label": "历史 transcript 跨轮"
     },
@@ -2626,6 +2666,16 @@
       "graph_id": "13_flow_components",
       "id": "UC_MSG",
       "label": "底 消息区 当前轮"
+    },
+    {
+      "graph_id": "13_flow_components",
+      "id": "UC_PART",
+      "label": "Timeline + debug URL 可见"
+    },
+    {
+      "graph_id": "13_flow_components",
+      "id": "UC_PORT",
+      "label": "portfolio access_level 档位"
     },
     {
       "graph_id": "13_flow_components",
