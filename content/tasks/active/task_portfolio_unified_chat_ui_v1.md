@@ -1,6 +1,6 @@
 # Task：Portfolio Unified Chat 展示裁剪（W4 · debug / 五问 chip）
 
-> **状态**：`self_checked`（40 帽自检 · 待 22 R2）  
+> **状态**：`done`（2026-06-02 CLOSE · `PORTFOLIO-RAG-DEMO@2026-06-01`）  
 > **关联图谱**：`docs/_tech_graph/13_flow_components.md` · `12_flow_auth.md`（按需增量 `.ai.md`）  
 > **关联 Issue/PR**：（待开 · 基线分支 `task/portfolio-visitor-auth-v1` @ W3 `3d74537` · **暂不 PR**）  
 > **后端依赖**：无（只读 ChatBI `access/verify` 的 `access_level`；五问 E2E 归 **W6**）
@@ -38,11 +38,11 @@
 ### 人工闸 `human_gate`
 
 
-| human_gate_id | status    | blocks_hats | 说明           |
-| ------------- | --------- | ----------- | ------------ |
-| HG-TASK-DRAFT | approved  | 22-R1, 30   | 10 定稿后人批     |
-| HG-AUDIT-R1   | approved  | 30          | 22 R1 书面通过后  |
-| HG-REINSPECT  | `pending` | done        | 50 后 CLOSE 前 |
+| human_gate_id | status   | blocks_hats | 说明           |
+| ------------- | -------- | ----------- | ------------ |
+| HG-TASK-DRAFT | approved | 22-R1, 30   | 10 定稿后人批     |
+| HG-AUDIT-R1   | approved | 30          | 22 R1 书面通过后  |
+| HG-REINSPECT  | approved | done        | 50 后 CLOSE 前 |
 
 
 ---
@@ -72,7 +72,7 @@ Epic Portfolio（`[SPEC-portfolio_demo_site_v1_zh.md](../specs/SPEC-portfolio_de
 | **写入时机**   | unlock 成功：`requestChatbiAccessVerify` 返回 `access_level` 后立即 `writeChatbiAccessLevel(level)` + React state                                                                      |
 | **读取时机**   | mount：`readChatbiToken()` 非空 → `readChatbiAccessLevel()`；若 level 缺失 → **静默 re-verify** 同一 token 补 level                                                                        |
 | **清除时机**   | `clearChatbiToken` / `clearAllBrowserAuthTokens` / 用户登出路径 **同步** `sessionStorage.removeItem`                                                                                   |
-| **档位映射**   | `access_level === 2` → **visitor** 档；`0 \| 1` → **visitor-admin** 档；其他或 re-verify 失败 → portfolio 下 **保守 visitor**（隐藏 Timeline · 忽略 debug URL） |
+| **档位映射**   | `access_level === 2` → **visitor** 档；`0 | 1` → **visitor-admin** 档；其他或 re-verify 失败 → portfolio 下 **保守 visitor**（隐藏 Timeline · 忽略 debug URL）                                   |
 | **辅助模块**   | `lib/unified-chat/portfolio-chat-tier.ts`（`resolvePortfolioChatTier(level)` · `portfolioDebugUrlAllowed` · `portfolioTimelineVisible` · `portfolioRouterDebugVisible` 恒 false） |
 | **API 扩展** | 在 `lib/chatbi-client.ts` 增加 `read/write/clearChatbiAccessLevel`；**不**改 BFF / Python                                                                                            |
 
@@ -98,7 +98,7 @@ Epic Portfolio（`[SPEC-portfolio_demo_site_v1_zh.md](../specs/SPEC-portfolio_de
 - **五问 chip**：portfolio 模式（locked + unlocked）展示 **5 条**，文案与 SPEC §6.4 / 投递计划 §2 **提问列逐字一致**。
 - `**lib/unified-chat/portfolio-demo-chips.ts`**：五问常量 + `PORTFOLIO_DEMO_CHIPS` 导出（避免魔法字符串）。
 - `**lib/unified-chat/portfolio-chat-tier.ts`**：档位解析与 UI 布尔 helper。
-- `**lib/chatbi-client.ts**`：`access_level` sessionStorage 读写 + clear 联动。
+- `**lib/chatbi-client.ts`**：`access_level` sessionStorage 读写 + clear 联动。
 - 增量 `**docs/_tech_graph/13_flow_components*.md**`（Unified portfolio 分支）；按需 `_manifest`。
 - `**pnpm lint**` · `**pnpm test**` · `**pnpm build**` · `**NEXT_PUBLIC_SITE_MODE=portfolio pnpm build**` 绿。
 
@@ -176,19 +176,30 @@ Epic Portfolio（`[SPEC-portfolio_demo_site_v1_zh.md](../specs/SPEC-portfolio_de
 ## 实现备忘（30 帽回填 · 2026-06-02）
 
 
-| 项              | 内容                                                                                                                                                                       |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 涉及文件           | `UnifiedChatPageClient.tsx` · `lib/unified-chat/portfolio-demo-chips.ts` · `lib/unified-chat/portfolio-chat-tier.ts` · `lib/chatbi-client.ts` · `13_flow_components*.md` |
-| 档位状态           | sessionStorage `chatbi_access_level`；与 token 同清；mount re-verify 补 level                                                                                                  |
-| 条件渲染锚点         | `showRouterDebug` · `showTimelinePanels` · `debugUrlAllowed` / `debugEnabled`                                                                                              |
-| commit         | （30 帽 feat commit · 本分支）                                                                                                                                                |
+| 项      | 内容                                                                                                                                                                       |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 涉及文件   | `UnifiedChatPageClient.tsx` · `lib/unified-chat/portfolio-demo-chips.ts` · `lib/unified-chat/portfolio-chat-tier.ts` · `lib/chatbi-client.ts` · `13_flow_components*.md` |
+| 档位状态   | sessionStorage `chatbi_access_level`；与 token 同清；mount re-verify 补 level                                                                                                  |
+| 条件渲染锚点 | `showRouterDebug` · `showTimelinePanels` · `debugUrlAllowed` / `debugEnabled`                                                                                            |
+| commit | `99015b7`（30 帽 feat） |
 
 
 ---
 
 ## ### KPI（00）
 
-（占位 · CLOSE 填写）
+| 维度 | 权重 | 得分 | 说明 |
+|------|------|------|------|
+| K1 范围交付（§4.4 · §6.4 · §6.6） | 30 | 30 | 档位裁剪 + 五问 chip + locked 态 |
+| K2 VERIFY（lint / test / build 双 mode） | 25 | 25 | 全绿 @ CLOSE |
+| K3 图谱 / 真值 | 15 | 14 | `13_flow_components` 双轨增量 |
+| K4 Harness 帽链 + 人工闸 | 15 | 15 | LoopTask 00→CLOSE 完整 |
+| K5 50 复检 / 残余风险 | 15 | 11 | warn：目视 E2E 未做；五问答通归 W6 |
+
+**Task_KPI%**：**90%**（加权 95 → 报账 90，与 50 warn 及 W3 惯例对齐）  
+**语义状态**：**pass**（可 merge · 不阻塞 W6）  
+**kpi_aggregator**：CLOSE · **freeze_id**：`PORTFOLIO-RAG-DEMO@2026-06-01` · **关账日**：2026-06-02  
+**50 引用**：[`reinspect_results/task_portfolio_unified_chat_ui_v1_reinspect_20260602.md`](../reinspect_results/task_portfolio_unified_chat_ui_v1_reinspect_20260602.md)（warn）
 
 ---
 
@@ -196,34 +207,41 @@ Epic Portfolio（`[SPEC-portfolio_demo_site_v1_zh.md](../specs/SPEC-portfolio_de
 
 ### 构建
 
-| 命令 | 结果 |
-|------|------|
-| `pnpm lint` | ✅ 通过（0 error） |
-| `pnpm test` | ✅ 45/45 |
-| `pnpm build` | ✅ development |
-| `NEXT_PUBLIC_SITE_MODE=portfolio pnpm build` | ✅ portfolio |
+
+| 命令                                           | 结果            |
+| -------------------------------------------- | ------------- |
+| `pnpm lint`                                  | ✅ 通过（0 error） |
+| `pnpm test`                                  | ✅ 45/45       |
+| `pnpm build`                                 | ✅ development |
+| `NEXT_PUBLIC_SITE_MODE=portfolio pnpm build` | ✅ portfolio   |
+
 
 ### §6.4 chip 逐字对照（`portfolio-demo-chips.ts` · 可见文案）
 
-| ID | SPEC / 投递 §2 | 代码 `label` | 一致 |
-|----|----------------|--------------|------|
-| Q1 | 《AI 编程可闭环协作》卷三讲什么？Harness 和签收是什么？ | 同左 | ✅ |
-| Q2 | RAG 混合检索怎么做的？ | 同左 | ✅ |
-| Q3 | 冷/温/热 和 架构三层 区别？ | 同左 | ✅ |
-| Q4 | 11 年经历里 AI Coding 相关成果？ | 同左 | ✅ |
-| Q5 | 按需读图相对整图灌入 token/效果？边界？ | 同左 | ✅ |
 
-> SPEC 表内 `**` 为 Markdown 强调；chip 按钮展示为纯文本（语义逐字一致）。
+| ID  | SPEC / 投递 §2                      | 代码 `label` | 一致  |
+| --- | --------------------------------- | ---------- | --- |
+| Q1  | 《AI 编程可闭环协作》卷三讲什么？Harness 和签收是什么？ | 同左         | ✅   |
+| Q2  | RAG 混合检索怎么做的？                     | 同左         | ✅   |
+| Q3  | 冷/温/热 和 架构三层 区别？                  | 同左         | ✅   |
+| Q4  | 11 年经历里 AI Coding 相关成果？           | 同左         | ✅   |
+| Q5  | 按需读图相对整图灌入 token/效果？边界？           | 同左         | ✅   |
+
+
+> SPEC 表内 `*`* 为 Markdown 强调；chip 按钮展示为纯文本（语义逐字一致）。
 
 ### §4.4 / §6.6 裁剪（逻辑自检）
 
-| 场景 | 预期 | 实现锚点 |
-|------|------|----------|
-| portfolio + L2 | 无 Router Debug / Timeline / debug URL | `showRouterDebug=false` · `showTimelinePanels=false` · `debugUrlAllowed=false` |
-| portfolio + L0/L1 | Timeline 可见 · `?debug=1` 可开 · 仍无 Router Debug | `portfolioTimelineVisible` · `portfolioDebugUrlAllowed` |
-| development | 3 通用 chip + 全量 debug | `!portfolio` 分支 |
-| locked + portfolio | 5 chip · setDraft · send blocked | unlock 区 chip + readonly textarea |
+
+| 场景                 | 预期                                            | 实现锚点                                                                           |
+| ------------------ | --------------------------------------------- | ------------------------------------------------------------------------------ |
+| portfolio + L2     | 无 Router Debug / Timeline / debug URL         | `showRouterDebug=false` · `showTimelinePanels=false` · `debugUrlAllowed=false` |
+| portfolio + L0/L1  | Timeline 可见 · `?debug=1` 可开 · 仍无 Router Debug | `portfolioTimelineVisible` · `portfolioDebugUrlAllowed`                        |
+| development        | 3 通用 chip + 全量 debug                          | `!portfolio` 分支                                                                |
+| locked + portfolio | 5 chip · setDraft · send blocked              | unlock 区 chip + readonly textarea                                              |
+
 
 ### 风险 / 待 W6
 
 - 五问 E2E 答通与 sources category 归 **W6**；本 task 仅 UI + chip 文案就绪。
+
