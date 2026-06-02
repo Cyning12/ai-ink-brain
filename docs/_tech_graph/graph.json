@@ -1473,6 +1473,21 @@
       "type": "depends_on"
     },
     {
+      "anchors": [
+        {
+          "path": "lib/auth/portfolio-session.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "API_SESSION",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "PFSESS",
+      "type": "depends_on"
+    },
+    {
       "anchors": [],
       "from": "API_UNLOCK",
       "graph_id": "12_flow_auth",
@@ -1485,10 +1500,20 @@
     {
       "anchors": [
         {
-          "path": "lib/hooks/useAdminSession.ts",
+          "path": "lib/auth/portfolio-env.ts",
           "symbol": ""
         }
       ],
+      "from": "API_UNLOCK",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "[secret]",
+      "sync": true,
+      "to": "PFENV",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
       "from": "COOKIE",
       "graph_id": "12_flow_auth",
       "label": "Set-Cookie HttpOnly",
@@ -1498,16 +1523,11 @@
       "type": "depends_on"
     },
     {
-      "anchors": [
-        {
-          "path": "lib/auth/admin-env.ts",
-          "symbol": ""
-        }
-      ],
+      "anchors": [],
       "from": "ENV",
       "graph_id": "12_flow_auth",
       "label": "",
-      "mark": "[secret configured]",
+      "mark": "[Ink secret configured]",
       "sync": true,
       "to": "TSE",
       "type": "depends_on"
@@ -1530,6 +1550,36 @@
       "mark": "->",
       "sync": true,
       "to": "TSE",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "lib/auth/portfolio-session.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "PFENV",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "[visitor|visitor-admin]",
+      "sync": true,
+      "to": "PFSESS",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "lib/hooks/useAdminSession.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "PFSESS",
+      "graph_id": "12_flow_auth",
+      "label": "Set-Cookie HttpOnly",
+      "mark": "->",
+      "sync": true,
+      "to": "SESSION_UI",
       "type": "depends_on"
     },
     {
@@ -1598,12 +1648,7 @@
       "type": "depends_on"
     },
     {
-      "anchors": [
-        {
-          "path": "lib/auth/admin-cookie.ts",
-          "symbol": ""
-        }
-      ],
+      "anchors": [],
       "from": "TSE",
       "graph_id": "12_flow_auth",
       "label": "",
@@ -1647,6 +1692,14 @@
         },
         {
           "path": "lib/auth/admin-env.ts",
+          "symbol": ""
+        },
+        {
+          "path": "lib/auth/portfolio-env.ts",
+          "symbol": ""
+        },
+        {
+          "path": "lib/auth/portfolio-session.ts",
           "symbol": ""
         },
         {
@@ -1954,6 +2007,21 @@
       "type": "depends_on"
     },
     {
+      "anchors": [
+        {
+          "path": "lib/unified-chat/portfolio-chat-tier.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "UCP",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "?>",
+      "sync": true,
+      "to": "UC_PORT",
+      "type": "condition"
+    },
+    {
       "anchors": [],
       "from": "UCP",
       "graph_id": "13_flow_components",
@@ -1989,6 +2057,26 @@
       "type": "depends_on"
     },
     {
+      "anchors": [],
+      "from": "UC_PORT",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "[visitor]",
+      "sync": true,
+      "to": "UC_HIDE",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "UC_PORT",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "[visitor-admin]",
+      "sync": true,
+      "to": "UC_PART",
+      "type": "depends_on"
+    },
+    {
       "anchors": [
         {
           "path": "components/unified-chat/UnifiedChatPageClient.tsx",
@@ -2005,7 +2093,7 @@
     }
   ],
   "freeze_id": "TECH_GRAPH_S2_FREEZE_20260519_V2_3",
-  "generated_at": "2026-06-01T07:19:00Z",
+  "generated_at": "2026-06-02T13:38:04Z",
   "graphs": [
     {
       "id": "00_main",
@@ -2375,6 +2463,16 @@
       "label": "PARSE"
     },
     {
+      "graph_id": "12_flow_auth",
+      "id": "PFENV",
+      "label": "PFENV"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "PFSESS",
+      "label": "PFSESS"
+    },
+    {
       "graph_id": "00_main",
       "id": "PROJECTS",
       "label": "/projects"
@@ -2551,6 +2649,11 @@
     },
     {
       "graph_id": "13_flow_components",
+      "id": "UC_HIDE",
+      "label": "隐藏 Router Debug Timeline debug URL"
+    },
+    {
+      "graph_id": "13_flow_components",
       "id": "UC_HIST",
       "label": "历史 transcript 跨轮"
     },
@@ -2563,6 +2666,16 @@
       "graph_id": "13_flow_components",
       "id": "UC_MSG",
       "label": "底 消息区 当前轮"
+    },
+    {
+      "graph_id": "13_flow_components",
+      "id": "UC_PART",
+      "label": "Timeline + debug URL 可见"
+    },
+    {
+      "graph_id": "13_flow_components",
+      "id": "UC_PORT",
+      "label": "portfolio access_level 档位"
     },
     {
       "graph_id": "13_flow_components",

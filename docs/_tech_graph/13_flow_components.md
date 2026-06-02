@@ -17,7 +17,11 @@ flowchart TB
     UCP --> UC_RIGHT[右栏: 执行链路\n当前轮]:::u
     UCP --> UC_MSG[底部: 消息区\n当前轮 finalAnswer + events 提取]:::u
     UCP --> UC_DBG[Router Debug / 推荐问法 / 输入]:::u
+    UCP -->|portfolio| UC_PORT[portfolio 分支\naccess_level 档位裁剪 + 五问 chip]:::u
   end
+
+  UC_PORT -->|visitor L2| UC_HIDE[隐藏 Router Debug · Timeline · ?debug=1]:::u
+  UC_PORT -->|visitor-admin L0/1| UC_PART[Timeline 可见 · ?debug=1 可开 · 仍无 Router Debug]:::u
 
   UC_MID --> TL["ChainTimeline\ncomponents/chain-chat/ChainTimeline.tsx"]:::c
   TL --> EC["ChainEventCard\ncomponents/chain-chat/ChainEventCard.tsx"]:::c

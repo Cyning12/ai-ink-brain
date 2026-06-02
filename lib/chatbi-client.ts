@@ -3,6 +3,8 @@
  */
 
 export const LS_CHATBI_KEY = "chatbi_access_token_plain" as const;
+/** unlock 成功后写入 sessionStorage，与 token 同清；刷新后缺失则 re-verify 补 level */
+export const SS_CHATBI_ACCESS_LEVEL_KEY = "chatbi_access_level" as const;
 /** 与 ChatPanel / Text2Sql / Chain 等一致：Ink 管理员口令本地缓存键 */
 export const LS_INK_BLOG_ADMIN_KEY = "blog_admin_token" as const;
 /** 兼容：仍可向 BFF 传 `X-ChatBI-Access-Token`；主路径为 `Authorization: Bearer <明文>`（与 Python `require_chatbi_principal` 一致） */
@@ -49,13 +51,35 @@ export function readChatbiToken(): string {
 export function writeChatbiToken(plain: string): void {
   if (typeof window === "undefined") return;
   const t = plain.replace(/^bearer\s+/i, "").trim();
-  if (!t) localStorage.removeItem(LS_CHATBI_KEY);
-  else localStorage.setItem(LS_CHATBI_KEY, t);
+  if (!t) {
+    localStorage.removeItem(LS_CHATBI_KEY);
+    clearChatbiAccessLevel();
+  } else localStorage.setItem(LS_CHATBI_KEY, t);
 }
 
-/** 登出 ChatBI：仅清除明文 token，不影响 Ink 管理员密钥 */
+export function readChatbiAccessLevel(): number | null {
+  if (typeof window === "undefined") return null;
+  const raw = sessionStorage.getItem(SS_CHATBI_ACCESS_LEVEL_KEY);
+  if (raw == null || raw.trim() === "") return null;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : null;
+}
+
+export function writeChatbiAccessLevel(level: number): void {
+  if (typeof window === "undefined") return;
+  sessionStorage.setItem(SS_CHATBI_ACCESS_LEVEL_KEY, String(level));
+}
+
+export function clearChatbiAccessLevel(): void {
+  if (typeof window === "undefined") return;
+  sessionStorage.removeItem(SS_CHATBI_ACCESS_LEVEL_KEY);
+}
+
+/** 登出 ChatBI：清除明文 token 与 access_level，不影响 Ink 管理员密钥 */
 export function clearChatbiToken(): void {
-  writeChatbiToken("");
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(LS_CHATBI_KEY);
+  clearChatbiAccessLevel();
 }
 
 /** 清除 Ink 本地 admin token（与 Cookie 会话独立） */

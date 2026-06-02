@@ -8,6 +8,12 @@ import {
   encodeChatbiTokenForCookie,
 } from "@/lib/auth/chatbi-site-cookie";
 import { getAdminApiSecret } from "@/lib/auth/admin-env";
+import { matchPortfolioSecret } from "@/lib/auth/portfolio-env";
+import {
+  buildPortfolioSessionCookieValue,
+  portfolioSessionCookieHeader,
+  portfolioSessionMaxAgeSec,
+} from "@/lib/auth/portfolio-session";
 import { verifyChatbiPlainUpstream } from "@/lib/server/chatbi-access-verify-upstream";
 
 export const runtime = "nodejs";
@@ -40,10 +46,31 @@ function setInkSessionResponse(inkSecret: string): Response {
   });
 }
 
+function setPortfolioSessionResponse(role: "visitor" | "visitor-admin"): Response {
+  const maxAge = portfolioSessionMaxAgeSec(role);
+  const value = buildPortfolioSessionCookieValue(role, maxAge);
+  if (!value) {
+    return Response.json(
+      { ok: false, error: "Portfolio 秘钥未配置（PORTFOLIO_VISITOR_*）" },
+      { status: 503 },
+    );
+  }
+  return new Response(
+    JSON.stringify({ ok: true, mode: "portfolio" as const, role }),
+    {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Set-Cookie": portfolioSessionCookieHeader(value, maxAge),
+      },
+    },
+  );
+}
+
 /**
  * 解锁：
  * - `token`：仅走 ChatBI（Python verify）。
- * - `secret`：匹配 Ink 则写 Ink 管理 Cookie；否则再走 ChatBI verify。
+ * - `secret`：Portfolio 访客秘钥 → Ink 管理 → ChatBI verify（SPEC §4.3 优先级）。
  */
 export async function POST(request: Request): Promise<Response> {
   let body: { token?: unknown; secret?: unknown };
@@ -68,6 +95,13 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const inkSecret = getAdminApiSecret();
+  if (secretField) {
+    const portfolioRole = matchPortfolioSecret(secretField);
+    if (portfolioRole) {
+      return setPortfolioSessionResponse(portfolioRole);
+    }
+  }
+
   if (secretField && inkSecret && secretField.length === inkSecret.length) {
     try {
       if (timingSafeEqual(Buffer.from(secretField, "utf8"), Buffer.from(inkSecret, "utf8"))) {
