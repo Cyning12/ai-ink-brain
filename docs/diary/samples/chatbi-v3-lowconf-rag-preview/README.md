@@ -47,8 +47,8 @@
 
 ## 关联
 
-- 本仓 task（done）：`content/tasks/done/task_chatbi_v3_lowconf_rag_preview_frontend_v1.md`
+- 本仓 task（done）：`docs/tasks/done/task_chatbi_v3_lowconf_rag_preview_frontend_v1.md`
 - 后端 task（done）：`ai-ink-brain-api-python/docs/tasks/done/task_chatbi_v3_lowconf_rag_preview_v1.md`
 - 后端 diary 索引：[`ai-ink-brain-api-python/docs/diary/samples/chatbi-v3-lowconf-rag-preview/README.md`](../../../ai-ink-brain-api-python/docs/diary/samples/chatbi-v3-lowconf-rag-preview/README.md)
-- 50 复检：`content/tasks/reinspect_results/reinspect_chatbi-v3-lowconf-rag-preview-frontend_20260601_v2.md`
+- 50 复检：`docs/tasks/reinspect_results/reinspect_chatbi-v3-lowconf-rag-preview-frontend_20260601_v2.md`
 - 对照 5-2：后端 [`chatbi-v3-lowconf-sql-preview/`](../../../ai-ink-brain-api-python/docs/diary/samples/chatbi-v3-lowconf-sql-preview/)

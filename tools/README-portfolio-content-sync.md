@@ -1,12 +1,14 @@
 # Portfolio 内容同步（W5）
 
-将 sibling 仓 [`ai-coding-closed-loop-articles`](../../ai-coding-closed-loop-articles) 中的 **MVP 三文件** 幂等复制到本仓 `content/methodology/`、`content/resume/`、`content/evidence/`。
+将 sibling 仓 [`ai-coding-closed-loop-articles`](../../ai-coding-closed-loop-articles) 中的 **MVP 语料** 幂等复制到本仓 `content/methodology/`、`content/resume/`、`content/evidence/`。
+
+`evidence/` 默认 **两个文件**：`methodology-card.md`（PUBLISH 节选 · Q3 长卡）与 **`evidence-card.md`（检索用摘要 · Q3/Q5 短段，含 1/9 边界）**。
 
 ## 前置
 
 | 项 | 说明 |
 |----|------|
-| articles 仓 | 与 `ai-ink-brain` 并列 clone；仓根须含 `ARTICLE_*_vol3_*.md` |
+| articles 仓 | 与 `ai-ink-brain` 并列 clone；仓根须含 **`ARTICLE_*_vol3_*.md`**（legacy）或 **`*卷三*.md`**（公众稿现行命名） |
 | 可选简历源 | `--docs-root` 下 `cv-online.md`，否则生成 **resume stub** |
 | 后端 ingest | 配对 `ai-ink-brain-api-python` 进程须设 **`CONTENT_ROOT=<本仓绝对路径>/content`** |
 | **鉴权** | 维护者 **服务端** 密钥：`SYNC_ADMIN_SECRET`（与 Python admin 同值；shell 文档别名 **`ADMIN_TOKEN`**）。**禁止** 在 curl 示例中使用 `NEXT_PUBLIC_ADMIN_SECRET` |
@@ -71,10 +73,10 @@ curl -sS -X POST "http://localhost:3000/api/admin/sync" \
 ## 禁止
 
 - 脚本内 **禁止** 嵌入 API Key
-- **禁止** 将 `content/tasks/`、`content/harness/` 等维护目录同步进 portfolio 路径
+- **禁止** 将 `docs/tasks/`、`docs/harness/` 等维护目录同步进 portfolio 路径
 - **visitor / visitor-admin** 秘钥 **无** sync 能力（投递计划 §3.4）
 
 ## 关联
 
-- Task：`content/tasks/active/task_portfolio_content_sync_script_v1.md`
-- SPEC：`content/tasks/specs/SPEC-portfolio_admin_sync_auth_v1_zh.md` · `SPEC-portfolio_demo_site_v1_zh.md` §4.5 · §6.5
+- Task：`docs/tasks/active/task_portfolio_content_sync_script_v1.md`
+- SPEC：`docs/tasks/specs/SPEC-portfolio_admin_sync_auth_v1_zh.md` · `SPEC-portfolio_demo_site_v1_zh.md` §4.5 · §6.5

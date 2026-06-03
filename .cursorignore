@@ -139,9 +139,11 @@ docs/_tech_graph/graph.json
 
 content/diary/
 content/learning/
-content/tasks/done/
-content/tasks/review_results/
-content/tasks/reinspect_results/
+docs/tasks/done/
+docs/tasks/review_results/
+docs/tasks/reinspect_results/
+docs/harness/invokes/
+docs/harness/reviews/
 
 # -----------------------------------------------------------------------------
 # Vercel 部署

@@ -35,7 +35,8 @@ timeline
   2026-06-02 : 82b9a90 auto: app/_components/home-modules.tsx
   2026-06-02 : portfolio W2 三内容页 resume/methodology/evidence get-portfolio-doc 根演示首页 PR49
   2026-06-02 : portfolio W3 访客秘钥 portfolio_visitor_session unlock/session role TTL gen-portfolio-secrets.sh
+  2026-06-03 : docs(tasks,harness): content/tasks+content/harness 迁至 docs/；RAG ingest 仅扫 content/ 语料
 ```
 
-**Verify（P1）**：PR 门禁 workflow **`quality`** 含 **`pnpm test`**、**`tech_graph_graph_export --check`** 与 **`tech_graph_graph_equivalence_check`**（graph_v2，与 `content/tasks/specs/MIGRATION-tech_graph_v2_frontend_playbook_v1_zh.md` 一致）。
+**Verify（P1）**：PR 门禁 workflow **`quality`** 含 **`pnpm test`**、**`tech_graph_graph_export --check`** 与 **`tech_graph_graph_equivalence_check`**（graph_v2，与 `docs/tasks/specs/MIGRATION-tech_graph_v2_frontend_playbook_v1_zh.md` 一致）。
 

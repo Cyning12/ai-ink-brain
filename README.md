@@ -62,7 +62,7 @@ pnpm dev                      # next dev --webpack
 | [`AGENTS.md`](AGENTS.md) | Agent 阅读顺序、关键入口文件、任务与图谱约定 |
 | [`docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md`](docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md) | 环境变量、目录职责、API 契约摘要（**配置真值表**） |
 | [`docs/_tech_graph/`](docs/_tech_graph/) | 路由、API、鉴权等流程图与规约（与子流程 `.ai.md` 双轨维护） |
-| [`content/tasks/`](content/tasks/) | 任务规格：`active/`、`done/`、`README.md` |
+| [`docs/tasks/`](docs/tasks/) | 任务规格：`active/`、`done/`、`README.md` |
 
 多子仓总览与工作区约定见上级目录 **`Projects/AGENTS.md`**。
 

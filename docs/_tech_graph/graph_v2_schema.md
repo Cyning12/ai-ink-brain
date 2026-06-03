@@ -2,7 +2,7 @@
 
 > **状态**：与 committed `graph.json` 对齐  
 > **落盘**：`docs/_tech_graph/graph.json`，`schema_version: graph_v2`  
-> **关联规格**：`content/tasks/specs/SPEC-tech_graph_v2_frontend_parity_v1.md`  
+> **关联规格**：`docs/tasks/specs/SPEC-tech_graph_v2_frontend_parity_v1.md`  
 > **导出**：自本目录 `*.ai.md`；工具在配对后端仓（见 §8）  
 > **工作区 SPEC**：`docs/tech_graph/SPEC/json_graph/scheme_1_graph_json.md`
 

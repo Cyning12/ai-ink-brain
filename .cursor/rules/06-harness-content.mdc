@@ -1,16 +1,16 @@
 ---
-description: Harness 前端仓 — content/harness 落盘、工作区 prompts 单源、KPI v1.2 必填
+description: Harness 前端仓 — docs/harness 落盘、工作区 prompts 单源、KPI v1.2 必填
 alwaysApply: true
 ---
 
-# Harness（Ink · content/harness）
+# Harness（Ink · docs/harness）
 
-执行 Harness、`content/tasks/active/*.md` 或用户 `@task` 时：
+执行 Harness、`docs/tasks/active/*.md` 或用户 `@task` 时：
 
-1. **入口**：[`content/harness/README.md`](content/harness/README.md) · [`content/tasks/README.md`](content/tasks/README.md)
+1. **入口**：[`docs/harness/README.md`](docs/harness/README.md) · [`docs/tasks/README.md`](docs/tasks/README.md)
 2. **prompts**：工作区 `Projects/docs/harness/prompts/`（`templates/` · `hats/` · `handoff/`）— **禁止**复制到本仓
-3. **落盘**：invoke → `content/harness/invokes/by-task/<task_slug>/`；22 → `content/harness/reviews/`；50 → `content/tasks/reinspect_results/`
-4. **新建 task**：必填 `test_strategy`、`kpi_rubric: KPI_RUBRIC_v1_2`、`kpi_aggregator`（默认 **CLOSE**）、关账前 **`### KPI（00）`** — 见 [`content/tasks/templates/TASK_TEMPLATE.md`](content/tasks/templates/TASK_TEMPLATE.md)
+3. **落盘**：invoke → `docs/harness/invokes/by-task/<task_slug>/`；22 → `docs/harness/reviews/`；50 → `docs/tasks/reinspect_results/`
+4. **新建 task**：必填 `test_strategy`、`kpi_rubric: KPI_RUBRIC_v1_2`、`kpi_aggregator`（默认 **CLOSE**）、关账前 **`### KPI（00）`** — 见 [`docs/tasks/templates/TASK_TEMPLATE.md`](docs/tasks/templates/TASK_TEMPLATE.md)
 5. **VERIFY（D5）**：`pnpm lint` → `pnpm test` → `pnpm build`（与根 `AGENTS.md` §8 一致）
 6. **跨子仓 Harness task**：Open **`Projects/`**，读 `docs/harness/tasks/`；遵守工作区 `05-harness-workspace.mdc`
 

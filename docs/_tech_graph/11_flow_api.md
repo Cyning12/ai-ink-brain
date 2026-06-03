@@ -82,13 +82,13 @@ flowchart LR
 - **入站还可**：Ink admin session Cookie（`validateAdmin` · Legacy）。
 - **出站 BFF → Python**：`forwardToPyAdmin` 注入 `SYNC_ADMIN_SECRET` Bearer（与 curl 路径分离）。
 - **已废弃**：`x-admin-token` + 文档示例 `NEXT_PUBLIC_ADMIN_SECRET`（admin/sync 链 · 2026-06-30 移除 `x-admin-token` 兼容）。
-- **真值**：`lib/auth/sync-admin-env.ts` · `require-sync-admin-access.ts` · [`SPEC-portfolio_admin_sync_auth_v1_zh.md`](../../content/tasks/specs/SPEC-portfolio_admin_sync_auth_v1_zh.md)
+- **真值**：`lib/auth/sync-admin-env.ts` · `require-sync-admin-access.ts` · [`SPEC-portfolio_admin_sync_auth_v1_zh.md`](../../docs/tasks/specs/SPEC-portfolio_admin_sync_auth_v1_zh.md)
 
 ## ChatBI V3 · Text2SQL 子阶段 SSE（Unified 增量路径）
 
 - **消费入口**：`UnifiedChatPageClient` → `POST /api/py/unified/chat/stream`（`X-ChatBI-Sse-Contract: 2`）。  
 - **契约帧**：`text2sql.phase.start` / `text2sql.phase.end`；终态汇总 **`tool.call.end` → `output.text2sql_phases_ms`**。  
-- **任务与真值**：`content/tasks/active/task_chatbi_v3_text2sql_phase_sse_timeline_frontend_v1.md`（§V1 交付、§数据源与 UI 策略）；后端 L1 摘要见配对仓 `SPEC-ChatBI-V3-Observability-Text2SQL.md` §5.1。
+- **任务与真值**：`docs/tasks/active/task_chatbi_v3_text2sql_phase_sse_timeline_frontend_v1.md`（§V1 交付、§数据源与 UI 策略）；后端 L1 摘要见配对仓 `SPEC-ChatBI-V3-Observability-Text2SQL.md` §5.1。
 
 ## ChatBI V3 · 多轮澄清 SSE（`agent.clarify`）
 

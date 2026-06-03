@@ -20,8 +20,8 @@
    - `99_spec.md` — 前端实现规约（含 graph_v2 CI、跨仓契约指针）
    - `graph_v2_schema.md` — `graph.json` 字段与失败码
    - `99_mermaid_protocol.md` — Mermaid 拓扑协议摘要（完整版见配对后端仓同名文件）
-   - **迁移实践**：`content/tasks/specs/MIGRATION-tech_graph_v2_frontend_playbook_v1_zh.md`
-4. **`content/tasks/README.md`** + **`content/tasks/active/`**、**`content/tasks/done/`**：任务规格与归档规则（与后端 `docs/tasks/` 分类一致）
+   - **迁移实践**：`docs/tasks/specs/MIGRATION-tech_graph_v2_frontend_playbook_v1_zh.md`
+4. **`docs/tasks/README.md`** + **`docs/tasks/active/`**、**`docs/tasks/done/`**：任务规格与归档规则（与后端 `docs/tasks/` 分类一致）
 5. **Coding Wiki（L2 编译层 · 关账回顾默认读序）**
    - 入口：`../ai-ink-brain-api-python/docs/coding_wiki/index.md`、`../ai-ink-brain-api-python/docs/coding_wiki/CODING_WIKI.md`、`../ai-ink-brain-api-python/docs/spec/governance/SPEC-Governance-Wiki-Agent-Readorder-v1.md`
    - 读序：`index` → `syntheses/<slug>` → pointer 回到 L1 task；当任务涉及改代码（路由/BFF/契约）时，仍以本仓 L0 `docs/_tech_graph/` + query 为准，Wiki 不替代实现真值。
@@ -80,16 +80,17 @@
 
 ## Harness（Ink · KPI v1.2 · P0）
 
-> **真值目录**：`content/harness/README.md` · **prompts 单源**：工作区 `Projects/docs/harness/prompts/`（勿复制到本仓）。
+> **真值目录**：`docs/harness/README.md` · **prompts 单源**：工作区 `Projects/docs/harness/prompts/`（勿复制到本仓）。
 
 | 项 | 约定 |
 |----|------|
-| 新建 task | 用 `content/tasks/templates/TASK_TEMPLATE.md`；必填 `test_strategy`、`kpi_rubric`、`kpi_aggregator`（默认 **CLOSE**） |
+| 新建 task | 用 `docs/tasks/templates/TASK_TEMPLATE.md`；必填 `test_strategy`、`kpi_rubric`、`kpi_aggregator`（默认 **CLOSE**） |
 | 关账 | 正文 **`### KPI（00）`**；评分细则见工作区 [`docs/harness/guides/KPI_RUBRIC_v1_2.md`](../docs/harness/guides/KPI_RUBRIC_v1_2.md) |
 | 帽序 | 工作区 [`docs/harness/SDD_HAT_FLOW.md`](../docs/harness/SDD_HAT_FLOW.md) |
-| invoke | `content/harness/invokes/by-task/<task_slug>/` |
-| 50 | `content/tasks/reinspect_results/` |
+| invoke | `docs/harness/invokes/by-task/<task_slug>/` |
+| 50 | `docs/tasks/reinspect_results/` |
 | 迁移方案 | 工作区 [`docs/harness/guides/PLAN_frontend_harness_kpi_migration_v1_zh.md`](../docs/harness/guides/PLAN_frontend_harness_kpi_migration_v1_zh.md) |
+| 关账前交互验收清单 | `.cursor/skills/harness-close-acceptance-checklist/SKILL.md` · `docs/tasks/templates/CHECKLIST_TEMPLATE_acceptance_zh.md` |
 | 合并前必绿 | `pnpm install --frozen-lockfile` → `pnpm lint` → `pnpm test` → `pnpm build`（工作区根 `AGENTS.md` §8） |
 
 **Open Folder**：仅改前端业务 / Harness 落盘 → **本仓** `ai-ink-brain/`；跨子仓 Harness task → Open **`Projects/`**。
@@ -99,7 +100,7 @@
 ## 交付物约定
 
 - **配置真值表**：`docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md`（随代码演进持续更新）
-- **任务驱动**：优先阅读对应 `content/tasks/active/task_*.md`，实现完成后回填验收项；**验收通过后**须按 `content/tasks/README.md` 将任务单 **`git mv`** 至 `content/tasks/done/` 并更新 `content/tasks/_views/done.md`
+- **任务驱动**：优先阅读对应 `docs/tasks/active/task_*.md`，实现完成后回填验收项；**验收通过后**须按 `docs/tasks/README.md` 将任务单 **`git mv`** 至 `docs/tasks/done/` 并更新 `docs/tasks/_views/done.md`
 - **图谱同步**：代码变更后自动增量更新 `docs/_tech_graph/` 对应文件
   - flowchart 流程图维护双轨：`.md`（人类版）+ `.ai.md`（AI 协议版）
   - 修改代码后，优先更新 `.ai.md`，再同步 `.md`
@@ -144,14 +145,33 @@
 
 # Harness 半自动续跑（本仓）
 
-执行 `content/tasks/active/*.md` 或用户 `@task` 时：
+执行 `docs/tasks/active/*.md` 或用户 `@task` 时：
 
 1. **先读** task 文首 `semi_auto`、`human_gate`、`audit_profile`；通则见工作区 `Projects/docs/harness/prompts/HANDOFF_SEMI_AUTO.md`（及 `HANDOFF_AUTO_COMMIT`、`HANDOFF_CLOSE_TRACE`）。
 2. **无阻塞则连续跑**：凡 `human_gate` 对下一棒 **非** `pending`（或 `blocks_hats` 不含该帽），**同会话**自动戴下一帽；**禁止**每棒要求用户重贴 `TEMPLATE-*` §3。
-3. **下一棒前必落盘**：将下一棒 §3 全文写入 `content/harness/invokes/by-task/<task_slug>/invoke_*.md`，再 **commit** 本轮路径，然后执行。
+3. **下一棒前必落盘**：将下一棒 §3 全文写入 `docs/harness/invokes/by-task/<task_slug>/invoke_*.md`（历史根目录扁平 `invoke_*.md` 只读）；跨子仓 task 落工作区 `docs/harness/invokes/by-task/<slug>/`。再 **commit** 本轮路径，然后执行。
 4. **人工闸**：仅 **人** 可将 `pending`→`approved`；遇 `pending` **停**，只输出须改的 `gate_id` 与文件路径，**不得**代填、不得标 `done`。
-5. **新会话续跑**：读 task + **最新** `content/harness/invokes/` 下与本 task 相关的 invoke，按其中 §3 继续；用户可说「按 semi_auto 继续」。
+5. **新会话续跑**：读 task + **最新** `docs/harness/invokes/by-task/<task_slug>/`（或历史扁平 invokes）下与本 task 相关的 invoke，按其中 §3 继续；用户可说「按 semi_auto 继续」。
 6. **关账**：无下一棒时输出 **执行路线与 Commit 回溯**（`HANDOFF_CLOSE_TRACE`），非空 Prompt。
+
+---
+
+## Harness Content
+
+> Harness 前端仓 — docs/harness 落盘、工作区 prompts 单源、KPI v1.2 必填
+
+# Harness（Ink · docs/harness）
+
+执行 Harness、`docs/tasks/active/*.md` 或用户 `@task` 时：
+
+1. **入口**：[`docs/harness/README.md`](docs/harness/README.md) · [`docs/tasks/README.md`](docs/tasks/README.md)
+2. **prompts**：工作区 `Projects/docs/harness/prompts/`（`templates/` · `hats/` · `handoff/`）— **禁止**复制到本仓
+3. **落盘**：invoke → `docs/harness/invokes/by-task/<task_slug>/`；22 → `docs/harness/reviews/`；50 → `docs/tasks/reinspect_results/`
+4. **新建 task**：必填 `test_strategy`、`kpi_rubric: KPI_RUBRIC_v1_2`、`kpi_aggregator`（默认 **CLOSE**）、关账前 **`### KPI（00）`** — 见 [`docs/tasks/templates/TASK_TEMPLATE.md`](docs/tasks/templates/TASK_TEMPLATE.md)
+5. **VERIFY（D5）**：`pnpm lint` → `pnpm test` → `pnpm build`（与根 `AGENTS.md` §8 一致）
+6. **跨子仓 Harness task**：Open **`Projects/`**，读 `docs/harness/tasks/`；遵守工作区 `05-harness-workspace.mdc`
+
+半自动续跑见 [`05-harness-semi-auto.mdc`](05-harness-semi-auto.mdc)。
 
 ---
 
@@ -164,13 +184,13 @@
 ## Agent 读取策略（强制）
 
 - **非必读**：`docs/diary/`、`content/diary/` **全树**不纳入日常必读链路；**非需要不主动读取**（不预加载、不 glob 遍历、不在无关任务中引用）。
-- **何时可读**：用户 `@` 明确路径；当前 **task / invoke**（`content/tasks/*`、`content/harness/invokes/*`）依赖列出 diary 路径；排障、复盘、实验复现且范围已锁定到**具体文件**。
-- **真值优先级**：实现与架构以 `docs/_tech_graph/`、`docs/meta/`、`content/tasks/`、`content/tasks/specs/` 为准；diary **不得**覆盖或替代上述真值。
+- **何时可读**：用户 `@` 明确路径；当前 **task / invoke**（`docs/tasks/*`、`docs/harness/invokes/*`）依赖列出 diary 路径；排障、复盘、实验复现且范围已锁定到**具体文件**。
+- **真值优先级**：实现与架构以 `docs/_tech_graph/`、`docs/meta/`、`docs/tasks/`、`docs/tasks/specs/` 为准；diary **不得**覆盖或替代上述真值。
 
 ## 落盘纪律（写什么进 diary）
 
 - **用途**：存放 **非长期维护**、**易过时** 的产物，例如：一次性验收记录、实验批次报告、对比跑分、留证 curl、阶段性结论草稿、排障快照。
-- **长期真值不得滞留**：结论已冻结并写入 `_tech_graph/`、`content/tasks/done/`、`docs/_tech_graph/99_spec.md` 等稳定位置后，diary 内文稿仅作 **历史回溯**；Agent 默认 **不再**以其叙述作为实现依据。
+- **长期真值不得滞留**：结论已冻结并写入 `_tech_graph/`、`docs/tasks/done/`、`docs/_tech_graph/99_spec.md` 等稳定位置后，diary 内文稿仅作 **历史回溯**；Agent 默认 **不再**以其叙述作为实现依据。
 - **Agent 总结**：优先落在 `docs/diary/`（按 `docs/diary/DIARY_GUIDE.md` 命名）；**博客日记正文素材**落在 `content/diary/`；若内容将长期引用，须同步提炼进真值表 / 图谱 / task，而非仅堆在 diary。
 
 ## 实验轨：配对后端 `docs/diary/jsonPKmermaid/`（非必读）
@@ -274,7 +294,7 @@ docs/_tech_graph/
 
 - 方案 1 规约：配对后端 `docs/tech_graph/SPEC/json_graph/scheme_1_graph_json.md`
 - 方案 2 查询：配对后端 `docs/tech_graph/SPEC/query_graph/scheme_2_graph_query.md` · 本仓 `pnpm tech-graph:query`（脚本在后端 `tools/tech_graph_graph_query.py`）
-- 前端迁移实践：`content/tasks/specs/MIGRATION-tech_graph_v2_frontend_playbook_v1_zh.md`
+- 前端迁移实践：`docs/tasks/specs/MIGRATION-tech_graph_v2_frontend_playbook_v1_zh.md`
 
 ## 按需引用（实验轨 · 非必读）
 

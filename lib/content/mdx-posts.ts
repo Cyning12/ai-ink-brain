@@ -48,14 +48,6 @@ function walkMarkdownFiles(
 
     const abs = path.join(currentDir, ent.name);
     if (ent.isDirectory()) {
-      // 任务维护目录：不参与博客 slug 扫描（与 `content/tasks/README.md` 约定一致）
-      if (
-        ent.name === "_views" ||
-        ent.name === "templates" ||
-        ent.name === "review_results" ||
-        ent.name === "reinspect_results"
-      )
-        continue;
       walkMarkdownFiles(rootDir, abs, out);
       continue;
     }
