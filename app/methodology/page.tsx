@@ -1,5 +1,4 @@
 import Link from "next/link";
-
 import { BackButton } from "@/app/_components/back-button";
 import { PortfolioContentEmpty } from "@/app/_components/portfolio-content-empty";
 import { listPortfolioDocs } from "@/lib/content/get-portfolio-doc";
@@ -31,10 +30,6 @@ export default function MethodologyIndexPage() {
         >
           GitHub 公众连载仓
         </a>
-        {" · "}
-        <Link href="/evidence" className="text-slate-700 underline underline-offset-2">
-          方法论证据卡
-        </Link>
       </p>
 
       {docs.length === 0 ? (

@@ -23,13 +23,6 @@ const DEVELOPMENT_NAV: NavItem[] = [
   { href: "/about", label: "About" },
 ];
 
-const PORTFOLIO_NAV: NavItem[] = [
-  { href: "/", label: "首页" },
-  { href: "/resume", label: "简历" },
-  { href: "/methodology", label: "方法论" },
-  { href: "/unified-chat", label: "对话" },
-];
-
 const ADMIN_GATED_HREFS = new Set([
   "/chat",
   "/text2sql",
@@ -49,17 +42,20 @@ export function SiteNav() {
   const { isAdmin } = useAdminSession();
   const portfolio = isPortfolioMode();
 
-  const visibleNav = portfolio
-    ? PORTFOLIO_NAV
-    : DEVELOPMENT_NAV.filter((item) => {
-        if (ADMIN_GATED_HREFS.has(item.href)) {
-          return isAdmin;
-        }
-        return true;
-      });
+  const visibleNav = DEVELOPMENT_NAV.filter((item) => {
+    if (ADMIN_GATED_HREFS.has(item.href)) {
+      return isAdmin;
+    }
+    return true;
+  });
 
-  const brandTitle = portfolio ? "刘新宁" : "AI-Ink-Brain";
-  const subtitle = portfolio ? "AI Coding · RAG 演示" : "RAG Blog";
+  // Portfolio 模式由 PortfolioShell 左侧目录承担导航，不渲染顶栏
+  if (portfolio) {
+    return null;
+  }
+
+  const brandTitle = "AI-Ink-Brain";
+  const subtitle = "RAG Blog";
 
   return (
     <header className="sticky top-0 z-20 border-b border-[color:var(--color-border)] bg-[color:var(--color-background)]/70 backdrop-blur">
@@ -69,19 +65,15 @@ export function SiteNav() {
           className="group inline-flex items-center gap-2 text-[15px] font-semibold tracking-tight"
         >
           <span className="inline-flex items-center gap-2">
-            {!portfolio ? (
-              <PenTool
-                aria-hidden
-                className="h-4 w-4 text-[color:var(--color-foreground)]/80"
-                strokeWidth={1.25}
-              />
-            ) : null}
+            <PenTool
+              aria-hidden
+              className="h-4 w-4 text-[color:var(--color-foreground)]/80"
+              strokeWidth={1.25}
+            />
             <span className="font-semibold">{brandTitle}</span>
           </span>
           <span className="hidden items-center gap-1 text-xs font-normal text-[color:var(--color-muted)] sm:inline-flex">
-            {!portfolio ? (
-              <Wind aria-hidden className="h-3.5 w-3.5" strokeWidth={1.25} />
-            ) : null}
+            <Wind aria-hidden className="h-3.5 w-3.5" strokeWidth={1.25} />
             {subtitle}
           </span>
         </Link>

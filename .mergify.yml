@@ -1,0 +1,39 @@
+# 语义：配对后端 SPEC-Governance-PR-Post-CI-v1 §3.2（前端检查名 · 路径白名单）
+# 须在 GitHub 安装 Mergify App 后生效：https://mergify.com
+pull_request_rules:
+  - name: automerge docs-only (label automerge)
+    conditions:
+      - base = main
+      - label = automerge
+      - -label = no-automerge
+      - -draft
+      - check-success = lint-and-build
+      - check-success = verify
+      - -files~=^app/
+      - -files~=^lib/
+      - -files~=^components/
+      - -files~=^\.github/workflows/
+      - -files~=^pnpm-lock\.yaml$
+      - -files~=^package\.json$
+    actions:
+      merge:
+        method: squash
+        commit_message_template: |
+          {{ title }} (#{{ number }})
+          {% for commit in commits %}
+          * {{ commit.message }}
+          {% endfor %}
+
+  - name: comment blocked automerge paths
+    conditions:
+      - label = automerge
+      - or:
+          - files ~= ^app/
+          - files ~= ^lib/
+          - files ~= ^components/
+          - files ~= ^\.github/workflows/
+    actions:
+      comment:
+        message: |
+          **Mergify**：本 PR 含 `app/`、`lib/`、`components/` 或 workflow 变更，不满足 docs-only automerge。
+          请移除 `automerge` 标签并由人审查后 merge。见配对后端 `SPEC-Governance-PR-Post-CI-v1.md` §3.2。
