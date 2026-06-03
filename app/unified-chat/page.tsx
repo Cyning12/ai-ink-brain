@@ -6,20 +6,30 @@ export default function UnifiedChatPage() {
   const portfolio = getSiteMode() === "portfolio";
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-6 py-10">
-      <div className="flex items-center justify-between gap-4">
-        <BackButton />
-        <div className="text-right">
-          <h1 className="font-serif text-2xl font-semibold tracking-tight text-[#2C2C2C]">
-            {portfolio ? "RAG 演示对话" : "统一对话"}
+    <main className="mx-auto w-full max-w-7xl px-6 py-10 md:px-8 md:py-12">
+      {portfolio ? (
+        <>
+          <p className="text-xs tracking-wide text-slate-500">对话</p>
+          <h1 className="mt-2 font-serif text-3xl font-semibold tracking-tight text-[#2C2C2C]">
+            RAG 演示对话
           </h1>
-          <p className="mt-1 text-xs text-slate-500">
-            {portfolio
-              ? "流式 RAG + Timeline · 发消息需邮件申请临时秘钥"
-              : "RAG + Text2SQL + Timeline（流式 SSE）"}
+          <p className="mt-3 text-sm text-slate-600">
+            流式 RAG + Timeline · 发消息需邮件申请临时秘钥
           </p>
+        </>
+      ) : (
+        <div className="flex items-start justify-between gap-4">
+          <BackButton />
+          <div className="text-right">
+            <h1 className="font-serif text-2xl font-semibold tracking-tight text-[#2C2C2C]">
+              统一对话
+            </h1>
+            <p className="mt-1 text-xs text-slate-500">
+              RAG + Text2SQL + Timeline（流式 SSE）
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="mt-8">
         <UnifiedChatPageClient />

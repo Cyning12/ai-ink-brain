@@ -810,7 +810,7 @@ export function UnifiedChatPageClient() {
                 {typewriterFromUrl ? (
                   <span className="text-slate-400">
                     {" "}
-                    · 打字机 v0（<span className="font-mono">?typewriter=0</span> 关闭）
+                    · 打字机效果（<span className="font-mono">?typewriter=0</span> 关闭）
                   </span>
                 ) : (
                   <span className="text-slate-400">

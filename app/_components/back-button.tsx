@@ -4,9 +4,14 @@ import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { isPortfolioMode } from "@/lib/site-mode";
 
 export function BackButton(props: { label?: string }) {
   const router = useRouter();
+
+  if (isPortfolioMode()) {
+    return null;
+  }
 
   return (
     <Button
