@@ -24,7 +24,10 @@ import {
 import { copyPlainToClipboard } from "@/lib/unified-chat/clipboard";
 import { extractFinalAnswer, extractUserQueryText } from "@/lib/unified-chat/chainEventSelectors";
 import { buildExecutionTraceCopyText } from "@/lib/unified-chat/executionTrace";
-import { useTypewriterReveal } from "@/lib/unified-chat/hooks/useTypewriterReveal";
+import {
+  sliceRoundStreamingText,
+  useTypewriterReveal,
+} from "@/lib/unified-chat/hooks/useTypewriterReveal";
 import { useUnifiedChatStream } from "@/lib/unified-chat/hooks/useUnifiedChatStream";
 import { safeStringify } from "@/lib/unified-chat/stringify";
 import {
@@ -116,6 +119,10 @@ export function UnifiedChatPageClient() {
 
   const [errorText, setErrorText] = useState<string | null>(null);
   const [finalAnswer, setFinalAnswer] = useState<string>("");
+  /** 本轮流式结束后立即展示的完整答案（不经过打字机滞后） */
+  const [committedAnswer, setCommittedAnswer] = useState<string>("");
+  const [streamEpoch, setStreamEpoch] = useState(0);
+  const streamBaselineRef = useRef("");
   const [transcript, setTranscript] = useState<TranscriptTurn[]>([]);
 
   const portfolio = isPortfolioMode();
@@ -283,19 +290,36 @@ export function UnifiedChatPageClient() {
     });
   }, [debugEnabled, stream.lastDone]);
 
+  const { timelineEvents, messages, queryTextTrace, execSections, activeRequestId, lastDone, events } =
+    stream;
+
   const typewriterActive = typewriterFromUrl && loading;
-  const revealedAnswer = useTypewriterReveal(stream.streamingText, {
+  const roundStreamingText = loading
+    ? sliceRoundStreamingText(stream.streamingText, streamBaselineRef.current)
+    : "";
+  const revealedAnswer = useTypewriterReveal(roundStreamingText, {
     active: typewriterActive,
     charsPerTick: 2,
     tickMs: 20,
+    resetKey: streamEpoch,
   });
 
   const displayAnswer = loading
     ? revealedAnswer
-    : finalAnswer.trim() || stream.streamingText;
+    : committedAnswer.trim() || finalAnswer.trim() || stream.streamingText;
 
-  const { timelineEvents, messages, queryTextTrace, execSections, activeRequestId, lastDone, events } =
-    stream;
+  /** 流式结束兜底：确保 done 后 committedAnswer 与 events/SDK 对齐 */
+  useEffect(() => {
+    if (loading) return;
+    const inferred = extractFinalAnswer({
+      answer: stream.streamingText || undefined,
+      events,
+    });
+    const text = inferred.trim() || stream.streamingText.trim();
+    if (!text) return;
+    setCommittedAnswer((prev) => (prev.trim() ? prev : text));
+    setFinalAnswer((prev) => (prev.trim() ? prev : text));
+  }, [loading, stream.streamingText, events]);
 
   useEffect(() => {
     if (debugEnabled) return;
@@ -414,8 +438,11 @@ export function UnifiedChatPageClient() {
     stream.stop();
     stream.clearError();
 
+    streamBaselineRef.current = stream.streamingText;
     setErrorText(null);
     setFinalAnswer("");
+    setCommittedAnswer("");
+    setStreamEpoch((n) => n + 1);
     stream.resetStreamMeta();
     stream.beginRound(trimmed);
     setTimelineBatchOpen(false);
@@ -431,13 +458,15 @@ export function UnifiedChatPageClient() {
         answer: stream.streamingText || undefined,
         events: latestEvents,
       });
-      if (inferred.trim()) {
-        setFinalAnswer((fa) => (fa.trim() ? fa : inferred));
+      const answerText = inferred.trim() || stream.streamingText.trim();
+      if (answerText) {
+        setFinalAnswer(answerText);
+        setCommittedAnswer(answerText);
       }
       const streamLastDone = stream.streamLastDoneRef.current;
-      if (streamLastDone?.ok && lastQueryRef.current.trim() && inferred.trim()) {
+      if (streamLastDone?.ok && lastQueryRef.current.trim() && answerText) {
         const uid = lastQueryRef.current.trim();
-        const aid = inferred.trim();
+        const aid = answerText;
         const rowId = crypto.randomUUID();
         setTranscript((t) => [...t, { id: rowId, user: uid, assistant: aid }]);
       }
@@ -797,7 +826,7 @@ export function UnifiedChatPageClient() {
                   <div className="text-[10px] text-slate-400">最终答案</div>
                   <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">
                     {displayAnswer}
-                    {typewriterActive && displayAnswer.length < stream.streamingText.length ? (
+                    {typewriterActive && displayAnswer.length < roundStreamingText.length ? (
                       <span className="ml-0.5 inline-block animate-pulse text-slate-500">▍</span>
                     ) : null}
                   </div>
