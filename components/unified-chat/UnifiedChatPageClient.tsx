@@ -692,6 +692,60 @@ export function UnifiedChatPageClient() {
     </section>
   );
 
+  const messagesSection = (
+    <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
+      <div className="border-b border-[color:var(--color-border)] px-4 py-3">
+        <div className="font-serif text-sm text-[#2c2c2c]">消息</div>
+        <div className="mt-0.5 text-[11px] text-slate-500">
+          最终答案以 <span className="font-mono">assistant.message</span> 为准
+          {typewriterFromUrl ? (
+            <span className="text-slate-400">
+              {" "}
+              · 打字机效果（<span className="font-mono">?typewriter=0</span> 关闭）
+            </span>
+          ) : (
+            <span className="text-slate-400">
+              {" "}
+              · 块级直出（<span className="font-mono">?typewriter=1</span> 开启）
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="max-h-[50vh] overflow-auto px-4 py-4">
+        {displayAnswer.trim() ? (
+          <div className="mb-4 rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/90 px-3 py-2">
+            <div className="text-[10px] text-slate-400">最终答案</div>
+            <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">
+              {displayAnswer}
+              {typewriterActive && displayAnswer.length < roundStreamingText.length ? (
+                <span className="ml-0.5 inline-block animate-pulse text-slate-500">▍</span>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+        {messages.length === 0 ? (
+          <p className="text-[12px] leading-relaxed text-slate-500">
+            发送一次问题后，这里会显示从 events 提取的 user/assistant 消息。
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {messages.map((m) => (
+              <div
+                key={m.id}
+                className="rounded-xl border border-[color:var(--color-border)] bg-[#f9f9f7]/80 px-3 py-2"
+              >
+                <div className="text-[10px] text-slate-400">{m.role}</div>
+                <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{m.text}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+
+  const showDebugTooling = showRouterDebug || debugEnabled;
+
   return (
     <div className="space-y-4">
       {locked ? (
@@ -822,13 +876,15 @@ export function UnifiedChatPageClient() {
 
           {chatComposerSection}
 
+          {messagesSection}
+
           <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40 px-4 py-3">
             <div className="flex flex-wrap items-end gap-4">
               <div className="min-w-0 flex-1 space-y-2 text-[11px] text-slate-600">
                 <p className="leading-relaxed text-slate-600">
                   同一浏览器内连续提问共享上下文，直至点击「新会话」。只要{" "}
                   <span className="font-mono">session_id</span> 不变且后端已落库，刷新或再次进入本页会从{" "}
-                  <span className="font-mono">/api/py/chat/history</span> 恢复下方「历史消息」摘要；Timeline
+                  <span className="font-mono">/api/py/chat/history</span> 恢复「历史消息」摘要；Timeline
                   仍仅展示当前轮 SSE。
                 </p>
                 {debugEnabled ? (
@@ -899,7 +955,7 @@ export function UnifiedChatPageClient() {
               <div className="border-b border-[color:var(--color-border)] px-4 py-3">
                 <div className="font-serif text-sm text-[#2c2c2c]">历史消息</div>
                 <div className="mt-0.5 text-[11px] text-slate-500">
-                  已完成轮次摘要（来自 rag_conversation_logs）；当前轮 Timeline 与下方「消息」区仅展示本轮
+                  已完成轮次摘要（来自 rag_conversation_logs）；当前轮 Timeline 与顶部「消息」区仅展示本轮
                 </div>
               </div>
               <div className="max-h-[36vh] space-y-3 overflow-auto px-4 py-3">
@@ -959,56 +1015,7 @@ export function UnifiedChatPageClient() {
           </div>
           ) : null}
 
-          <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
-            <div className="border-b border-[color:var(--color-border)] px-4 py-3">
-              <div className="font-serif text-sm text-[#2c2c2c]">消息</div>
-              <div className="mt-0.5 text-[11px] text-slate-500">
-                最终答案以 <span className="font-mono">assistant.message</span> 为准
-                {typewriterFromUrl ? (
-                  <span className="text-slate-400">
-                    {" "}
-                    · 打字机效果（<span className="font-mono">?typewriter=0</span> 关闭）
-                  </span>
-                ) : (
-                  <span className="text-slate-400">
-                    {" "}
-                    · 块级直出（<span className="font-mono">?typewriter=1</span> 开启）
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="max-h-[50vh] overflow-auto px-4 py-4">
-              {displayAnswer.trim() ? (
-                <div className="mb-4 rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/90 px-3 py-2">
-                  <div className="text-[10px] text-slate-400">最终答案</div>
-                  <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">
-                    {displayAnswer}
-                    {typewriterActive && displayAnswer.length < roundStreamingText.length ? (
-                      <span className="ml-0.5 inline-block animate-pulse text-slate-500">▍</span>
-                    ) : null}
-                  </div>
-                </div>
-              ) : null}
-              {messages.length === 0 ? (
-                <p className="text-[12px] leading-relaxed text-slate-500">
-                  发送一次问题后，这里会显示从 events 提取的 user/assistant 消息。
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {messages.map((m) => (
-                    <div
-                      key={m.id}
-                      className="rounded-xl border border-[color:var(--color-border)] bg-[#f9f9f7]/80 px-3 py-2"
-                    >
-                      <div className="text-[10px] text-slate-400">{m.role}</div>
-                      <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{m.text}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </section>
-
+          {showDebugTooling ? (
           <section className="space-y-3 rounded-2xl border border-[color:var(--color-border)] bg-white/40 px-4 py-4">
             {showRouterDebug ? (
             <div className="rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/70 p-3">
@@ -1111,6 +1118,7 @@ export function UnifiedChatPageClient() {
               ) : null}
 
           </section>
+          ) : null}
         </>
       )}
     </div>
