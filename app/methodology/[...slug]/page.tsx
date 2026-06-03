@@ -5,24 +5,19 @@ import { PortfolioMarkdown } from "@/app/_components/portfolio-markdown";
 import {
   getAllMethodologySlugParams,
   getPortfolioDocBySlug,
+  normalizePortfolioSlugParts,
 } from "@/lib/content/get-portfolio-doc";
 
 type PageProps = {
   params: Promise<{ slug: string | string[] | undefined }>;
 };
 
-function normalizeSlug(slug: string | string[] | undefined): string[] {
-  if (slug == null) return [];
-  const arr = Array.isArray(slug) ? slug : [slug];
-  return arr.filter((s) => s.length > 0);
-}
-
 export async function generateStaticParams() {
   return getAllMethodologySlugParams();
 }
 
 export async function generateMetadata({ params }: PageProps) {
-  const slug = normalizeSlug((await params).slug);
+  const slug = normalizePortfolioSlugParts((await params).slug);
   const doc = getPortfolioDocBySlug("methodology", slug);
   if (!doc) return { title: "Not Found" };
   return {
@@ -32,7 +27,7 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function MethodologyArticlePage({ params }: PageProps) {
-  const slug = normalizeSlug((await params).slug);
+  const slug = normalizePortfolioSlugParts((await params).slug);
   if (slug.length === 0) notFound();
 
   const doc = getPortfolioDocBySlug("methodology", slug);

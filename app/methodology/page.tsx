@@ -42,7 +42,7 @@ export default function MethodologyIndexPage() {
               className="rounded-2xl border border-[color:var(--color-border)] bg-white/35 px-5 py-4"
             >
               <Link
-                href={`/methodology/${doc.slug}`}
+                href={`/methodology/${encodeURIComponent(doc.slug)}`}
                 className="group block font-serif text-lg text-[#2C2C2C] transition-colors group-hover:text-slate-800"
               >
                 {doc.title}
