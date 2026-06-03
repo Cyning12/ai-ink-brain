@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { BackButton } from "@/app/_components/back-button";
 import { PortfolioContentEmpty } from "@/app/_components/portfolio-content-empty";
 import { listPortfolioDocs } from "@/lib/content/get-portfolio-doc";

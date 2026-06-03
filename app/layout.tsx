@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/react";
 
 import type { Metadata } from "next";
 
+import { PortfolioShell } from "@/app/_components/portfolio-shell";
 import { SiteNav } from "@/app/_components/site-nav";
 import { getSiteMode } from "@/lib/site-mode";
 // SystemStatus 已移至顶部导航栏（SiteNav），避免右下角遮挡
@@ -27,11 +28,19 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const portfolio = getSiteMode() === "portfolio";
+
   return (
     <html lang="zh-CN" className="h-full antialiased">
       <body className="flex min-h-full flex-col bg-background text-foreground">
-        <SiteNav />
-        <div className="flex-1">{children}</div>
+        {portfolio ? (
+          <PortfolioShell>{children}</PortfolioShell>
+        ) : (
+          <>
+            <SiteNav />
+            <div className="flex-1">{children}</div>
+          </>
+        )}
         <Analytics />
       </body>
     </html>
