@@ -1,10 +1,8 @@
 import { notFound } from "next/navigation";
-import { MDXRemote } from "next-mdx-remote/rsc";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 
-import { getAllPostSlugParts, getPostBySlugParts } from "@/lib/content/mdx-posts";
 import { BackButton } from "@/app/_components/back-button";
+import { MarkdownContent } from "@/app/_components/markdown-content";
+import { getAllPostSlugParts, getPostBySlugParts } from "@/lib/content/mdx-posts";
 
 type PageProps = {
   params: Promise<{ slug: string | string[] | undefined }>;
@@ -69,14 +67,8 @@ export default async function BlogPostPage({ params }: PageProps) {
         <p className="mt-4 text-muted-foreground">{post.frontmatter.description}</p>
       ) : null}
 
-      <article className="mt-10 space-y-4 text-base leading-7 text-foreground [&_code]:rounded-md [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-sm [&_h1]:text-2xl [&_h1]:font-semibold [&_li]:ml-5 [&_li]:list-disc [&_p]:text-pretty">
-        {post.ext === "mdx" ? (
-          <MDXRemote source={post.content} />
-        ) : (
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {post.content}
-          </ReactMarkdown>
-        )}
+      <article className="mt-10">
+        <MarkdownContent content={post.content} ext={post.ext} />
       </article>
     </main>
   );
