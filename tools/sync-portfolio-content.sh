@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# Portfolio 演示：从 sibling articles 仓幂等同步 MVP 三文件到 content/{methodology,resume,evidence}
+# Portfolio 演示：从 sibling articles/release 同步全部定稿 .md 到 content/methodology/，并 materialize resume/evidence
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ARTICLES_ROOT="${REPO_ROOT}/../ai-coding-closed-loop-articles"
+RELEASE_ROOT="" # 默认 <articles-root>/release（见下方解析）
 DOCS_ROOT="${ARTICLES_ROOT}/assets"
 DRY_RUN=0
 FORCE=0
@@ -13,6 +14,7 @@ usage() {
 用法: tools/sync-portfolio-content.sh [选项]
 
   --articles-root PATH   默认 ../ai-coding-closed-loop-articles（相对本仓根）
+  --release-root PATH    默认 <articles-root>/release（同步该目录下全部 *.md，跳过 README.md）
   --docs-root PATH       默认 <articles-root>/assets
   --dry-run              仅打印将复制/跳过的路径
   --force                覆盖已存在目标文件（默认跳过）
@@ -25,21 +27,30 @@ EOF
 log() { printf '%s\n' "$*"; }
 log_err() { printf '%s\n' "$*" >&2; }
 
-# 卷三源：legacy ARTICLE_*_vol3_* → 仓根 *卷三*.md（公众稿重命名后）
-resolve_vol3_src() {
-  local candidates=()
+# release/ 下全部定稿 .md → content/methodology/（跳过 README.md）
+sync_release_methodology() {
+  local dest_dir="${REPO_ROOT}/content/methodology"
+  local count=0
   shopt -s nullglob
-  candidates=("$ARTICLES_ROOT"/ARTICLE_*_vol3_*.md)
-  if [[ ${#candidates[@]} -gt 0 ]]; then
-    ls -t "${candidates[@]}" | head -n 1
-    return 0
+  local md base
+
+  if [[ ! -d "$RELEASE_ROOT" ]]; then
+    log_err "ERROR: release-root 不存在: $RELEASE_ROOT"
+    return 1
   fi
-  candidates=("$ARTICLES_ROOT"/*卷三*.md)
-  if [[ ${#candidates[@]} -gt 0 ]]; then
-    ls -t "${candidates[@]}" | head -n 1
-    return 0
+
+  for md in "$RELEASE_ROOT"/*.md; do
+    base="$(basename "$md")"
+    [[ "$base" == README.md ]] && continue
+    materialize "${dest_dir}/${base}" "copy:${md}"
+    count=$((count + 1))
+  done
+
+  if [[ "$count" -eq 0 ]]; then
+    log_err "ERROR: release-root 下无可用 .md（已跳过 README.md）: $RELEASE_ROOT"
+    return 1
   fi
-  return 1
+  return 0
 }
 
 SYNCED=()
@@ -178,6 +189,10 @@ while [[ $# -gt 0 ]]; do
       ARTICLES_ROOT="$2"
       shift 2
       ;;
+    --release-root)
+      RELEASE_ROOT="$2"
+      shift 2
+      ;;
     --docs-root)
       DOCS_ROOT="$2"
       shift 2
@@ -209,27 +224,20 @@ if [[ ! -d "$ARTICLES_ROOT" ]]; then
 fi
 
 ARTICLES_ROOT="$(cd "$ARTICLES_ROOT" && pwd)"
+if [[ -z "$RELEASE_ROOT" ]]; then
+  RELEASE_ROOT="${ARTICLES_ROOT}/release"
+elif [[ -d "$RELEASE_ROOT" ]]; then
+  RELEASE_ROOT="$(cd "$RELEASE_ROOT" && pwd)"
+fi
 if [[ ! -d "$DOCS_ROOT" ]]; then
   log_err "WARN: --docs-root 不存在，将使用 resume/evidence stub: $DOCS_ROOT" >&2
 fi
 
 shopt -s nullglob
-vol3_src=""
-if vol3_src="$(resolve_vol3_src)"; then
-  :
-else
-  log_err "ERROR: 缺卷三源（未找到 ARTICLE_*_vol3_*.md 或仓根 *卷三*.md）"
+if ! sync_release_methodology; then
   log_err "  articles-root: $ARTICLES_ROOT"
   exit 1
 fi
-
-vol3_base="$(basename "$vol3_src")"
-if [[ "$vol3_base" == ARTICLE_* ]]; then
-  methodology_dest="${REPO_ROOT}/content/methodology/vol3_${vol3_base}"
-else
-  methodology_dest="${REPO_ROOT}/content/methodology/${vol3_base}"
-fi
-materialize "$methodology_dest" "copy:${vol3_src}"
 
 resume_dest="${REPO_ROOT}/content/resume/cv-online.md"
 resume_src=""

@@ -15,7 +15,7 @@ const DEVELOPMENT_METADATA: Metadata = {
 
 const PORTFOLIO_METADATA: Metadata = {
   title: "刘新宁 · AI Coding / Agent 应用",
-  description: "个人全栈 RAG 演示：方法论 · 简历 · 证据 · Unified Chat",
+  description: "个人全栈 RAG 演示：方法论 · 简历 · Unified Chat",
 };
 
 export function generateMetadata(): Metadata {

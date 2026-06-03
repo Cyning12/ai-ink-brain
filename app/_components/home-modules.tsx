@@ -43,7 +43,6 @@ const PORTFOLIO_MODULES: HomeModule[] = [
     href: "/methodology",
     hint: "连载卷一～五",
   },
-  { id: "evidence", title: "证据", href: "/evidence", hint: "1 页证据 · 五问参考" },
   {
     id: "unified-chat",
     title: "对话",

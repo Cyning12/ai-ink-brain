@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { HomeModules } from "@/app/_components/home-modules";
 
 /** Portfolio 根演示首页（§4.6.1 · 静态 · 非 redirect）。 */
@@ -8,10 +6,7 @@ export function PortfolioHome() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center px-8 py-28">
-        <p className="text-[11px] tracking-[0.35em] text-slate-500/90">
-          AI 应用工程
-        </p>
+      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col  px-8 py-28">
         <h1 className="mt-8 font-serif text-[clamp(2rem,6vw,3rem)] font-semibold leading-tight tracking-tight text-[#2C2C2C]">
           刘新宁
         </h1>
@@ -35,16 +30,7 @@ export function PortfolioHome() {
 
         <HomeModules />
 
-        <p className="mt-10 text-sm text-slate-600">
-          <Link
-            href="/evidence"
-            className="text-slate-700 underline underline-offset-2"
-          >
-            方法论证据卡（1 页）
-          </Link>
-        </p>
-
-        <p className="mt-6 text-xs leading-relaxed text-slate-500">
+        <p className="mt-10 text-xs leading-relaxed text-slate-500">
           RAG 对话需{" "}
           <a
             href="mailto:231127227@qq.com"

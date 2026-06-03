@@ -1,6 +1,6 @@
 # Portfolio 内容同步（W5）
 
-将 sibling 仓 [`ai-coding-closed-loop-articles`](../../ai-coding-closed-loop-articles) 中的 **MVP 语料** 幂等复制到本仓 `content/methodology/`、`content/resume/`、`content/evidence/`。
+将 sibling 仓 [`ai-coding-closed-loop-articles`](../../ai-coding-closed-loop-articles) **`release/` 目录下全部定稿 `.md`**（跳过 `README.md`）幂等复制到本仓 `content/methodology/`，并 materialize `content/resume/`、`content/evidence/`。
 
 `evidence/` 默认 **两个文件**：`methodology-card.md`（PUBLISH 节选 · Q3 长卡）与 **`evidence-card.md`（检索用摘要 · Q3/Q5 短段，含 1/9 边界）**。
 
@@ -8,7 +8,7 @@
 
 | 项 | 说明 |
 |----|------|
-| articles 仓 | 与 `ai-ink-brain` 并列 clone；仓根须含 **`ARTICLE_*_vol3_*.md`**（legacy）或 **`*卷三*.md`**（公众稿现行命名） |
+| articles 仓 | 与 `ai-ink-brain` 并列 clone；**methodology** 默认同步 **`<articles-root>/release/*.md`**（跳过 `README.md`） |
 | 可选简历源 | `--docs-root` 下 `cv-online.md`，否则生成 **resume stub** |
 | 后端 ingest | 配对 `ai-ink-brain-api-python` 进程须设 **`CONTENT_ROOT=<本仓绝对路径>/content`** |
 | **鉴权** | 维护者 **服务端** 密钥：`SYNC_ADMIN_SECRET`（与 Python admin 同值；shell 文档别名 **`ADMIN_TOKEN`**）。**禁止** 在 curl 示例中使用 `NEXT_PUBLIC_ADMIN_SECRET` |
@@ -30,6 +30,7 @@ chmod +x tools/sync-portfolio-content.sh
 # 自定义源
 ./tools/sync-portfolio-content.sh \
   --articles-root /path/to/ai-coding-closed-loop-articles \
+  --release-root /path/to/ai-coding-closed-loop-articles/release \
   --docs-root /path/to/ai-coding-closed-loop-articles/assets
 ```
 
