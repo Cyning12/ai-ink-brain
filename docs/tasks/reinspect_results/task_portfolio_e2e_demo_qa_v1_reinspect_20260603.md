@@ -77,3 +77,19 @@
 - **experience_capture**: recommended  
 - **gate/risk**: HG-REINSPECT pending  
 - **hat_self**: pass-with-notes
+
+
+---
+
+## W6 维护者留证（2026-06-03 · 追加）
+
+| 项 | 值 |
+|----|-----|
+| **sync jobId** | `c44158a5-6e28-4583-ab6b-f5db9ca1866d` |
+| **sync 结果** | `filesScanned=3` · `chunksUpserted=72` · [`sync-job-final.json`](../../../ai-ink-brain-api-python/docs/diary/samples/portfolio-rag-demo/sync-job-final.json) |
+| **W6 说明** | W5 语料过多致验收噪音；`content/` 精简终版后 **W6 重跑 sync + 五问**（维护者确认同一 jobId 为 W6 留证） |
+| **五问 JSON/截图** | 配对后端 [`docs/diary/samples/portfolio-rag-demo/`](../../../ai-ink-brain-api-python/docs/diary/samples/portfolio-rag-demo/) · 主表 [`five-questions-results.md`](../../../ai-ink-brain-api-python/docs/diary/samples/portfolio-rag-demo/five-questions-results.md) |
+| **录屏** | `~/Desktop/录屏2026-06-03 18.15.00.mov`（本地 · 不进 Git） |
+| **checklist** | [`CHECKLIST_portfolio_e2e_demo_qa_v1_acceptance_zh.md`](./CHECKLIST_portfolio_e2e_demo_qa_v1_acceptance_zh.md) §A–F 已签 |
+
+**50 复检更新**：由 Agent 初判 `pass-with-notes` → 维护者补证后 **演示层 pass**；**HG-REINSPECT** 仍 pending（待人 task 文首 approved）。

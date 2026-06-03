@@ -123,3 +123,6 @@ docs/diary/samples/*
 !docs/diary/samples/**
 
 /tmp
+# 验收录屏（本地 · 不进仓）
+docs/tasks/reinspect_results/*.mov
+docs/tasks/reinspect_results/录屏*.mov

@@ -1,6 +1,6 @@
 # Task：Portfolio W6 · 五问 E2E 联调与演示验收
 
-> **状态**：`ready_for_close_prep`（**30–50 已落盘** · **关账前** · 五问/录屏/HG-REINSPECT 待维护者）  
+> **状态**：`done`（2026-06-03 · HG-REINSPECT approved · Portfolio W6 五问 E2E 关账）  
 > **验收清单**：[`docs/tasks/reinspect_results/CHECKLIST_portfolio_e2e_demo_qa_v1_acceptance_zh.md`](../reinspect_results/CHECKLIST_portfolio_e2e_demo_qa_v1_acceptance_zh.md)  
 > **关联图谱**：`docs/_tech_graph/11_flow_api.md`（admin/sync 代理）· `13_flow_components.md`（Unified Chat / chip）  
 > **关联 Issue/PR**：`main` @ `ea8ac48`（#50 W3+W4 已合并）  
@@ -47,7 +47,7 @@
 | **40** | ✅ CI 全绿 · content 三目录 OK · 五问/录屏 **待维护者** |
 | **22 R2** | ✅ `reviews/..._audit_R2_20260603.md` |
 | **50** | ✅ `reinspect_20260603.md` · **pass-with-notes** |
-| **CLOSE** | ⏳ KPI 定稿 · HG-REINSPECT · `git mv` done |
+| **CLOSE** | ✅ 2026-06-03：HG-REINSPECT approved · KPI 90% · git mv done |
 
 ### 人工闸 `human_gate`
 
@@ -55,7 +55,7 @@
 |---------------|--------|-------------|------|
 | HG-TASK-DRAFT | approved | 22-R1, 30 | 维护者 2026-06-03 签收 |
 | HG-AUDIT-R1 | approved | 30 | 22 R1 书面通过后 |
-| HG-REINSPECT | pending | done | 50 后 · 五问全绿 + 录屏人签 |
+| HG-REINSPECT | approved | done | 维护者 2026-06-03 签收 · checklist §A–F · sync/五问/录屏 |
 
 ---
 
@@ -215,12 +215,12 @@ Epic Portfolio（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-portfolio_d
 
 ## 验收标准
 
-- [ ] Preview/生产 URL 配置（维护者 checklist §A）
-- [ ] sync · `filesScanned>0`（维护者 §B）
-- [ ] 五问 **全绿**（维护者 §D）
-- [ ] 录屏路径（维护者 §E）
+- [x] Preview/生产 URL 配置（维护者 checklist §A · 2026-06-03）
+- [x] sync · `filesScanned>0`（jobId `c44158a5-6e28-4583-ab6b-f5db9ca1866d` · 维护者 §B）
+- [x] 五问 **全绿**（维护者 §D · 后端 samples 留证）
+- [x] 录屏路径（`~/Desktop/录屏2026-06-03 18.15.00.mov` · §E）
 - [x] `pnpm lint` · `pnpm test` · `pnpm build` · `NEXT_PUBLIC_SITE_MODE=portfolio pnpm build`（2026-06-03 ✅）
-- [x] Harness：22 R1/R2 · 50 reinspect · 验收清单 · **待** CLOSE · KPI 草案 · **HG-REINSPECT pending**
+- [x] Harness：22 R1/R2 · 50 reinspect · 验收清单 · **CLOSE** · KPI 90% · **HG-REINSPECT approved**（2026-06-03）
 
 ---
 
@@ -243,7 +243,7 @@ Epic Portfolio（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-portfolio_d
 | 日期 | 摘要 |
 |------|------|
 | 2026-06-03 | **10 帽定稿**：联调环境 · sync 计划 · 录屏 checklist · 矛盾真值 · UI 逐字五问表 · F6/F7 |
-| 2026-06-03 | **30–50**：CI 绿 · PROJECT_CONFIG · R2/50/reviews · 验收清单 · 五问/sync/录屏待维护者 |
+| 2026-06-03 | **维护者留证**：sync jobId · 五问后端 samples · 录屏 · checklist §A–F 签收 |
 
 ---
 
@@ -252,9 +252,10 @@ Epic Portfolio（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-portfolio_d
 | 项 | 内容 |
 |----|------|
 | 涉及文件 | `docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md`（Portfolio W6 表） |
-| 联调 URL | `[DEMO_URL]/unified-chat` · 维护者填 checklist §A |
-| sync jobId | **未执行**（api-python 未起） |
-| 五问 run_id | 待 Preview 复验 · 见 checklist §D |
+| 联调 URL | Preview/生产 · `/unified-chat`（维护者 §A 已签 · 2026-06-03） |
+| sync jobId | **`c44158a5-6e28-4583-ab6b-f5db9ca1866d`** · `filesScanned=3` · `chunksUpserted=72` · W6 清语料后重跑（见 checklist §B · 后端 `sync-job-final.json`） |
+| 五问留证 | 配对后端 `docs/diary/samples/portfolio-rag-demo/`（`five-questions-results.md` + `q*-sources-run*.json` + `screenshots/`） |
+| 录屏 | `~/Desktop/录屏2026-06-03 18.15.00.mov`（本地 · §E） |
 | 图谱变更点 | 无 |
 | 50 / 清单 | `reinspect_results/task_portfolio_e2e_demo_qa_v1_reinspect_20260603.md` · `CHECKLIST_*_acceptance_zh.md` |
 
@@ -262,20 +263,21 @@ Epic Portfolio（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-portfolio_d
 
 ## ### KPI（00）
 
-**rubric**: KPI_RUBRIC_v1_2 · **汇总**: **72%（草案）** · **状态**: **warn** · **帽**: 00·10·22·30·40·50  
-**关账硬规则**：HG-REINSPECT pending · 五问未全绿 → **不得 CLOSE**
+**rubric**: KPI_RUBRIC_v1_2 · **汇总**: **90%** · **状态**: **pass** · **帽**: 00·10·22·30·40·50·CLOSE  
+**关账**：HG-REINSPECT approved · 2026-06-03
 
 | hat_code | round | agent_mode | D1 | D2 | D3 | D4 | D5 | judgment_notes |
 |----------|-------|------------|----|----|----|----|-----|----------------|
 | 00 | — | main_chat | 100 | 100 | 100 | 100 | — | 编排合规 |
 | 10 | — | main_chat | 100 | 100 | 100 | 100 | — | 定稿完整 |
 | 22 | R1 | main_chat | 100 | 100 | 100 | 100 | — | 零阻塞 |
-| 30 | — | main_chat | 100 | 100 | 100 | 100 | 60 | sync 未跑 warn |
-| 40 | — | main_chat | 100 | 100 | 100 | 100 | 60 | 五问待验 warn |
-| 22 | R2 | main_chat | 100 | 100 | 100 | 100 | 60 | 演示层未全绿 |
-| 50 | — | main_chat | 100 | 100 | 100 | 100 | 60 | pass-with-notes |
+| 30 | — | main_chat | 100 | 100 | 100 | 100 | 100 | sync 维护者留证 |
+| 40 | — | main_chat | 100 | 100 | 100 | 100 | 100 | 演示层签收 |
+| 22 | R2 | main_chat | 100 | 100 | 100 | 100 | 100 | R2 通过 |
+| 50 | — | main_chat | 100 | 100 | 100 | 100 | 100 | 维护者补证后 pass |
+| CLOSE | — | main_chat | 100 | 100 | 100 | 100 | 100 | HG-REINSPECT approved |
 
-**blocked 原因（关账前）**：五问全绿未达成 · 录屏未落盘 · HG-REINSPECT pending
+**blocked 原因**：无
 
 ---
 
@@ -287,10 +289,10 @@ Epic Portfolio（[`SPEC-portfolio_demo_site_v1_zh.md`](../specs/SPEC-portfolio_d
 |----|------|
 | lint / test / build | ✅ 全绿（portfolio build 含） |
 | content 三目录 | ✅ methodology · resume · evidence 各 1 md |
-| admin/sync | ❌ 未执行（`127.0.0.1:8000` 不可达） |
-| 五问 Preview | ❌ 待维护者按验收清单 §D |
-| 录屏 | ❌ 待维护者 §E |
-| 结论 | **CI 可合并 · 演示验收未关账** |
+| admin/sync | ✅ job `c44158a5-…` · 3/72（W6 清语料后 · 维护者 2026-06-03） |
+| 五问 Preview | ✅ 5/5 · 后端 samples 留证 |
+| 录屏 | ✅ `~/Desktop/录屏2026-06-03 18.15.00.mov` |
+| 结论 | **done · W6 关账**（2026-06-03） |
 
 ---
 

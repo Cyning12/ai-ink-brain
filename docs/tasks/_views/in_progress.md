@@ -9,5 +9,4 @@
 
 ## 待排期 / 草稿 / pending
 
-- [Portfolio W6 · 五问 E2E 联调与演示验收](../active/task_portfolio_e2e_demo_qa_v1.md) — `ready_for_close_prep` · [验收清单](../reinspect_results/CHECKLIST_portfolio_e2e_demo_qa_v1_acceptance_zh.md) · **HG-REINSPECT pending** · deadline 2026-06-09 上午
 - 其余见 `docs/tasks/active/` 目录内各文件头部 `状态` 字段。
