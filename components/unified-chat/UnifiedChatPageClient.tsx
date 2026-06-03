@@ -538,7 +538,7 @@ export function UnifiedChatPageClient() {
                   。
                 </>
               )}
-              通过后令牌写入 <span className="font-mono">localStorage</span>，后续 Unified / 历史请求均带{" "}
+              通过后令牌写入 <span className="font-mono">localStorage</span>，后续对话与历史请求均带{" "}
               <span className="font-mono">Authorization: Bearer &lt;明文&gt;</span>。
             </p>
             <label className="block text-[11px] text-slate-500">
