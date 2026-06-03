@@ -21,8 +21,11 @@
 | **kpi_rubric** | `KPI_RUBRIC_v1_2` |
 | **kpi_aggregator** | `CLOSE`（默认）\| `00` \| `50` \| `human` |
 | **git_branch** | `task/<slug>`（可选） |
+| **acceptance_interaction** | `required`（须人在浏览器/Preview 验收）\| `not_applicable`（须一行 `acceptance_interaction_note`） |
+| **验收清单** | `content/tasks/reinspect_results/CHECKLIST_<task_basename>_acceptance_zh.md`（`required` 时 **关账前必有**；模板见 [`CHECKLIST_TEMPLATE_acceptance_zh.md`](CHECKLIST_TEMPLATE_acceptance_zh.md)） |
 
 - **KPI 真值**：工作区 [`docs/harness/guides/KPI_RUBRIC_v1_2.md`](../../../docs/harness/guides/KPI_RUBRIC_v1_2.md) · [`HARNESS_V2_PLAN.md`](../../../docs/harness/HARNESS_V2_PLAN.md) §5.8  
+- **交互验收清单规约**：[`specs/SPEC-harness_acceptance_checklist_v1_zh.md`](../specs/SPEC-harness_acceptance_checklist_v1_zh.md) · Skill `.cursor/skills/harness-close-acceptance-checklist/SKILL.md`  
 - **prompts**：`@` 工作区 `Projects/docs/harness/prompts/`（**勿**复制到本仓）  
 - **关账前**：正文须有 **`### KPI（00）`**（节名保留；由 `kpi_aggregator` 填写）  
 - **前端迁移说明**：[`PLAN_frontend_harness_kpi_migration_v1_zh.md`](../../../docs/harness/guides/PLAN_frontend_harness_kpi_migration_v1_zh.md)

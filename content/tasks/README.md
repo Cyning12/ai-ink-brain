@@ -26,6 +26,7 @@
 | 迁移方案 | 工作区 [`docs/harness/guides/PLAN_frontend_harness_kpi_migration_v1_zh.md`](../../../docs/harness/guides/PLAN_frontend_harness_kpi_migration_v1_zh.md) |
 
 - **新建** `task_*.md`：文首 **Harness 元信息** + 关账前 **`### KPI（00）`**；默认 **`kpi_aggregator: CLOSE`**。  
+- **前端交互验收**（Preview/浏览器/录屏/五问等）：`acceptance_interaction: required` → 关账前 **必有** [`CHECKLIST_*_acceptance_zh.md`](reinspect_results/)（规约 [`specs/SPEC-harness_acceptance_checklist_v1_zh.md`](specs/SPEC-harness_acceptance_checklist_v1_zh.md)）。  
 - **50**：`reinspect_results/reinspect_<slug>_YYYYMMDD_vN.md`（Fresh Context）。  
 - **5-3 试点（done）**：[`done/task_chatbi_v3_lowconf_rag_preview_frontend_v1.md`](done/task_chatbi_v3_lowconf_rag_preview_frontend_v1.md) — 2026-06-01 关账。
 

@@ -16,12 +16,12 @@
 | 帽 | 执行者 | 要点 |
 |----|--------|------|
 | **00** | 主 Chat | 扫 task · gates · **stop_after_hat: CLOSE** |
-| **10** | semi_auto | 五问表 · Preview env · 录屏 checklist · 预跑基线 |
-| **22 R1** | 主 Chat | sync/ingest/RAG 风险 · **reviews 落盘** |
-| **30–40** | semi_auto | 联调执行 · 可选小 patch · 五问留证 · lint/test/build |
-| **22 R2** | 主 Chat | 签收 → 派 50 |
-| **50** | **Task 子代理** | reinspect · 全绿判定 |
-| **CLOSE** | 主 Chat | KPI · `git mv` done · `_views/done.md` |
+| **10** | semi_auto | ✅ 定稿 · Preview env · sync · 录屏 · chip 逐字 |
+| **22 R1** | 主 Chat | ✅ R1 零阻塞 · **reviews** 已落盘 → **30** |
+| **30–40** | semi_auto | ✅ CI 绿 · PROJECT_CONFIG · sync/五问待维护者 |
+| **22 R2** | 主 Chat | ✅ R2 签收 |
+| **50** | 主 Chat | ✅ pass-with-notes · 验收清单已落盘 |
+| **CLOSE** | 维护者 | HG-REINSPECT · KPI 定稿 · `git mv` done |
 
 ---
 
@@ -35,6 +35,7 @@
 | Epic SPEC | [`SPEC-portfolio_demo_site_v1_zh.md`](./SPEC-portfolio_demo_site_v1_zh.md) §6.4 · §6.7 · §7 W6 |
 | 五问真值 | [`投递冲刺_20260609_v1_zh.md`](./投递冲刺_20260609_v1_zh.md) §2 |
 | **git 分支** | **`task/portfolio-e2e-demo-qa-v1`** |
+| **task 状态** | `ready_for_close_prep`（50 完成 · 见 [验收清单](../reinspect_results/CHECKLIST_portfolio_e2e_demo_qa_v1_acceptance_zh.md)） |
 | **deadline** | **2026-06-09 上午**（四屏 + 五问 · 投递 P0） |
 
 **本 task 不做**：推翻 W3/W4 · 新建演示仓 · 后端 ingest 算法大改

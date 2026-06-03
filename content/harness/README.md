@@ -19,7 +19,8 @@
 | 任务审核 22 | [`reviews/README.md`](reviews/README.md) · 工作区 `22-task-audit` |
 | 独立复检 50 | [`../tasks/reinspect_results/README.md`](../tasks/reinspect_results/README.md) |
 | 半自动 / 关账 | 工作区 `HANDOFF_SEMI_AUTO` · `HANDOFF_CLOSE_TRACE` |
-| LoopTask 止于 50 · 50 Prompt / 人改 gate 清单 | 本仓 [`.cursor/skills/harness-looptask-handoff/SKILL.md`](../.cursor/skills/harness-looptask-handoff/SKILL.md) |
+| LoopTask 止于 50 · 50 Prompt / 人改 gate 清单 | [`.cursor/skills/harness-looptask-handoff/SKILL.md`](../.cursor/skills/harness-looptask-handoff/SKILL.md) |
+| 关账前 · 前端交互验收清单 | [`.cursor/skills/harness-close-acceptance-checklist/SKILL.md`](../.cursor/skills/harness-close-acceptance-checklist/SKILL.md) · [`CHECKLIST_TEMPLATE`](../tasks/templates/CHECKLIST_TEMPLATE_acceptance_zh.md) |
 | 跨子仓 Harness task | 工作区 `docs/harness/tasks/`（Open **`Projects/`**） |
 
 **Cursor**：`.cursor/rules/05-harness-semi-auto.mdc`、`.cursor/rules/06-harness-content.mdc`。
@@ -55,6 +56,7 @@ content/harness/
 | **invokes** | `invokes/by-task/<task_slug>/` | `invoke_YYYYMMDD_<帽号>_<slug>.md` |
 | **reviews** | `reviews/` 或 `reviews/by-task/<task_slug>/` | `task_<slug>_audit_R<轮次>_YYYYMMDD.md` |
 | **50** | `content/tasks/reinspect_results/` | `reinspect_<slug>_YYYYMMDD_vN.md` |
+| **验收清单** | `content/tasks/reinspect_results/` | `CHECKLIST_<task_basename>_acceptance_zh.md`（`acceptance_interaction: required` 时关账前必有） |
 
 **新落盘（2026-05-31 起 · 2026-06-02 迁移完成）**：invoke **必须**进 `invokes/by-task/<task_slug>/`。根目录 **禁止** 新增 `invoke_*.md`；历史见 [`invokes/MIGRATION_flat_invoke_index.md`](invokes/MIGRATION_flat_invoke_index.md)。
 
@@ -91,6 +93,7 @@ content/harness/
 5. **CI 绿**（根 `AGENTS.md` §8 / 工作区 `Projects/AGENTS.md` §8）：  
    `pnpm install --frozen-lockfile` → `pnpm lint` → `pnpm test` → `pnpm build`  
 6. **`### KPI（00）`** 已填且含 Task_KPI% 与语义状态  
+7. **`acceptance_interaction: required`** 时：[`CHECKLIST_*_acceptance_zh.md`](../tasks/reinspect_results/) 已落盘 · 维护者 §H 已签（或 task 载明豁免）  
 
 ---
 

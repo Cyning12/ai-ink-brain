@@ -90,6 +90,7 @@
 | invoke | `content/harness/invokes/by-task/<task_slug>/` |
 | 50 | `content/tasks/reinspect_results/` |
 | 迁移方案 | 工作区 [`docs/harness/guides/PLAN_frontend_harness_kpi_migration_v1_zh.md`](../docs/harness/guides/PLAN_frontend_harness_kpi_migration_v1_zh.md) |
+| 关账前交互验收清单 | `.cursor/skills/harness-close-acceptance-checklist/SKILL.md` · `content/tasks/templates/CHECKLIST_TEMPLATE_acceptance_zh.md` |
 | 合并前必绿 | `pnpm install --frozen-lockfile` → `pnpm lint` → `pnpm test` → `pnpm build`（工作区根 `AGENTS.md` §8） |
 
 **Open Folder**：仅改前端业务 / Harness 落盘 → **本仓** `ai-ink-brain/`；跨子仓 Harness task → Open **`Projects/`**。

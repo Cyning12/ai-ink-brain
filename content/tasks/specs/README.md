@@ -12,6 +12,7 @@
 | [`MIGRATION-tech_graph_v2_frontend_playbook_v1_zh.md`](MIGRATION-tech_graph_v2_frontend_playbook_v1_zh.md) | 迁移实践（Quickstart 样板种子） |
 | [`SPEC-portfolio_demo_site_v1_zh.md`](SPEC-portfolio_demo_site_v1_zh.md) | Portfolio 演示模式（投递 2026-06-09）；**v1.2 draft** · post-#47 rescan · `freeze_id` **`PORTFOLIO-RAG-DEMO@2026-06-01`** |
 | [`SPEC-portfolio_admin_sync_auth_v1_zh.md`](SPEC-portfolio_admin_sync_auth_v1_zh.md) | W5 admin/sync BFF 鉴权（`SYNC_ADMIN_SECRET` · ChatBI admin 会话） |
+| [`SPEC-harness_acceptance_checklist_v1_zh.md`](SPEC-harness_acceptance_checklist_v1_zh.md) | 关账前 · 前端交互验收 **必有 CHECKLIST**（Skill + 模板） |
 | [`投递冲刺_20260609_v1_zh.md`](投递冲刺_20260609_v1_zh.md) | 投递里程碑 · **§2 五问** chip 逐字真值 · 与 Epic SPEC §6.4 对齐 |
 | [`PROMPT_00_SPEC-refine_portfolio_demo_site_v1_zh.md`](PROMPT_00_SPEC-refine_portfolio_demo_site_v1_zh.md) | 上述 SPEC · ≤5 轮读问解 · §5 **semi_auto 链至 50** |
 | [`PROMPT_50_invoke_portfolio_demo_site_v1_zh.md`](PROMPT_50_invoke_portfolio_demo_site_v1_zh.md) | Epic 22 签收后 · **Task 子 Agent** 50 独立复检 · §5 可复制 Prompt |

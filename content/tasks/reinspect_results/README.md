@@ -46,3 +46,16 @@
 ## 给 Cursor 的稳定关键词
 
 `Harness`、`复检帽`、`reinspect_results`、`pass/fail`、`证据`、`阻塞合并`、`回填`
+
+## 验收清单（CHECKLIST_* · 关账前 · 2026-06-03 起）
+
+当 task **`acceptance_interaction: required`**（须人在浏览器/Preview 做前端交互验收）时：
+
+| 项 | 约定 |
+|----|------|
+| **路径** | `CHECKLIST_<task_basename>_acceptance_zh.md`（与本目录 reinspect 并列） |
+| **模板** | [`../templates/CHECKLIST_TEMPLATE_acceptance_zh.md`](../templates/CHECKLIST_TEMPLATE_acceptance_zh.md) |
+| **规约** | [`../specs/SPEC-harness_acceptance_checklist_v1_zh.md`](../specs/SPEC-harness_acceptance_checklist_v1_zh.md) |
+| **Agent Skill** | `.cursor/skills/harness-close-acceptance-checklist/SKILL.md` |
+
+**示例**：`CHECKLIST_task_portfolio_e2e_demo_qa_v1_acceptance_zh.md`

@@ -4,6 +4,7 @@ description: >-
   Ink Harness LoopTask 止于 50 后，向维护者交付可复制的 50 Prompt、签收文档路径清单，
   以及须人工修改的「文件 + 表格/字段 + 改前值→改后值」。在 LoopTask stop_after_hat:50、
   CLOSE、HG-REINSPECT、索要 50 Prompt/签收文档、或 Portfolio W5–W6 关账交接时使用。
+  若须前端交互验收，关账前须有 CHECKLIST（见 harness-close-acceptance-checklist Skill）。
   配对后端便携真值：ai-ink-brain-api-python/docs/tasks/skills/SKILL-harness-looptask-handoff.md
 ---
 
@@ -48,12 +49,25 @@ description: >-
 
 **禁止 Agent**：将 `human_gate` 的 `pending` 改为 `approved`；代填 `### KPI（00）`；执行 `git mv` 至 `done/`（除非用户 **明示** 授权代关账）。
 
+## 前端交互验收清单（关账前 · 强制）
+
+当 task **`acceptance_interaction: required`**（判定见 Skill [**harness-close-acceptance-checklist**](../harness-close-acceptance-checklist/SKILL.md)）：
+
+| 项 | 路径 |
+|----|------|
+| 清单真值 | `content/tasks/reinspect_results/CHECKLIST_<task_basename>_acceptance_zh.md` |
+| 模板 | `content/tasks/templates/CHECKLIST_TEMPLATE_acceptance_zh.md` |
+| SPEC | `content/tasks/specs/SPEC-harness_acceptance_checklist_v1_zh.md` |
+
+**CLOSE 硬停**：清单不存在，或 §H 未签收且仍有交互项待人勾 → **不得**关账。50/reinspect 文首须链同一 CHECKLIST。
+
 ## CLOSE 关账标准步骤（人 / 新会话 CLOSE 帽）
 
-1. **HG-REINSPECT** → 见下表「Portfolio W5 示例」
-2. **KPI** → 同一 task 文件 **`### KPI（00）`**，按 `Projects/docs/harness/guides/KPI_RUBRIC_v1_2.md` 填写
-3. **归档** → `content/tasks/README.md`：`git mv content/tasks/active/<task>.md content/tasks/done/`，更新 `content/tasks/_views/done.md`（若项目要求）
-4. **回溯** → 输出 `HANDOFF_CLOSE_TRACE`（工作区 `Projects/docs/harness/prompts/HANDOFF_CLOSE_TRACE.md`）
+1. **验收清单 §H**（若 `acceptance_interaction: required`）→ 维护者勾选 §A–§E 等  
+2. **HG-REINSPECT** → 见下表「Portfolio W5 示例」  
+3. **KPI** → 同一 task 文件 **`### KPI（00）`**，按 `Projects/docs/harness/guides/KPI_RUBRIC_v1_2.md` 填写  
+4. **归档** → `content/tasks/README.md`：`git mv content/tasks/active/<task>.md content/tasks/done/`，更新 `content/tasks/_views/done.md`（若项目要求）  
+5. **回溯** → 输出 `HANDOFF_CLOSE_TRACE`（工作区 `Projects/docs/harness/prompts/HANDOFF_CLOSE_TRACE.md`）
 
 ## Portfolio W5 `portfolio-content-sync-v1` 真值（2026-06-01）
 
