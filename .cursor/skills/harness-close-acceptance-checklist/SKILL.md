@@ -35,9 +35,9 @@ task 满足 **任一** 即 `acceptance_interaction: required`（文首 Harness �
 
 | 项 | 约定 |
 |----|------|
-| **路径** | `content/tasks/reinspect_results/CHECKLIST_<task_basename>_acceptance_zh.md` |
+| **路径** | `docs/tasks/reinspect_results/CHECKLIST_<task_basename>_acceptance_zh.md` |
 | **basename** | 与 task 文件名一致，如 `task_portfolio_e2e_demo_qa_v1` → `CHECKLIST_task_portfolio_e2e_demo_qa_v1_acceptance_zh.md` |
-| **模板** | 复制 [`content/tasks/templates/CHECKLIST_TEMPLATE_acceptance_zh.md`](../../content/tasks/templates/CHECKLIST_TEMPLATE_acceptance_zh.md) 后替换占位符 |
+| **模板** | 复制 [`docs/tasks/templates/CHECKLIST_TEMPLATE_acceptance_zh.md`](../../docs/tasks/templates/CHECKLIST_TEMPLATE_acceptance_zh.md) 后替换占位符 |
 | **禁止** | 仅在对话里列 checkbox 不落盘；仅用 task 正文表代替独立 CHECKLIST 文件 |
 
 ---
@@ -68,7 +68,7 @@ task 满足 **任一** 即 `acceptance_interaction: required`（文首 Harness �
 
 ```markdown
 | **acceptance_interaction** | `required` |
-| **验收清单** | `content/tasks/reinspect_results/CHECKLIST_<basename>_acceptance_zh.md` |
+| **验收清单** | `docs/tasks/reinspect_results/CHECKLIST_<basename>_acceptance_zh.md` |
 ```
 
 `not_applicable` 时第二行可写「—」并附 `acceptance_interaction_note` 一行。

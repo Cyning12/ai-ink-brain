@@ -89,7 +89,7 @@ docs/_tech_graph/
 
 - 方案 1 规约：配对后端 `docs/tech_graph/SPEC/json_graph/scheme_1_graph_json.md`
 - 方案 2 查询：配对后端 `docs/tech_graph/SPEC/query_graph/scheme_2_graph_query.md` · 本仓 `pnpm tech-graph:query`（脚本在后端 `tools/tech_graph_graph_query.py`）
-- 前端迁移实践：`content/tasks/specs/MIGRATION-tech_graph_v2_frontend_playbook_v1_zh.md`
+- 前端迁移实践：`docs/tasks/specs/MIGRATION-tech_graph_v2_frontend_playbook_v1_zh.md`
 
 ## 按需引用（实验轨 · 非必读）
 

@@ -112,6 +112,9 @@ pyrightconfig.json
 # 注意：docs/_tech_graph/ 是项目架构唯一可信来源，必须提交
 docs/*
 !docs/_tech_graph/
+!docs/meta/
+!docs/tasks/
+!docs/harness/
 # 联调烟测标准样本（§5-2/5-3 等 · 与后端 docs/diary/samples 对称）
 !docs/diary/
 docs/diary/*

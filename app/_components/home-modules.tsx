@@ -19,7 +19,7 @@ const DEVELOPMENT_BASE_MODULES: HomeModule[] = [
     id: "tasks",
     title: "任务",
     href: "/projects",
-    hint: "content/tasks/active · done",
+    hint: "docs/tasks/active · done",
   },
 ];
 

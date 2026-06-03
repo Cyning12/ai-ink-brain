@@ -45,7 +45,7 @@ flowchart TD
 | 结构 | `pnpm tech-graph:schema-check`（可选本地） |
 | 查询 | `pnpm tech-graph:query <op> …`（方案2；默认 Agent 机器轨，见闸口 B 结论） |
 | 工具脚本 | 复用 `ai-ink-brain-api-python/tools/tech_graph_*.py`（勿在前端仓复制） |
-| 迁移手册 | `content/tasks/specs/MIGRATION-tech_graph_v2_frontend_playbook_v1_zh.md` |
+| 迁移手册 | `docs/tasks/specs/MIGRATION-tech_graph_v2_frontend_playbook_v1_zh.md` |
 
 **CI 顺序（`quality` · `lint-and-build`）**：checkout 本仓 → checkout 后端工具仓 → `pnpm install` → Python 3.11 → graph `--check` → **equivalence** → **manifest-check** → `pnpm lint` → `pnpm test` → `pnpm build`。
 
