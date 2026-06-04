@@ -43,15 +43,13 @@ export function PortfolioHome() {
 
         <p className="mt-4 text-[11px] text-slate-400">
           <a
-            href="https://github.com/Cyning12/ai-coding-closed-loop-articles"
+            href="https://github.com/Cyning12/ai-ink-brain"
             className="underline underline-offset-2"
             target="_blank"
             rel="noopener noreferrer"
           >
-            GitHub 连载
+            GitHub 代码仓
           </a>
-          {" · "}
-          Demo URL: [DEMO_URL]
         </p>
       </main>
 

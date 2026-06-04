@@ -36,7 +36,7 @@ const DEVELOPMENT_ADMIN_MODULES: HomeModule[] = [
 ];
 
 const PORTFOLIO_MODULES: HomeModule[] = [
-  { id: "resume", title: "简历", href: "/resume", hint: "在线简历 · 与 RAG 同源" },
+  { id: "resume", title: "简历", href: "/resume", hint: "在线简历" },
   {
     id: "methodology",
     title: "方法论",

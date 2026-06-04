@@ -11,18 +11,15 @@ export const metadata = {
 };
 
 export default function ResumePage() {
-  const { doc, missing } = getPortfolioPreferredDoc("resume", "cv-online");
+  const { doc, missing } = getPortfolioPreferredDoc("resume", "个人简历");
 
   return (
     <main className="mx-auto w-full max-w-3xl px-6 py-16">
       <BackButton />
-      <p className="text-xs tracking-wide text-slate-500">在线简历</p>
       <h1 className="mt-2 font-serif text-3xl font-semibold tracking-tight text-[#2C2C2C]">
         {doc?.title ?? "简历"}
       </h1>
-      <p className="mt-3 text-sm text-slate-600">
-        与下方 Unified Chat RAG 语料同源（category: resume）。
-      </p>
+
 
       {missing || !doc ? (
         <PortfolioContentEmpty category="resume" />

@@ -56,7 +56,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   return (
     <main className="mx-auto w-full max-w-3xl px-6 py-16">
-      <BackButton />
+      <BackButton showInPortfolio href="/blog" label="返回博客" />
       <p className="text-xs text-muted-foreground">
         {post.frontmatter.date ?? ""}
       </p>

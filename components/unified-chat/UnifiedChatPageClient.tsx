@@ -409,6 +409,28 @@ export function UnifiedChatPageClient() {
     }, 2000);
   }, [queryTextTrace, execSections]);
 
+  /** 新会话：重置 session_id 与全部轮次/UI 状态（含 SDK messages，避免最终答案残留） */
+  const handleNewSession = useCallback(() => {
+    stream.stop();
+    stream.setMessages([]);
+    stream.clearEvents();
+    stream.resetStreamMeta();
+    stream.clearError();
+    streamBaselineRef.current = "";
+    lastQueryRef.current = "";
+    setStreamEpoch((n) => n + 1);
+    setTranscript([]);
+    setPendingPlanConfirm(null);
+    dismissedPlanTokenRef.current = null;
+    setTimelineBatchOpen(false);
+    setTimelineBatchNonce((n) => n + 1);
+    setErrorText(null);
+    setFinalAnswer("");
+    setCommittedAnswer("");
+    setSectionCopyFeedback(null);
+    resetSession();
+  }, [stream, resetSession]);
+
   const send = async (q: string, opts?: { planExecutionToken?: string }) => {
     const trimmed = q.trim();
     if (!trimmed) return;
@@ -663,19 +685,7 @@ export function UnifiedChatPageClient() {
       <div className="flex items-center justify-between gap-2">
         <button
           type="button"
-          onClick={() => {
-            stream.stop();
-            resetSession();
-            setTranscript([]);
-            stream.clearEvents();
-            setPendingPlanConfirm(null);
-            dismissedPlanTokenRef.current = null;
-            setTimelineBatchOpen(false);
-            setTimelineBatchNonce((n) => n + 1);
-            setErrorText(null);
-            setFinalAnswer("");
-            setCommittedAnswer("");
-          }}
+          onClick={handleNewSession}
           className="rounded-xl border border-[color:var(--color-border)] bg-white/60 px-3 py-2 text-sm text-slate-700"
         >
           新会话

@@ -35,7 +35,7 @@ export default async function MethodologyArticlePage({ params }: PageProps) {
 
   return (
     <main className="mx-auto w-full max-w-3xl px-6 py-16">
-      <BackButton />
+      <BackButton showInPortfolio href="/methodology" label="返回方法论" />
       {doc.date ? (
         <p className="text-xs text-slate-500">{doc.date}</p>
       ) : null}
