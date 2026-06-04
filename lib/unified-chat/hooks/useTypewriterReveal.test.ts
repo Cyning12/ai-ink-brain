@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   nextTypewriterVisibleLen,
   nextTypewriterVisibleLenWithReset,
+  sliceRoundStreamingText,
 } from "@/lib/unified-chat/hooks/useTypewriterReveal";
 
 describe("nextTypewriterVisibleLen", () => {
@@ -22,5 +23,20 @@ describe("nextTypewriterVisibleLen", () => {
 describe("nextTypewriterVisibleLenWithReset", () => {
   it("resets base when target shrinks", () => {
     expect(nextTypewriterVisibleLenWithReset(10, 3, 2)).toBe(2);
+  });
+});
+
+describe("sliceRoundStreamingText", () => {
+  it("returns empty when no new content yet", () => {
+    expect(sliceRoundStreamingText("hello", "hello")).toBe("");
+    expect(sliceRoundStreamingText("", "hello")).toBe("");
+  });
+
+  it("returns suffix when streaming extends baseline", () => {
+    expect(sliceRoundStreamingText("hello world", "hello")).toBe(" world");
+  });
+
+  it("returns full text when new assistant replaces baseline", () => {
+    expect(sliceRoundStreamingText("new answer", "old answer")).toBe("new answer");
   });
 });

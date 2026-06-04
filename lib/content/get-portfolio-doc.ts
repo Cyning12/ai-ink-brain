@@ -27,6 +27,33 @@ function isMarkdown(name: string): boolean {
   return ext === ".md" || ext === ".mdx";
 }
 
+/** 解码路由段并统一 NFC（Next.js catch-all 可能仍带 % 编码）。 */
+function decodeSlugPart(segment: string): string {
+  let decoded = segment;
+  try {
+    decoded = decodeURIComponent(segment.replace(/\+/g, " "));
+  } catch {
+    decoded = segment;
+  }
+  return decoded.normalize("NFC");
+}
+
+export function normalizePortfolioSlugParts(
+  slug: string | string[] | undefined,
+): string[] {
+  if (slug == null) return [];
+  const arr = Array.isArray(slug) ? slug : [slug];
+  return arr.filter((s) => s.length > 0).map(decodeSlugPart);
+}
+
+function slugPartsMatchDisk(requested: string[], diskSlug: string): boolean {
+  const diskParts = diskSlug.split("/").filter(Boolean);
+  if (diskParts.length !== requested.length) return false;
+  return diskParts.every(
+    (part, i) => part.normalize("NFC") === requested[i]!.normalize("NFC"),
+  );
+}
+
 function categoryDir(category: PortfolioCategory): string {
   return path.join(CONTENT_DIR, category);
 }
@@ -88,12 +115,25 @@ export function getPortfolioDocBySlug(
   category: PortfolioCategory,
   slugParts: string[],
 ): PortfolioDoc | null {
-  if (slugParts.length === 0) return null;
-  const relNoExt = slugParts.join("/");
+  const normalized = slugParts.map(decodeSlugPart);
+  if (normalized.length === 0) return null;
+
+  const relNoExt = normalized.join("/");
   const dir = categoryDir(category);
   const mdx = path.join(dir, `${relNoExt}.mdx`);
   const md = path.join(dir, `${relNoExt}.md`);
-  const abs = fs.existsSync(mdx) ? mdx : fs.existsSync(md) ? md : null;
+  let abs: string | null = fs.existsSync(mdx) ? mdx : fs.existsSync(md) ? md : null;
+
+  // 直接路径未命中时，按 list 结果做 NFC 对齐（缓解 URL 编码差异）
+  if (!abs) {
+    const matched = listPortfolioDocs(category).find((d) =>
+      slugPartsMatchDisk(normalized, d.slug),
+    );
+    if (matched) {
+      abs = path.join(dir, matched.fileName);
+    }
+  }
+
   if (!abs) return null;
   // 防止路径穿越 category 边界
   if (!abs.startsWith(dir + path.sep)) return null;

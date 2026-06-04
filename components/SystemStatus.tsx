@@ -206,6 +206,7 @@ export default function SystemStatus(props: { variant?: "floating" | "nav" }) {
   }, [pollSyncJob]);
 
   const vercelEnv = status?.vercelEnv ?? "…";
+  const isLocalEnv = vercelEnv === "development";
   const envTone =
     vercelEnv === "production"
       ? "bg-emerald-500/90"
@@ -297,37 +298,41 @@ export default function SystemStatus(props: { variant?: "floating" | "nav" }) {
                 </>
               ) : (
                 <>
-                  <button
-                    type="button"
-                    onClick={() => void handleSync()}
-                    disabled={syncLoading}
-                    className="w-full rounded-full bg-[#2c2c2c] py-1.5 text-[10px] text-[#f9f9f7] transition-opacity hover:opacity-90 disabled:opacity-40"
-                  >
-                    {syncLoading ? "同步中…" : "同步向量库"}
-                  </button>
+                  {isLocalEnv ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => void handleSync()}
+                        disabled={syncLoading}
+                        className="w-full rounded-full bg-[#2c2c2c] py-1.5 text-[10px] text-[#f9f9f7] transition-opacity hover:opacity-90 disabled:opacity-40"
+                      >
+                        {syncLoading ? "同步中…" : "同步向量库"}
+                      </button>
 
-                  {syncError && (
-                    <p className="text-[9px] text-red-600/90">{syncError}</p>
-                  )}
+                      {syncError && (
+                        <p className="text-[9px] text-red-600/90">{syncError}</p>
+                      )}
 
-                  {syncJob && (
-                    <div className="rounded-lg border border-[color:var(--color-border)] bg-white/60 p-2 text-[9px] text-slate-600">
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-500">SYNC</span>
-                        <span className="text-[#2c2c2c]/80">{syncJob.status}</span>
-                      </div>
-                      {syncJob.result && (
-                        <div className="mt-1 space-y-0.5">
-                          <div>files: {syncJob.result.filesScanned}</div>
-                          <div>chunks: {syncJob.result.chunksTotal}</div>
-                          <div>deleted: {syncJob.result.rowsDeleted}</div>
+                      {syncJob && (
+                        <div className="rounded-lg border border-[color:var(--color-border)] bg-white/60 p-2 text-[9px] text-slate-600">
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-500">SYNC</span>
+                            <span className="text-[#2c2c2c]/80">{syncJob.status}</span>
+                          </div>
+                          {syncJob.result && (
+                            <div className="mt-1 space-y-0.5">
+                              <div>files: {syncJob.result.filesScanned}</div>
+                              <div>chunks: {syncJob.result.chunksTotal}</div>
+                              <div>deleted: {syncJob.result.rowsDeleted}</div>
+                            </div>
+                          )}
+                          {syncJob.error && (
+                            <div className="mt-1 text-red-600/90">{syncJob.error}</div>
+                          )}
                         </div>
                       )}
-                      {syncJob.error && (
-                        <div className="mt-1 text-red-600/90">{syncJob.error}</div>
-                      )}
-                    </div>
-                  )}
+                    </>
+                  ) : null}
 
                   <button
                     type="button"

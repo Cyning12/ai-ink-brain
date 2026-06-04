@@ -24,7 +24,10 @@ import {
 import { copyPlainToClipboard } from "@/lib/unified-chat/clipboard";
 import { extractFinalAnswer, extractUserQueryText } from "@/lib/unified-chat/chainEventSelectors";
 import { buildExecutionTraceCopyText } from "@/lib/unified-chat/executionTrace";
-import { useTypewriterReveal } from "@/lib/unified-chat/hooks/useTypewriterReveal";
+import {
+  sliceRoundStreamingText,
+  useTypewriterReveal,
+} from "@/lib/unified-chat/hooks/useTypewriterReveal";
 import { useUnifiedChatStream } from "@/lib/unified-chat/hooks/useUnifiedChatStream";
 import { safeStringify } from "@/lib/unified-chat/stringify";
 import {
@@ -116,6 +119,10 @@ export function UnifiedChatPageClient() {
 
   const [errorText, setErrorText] = useState<string | null>(null);
   const [finalAnswer, setFinalAnswer] = useState<string>("");
+  /** 本轮流式结束后立即展示的完整答案（不经过打字机滞后） */
+  const [committedAnswer, setCommittedAnswer] = useState<string>("");
+  const [streamEpoch, setStreamEpoch] = useState(0);
+  const streamBaselineRef = useRef("");
   const [transcript, setTranscript] = useState<TranscriptTurn[]>([]);
 
   const portfolio = isPortfolioMode();
@@ -283,19 +290,36 @@ export function UnifiedChatPageClient() {
     });
   }, [debugEnabled, stream.lastDone]);
 
+  const { timelineEvents, messages, queryTextTrace, execSections, activeRequestId, lastDone, events } =
+    stream;
+
   const typewriterActive = typewriterFromUrl && loading;
-  const revealedAnswer = useTypewriterReveal(stream.streamingText, {
+  const roundStreamingText = loading
+    ? sliceRoundStreamingText(stream.streamingText, streamBaselineRef.current)
+    : "";
+  const revealedAnswer = useTypewriterReveal(roundStreamingText, {
     active: typewriterActive,
     charsPerTick: 2,
     tickMs: 20,
+    resetKey: streamEpoch,
   });
 
   const displayAnswer = loading
     ? revealedAnswer
-    : finalAnswer.trim() || stream.streamingText;
+    : committedAnswer.trim() || finalAnswer.trim() || stream.streamingText;
 
-  const { timelineEvents, messages, queryTextTrace, execSections, activeRequestId, lastDone, events } =
-    stream;
+  /** 流式结束兜底：确保 done 后 committedAnswer 与 events/SDK 对齐 */
+  useEffect(() => {
+    if (loading) return;
+    const inferred = extractFinalAnswer({
+      answer: stream.streamingText || undefined,
+      events,
+    });
+    const text = inferred.trim() || stream.streamingText.trim();
+    if (!text) return;
+    setCommittedAnswer((prev) => (prev.trim() ? prev : text));
+    setFinalAnswer((prev) => (prev.trim() ? prev : text));
+  }, [loading, stream.streamingText, events]);
 
   useEffect(() => {
     if (debugEnabled) return;
@@ -385,6 +409,28 @@ export function UnifiedChatPageClient() {
     }, 2000);
   }, [queryTextTrace, execSections]);
 
+  /** 新会话：重置 session_id 与全部轮次/UI 状态（含 SDK messages，避免最终答案残留） */
+  const handleNewSession = useCallback(() => {
+    stream.stop();
+    stream.setMessages([]);
+    stream.clearEvents();
+    stream.resetStreamMeta();
+    stream.clearError();
+    streamBaselineRef.current = "";
+    lastQueryRef.current = "";
+    setStreamEpoch((n) => n + 1);
+    setTranscript([]);
+    setPendingPlanConfirm(null);
+    dismissedPlanTokenRef.current = null;
+    setTimelineBatchOpen(false);
+    setTimelineBatchNonce((n) => n + 1);
+    setErrorText(null);
+    setFinalAnswer("");
+    setCommittedAnswer("");
+    setSectionCopyFeedback(null);
+    resetSession();
+  }, [stream, resetSession]);
+
   const send = async (q: string, opts?: { planExecutionToken?: string }) => {
     const trimmed = q.trim();
     if (!trimmed) return;
@@ -414,8 +460,11 @@ export function UnifiedChatPageClient() {
     stream.stop();
     stream.clearError();
 
+    streamBaselineRef.current = stream.streamingText;
     setErrorText(null);
     setFinalAnswer("");
+    setCommittedAnswer("");
+    setStreamEpoch((n) => n + 1);
     stream.resetStreamMeta();
     stream.beginRound(trimmed);
     setTimelineBatchOpen(false);
@@ -431,13 +480,15 @@ export function UnifiedChatPageClient() {
         answer: stream.streamingText || undefined,
         events: latestEvents,
       });
-      if (inferred.trim()) {
-        setFinalAnswer((fa) => (fa.trim() ? fa : inferred));
+      const answerText = inferred.trim() || stream.streamingText.trim();
+      if (answerText) {
+        setFinalAnswer(answerText);
+        setCommittedAnswer(answerText);
       }
       const streamLastDone = stream.streamLastDoneRef.current;
-      if (streamLastDone?.ok && lastQueryRef.current.trim() && inferred.trim()) {
+      if (streamLastDone?.ok && lastQueryRef.current.trim() && answerText) {
         const uid = lastQueryRef.current.trim();
-        const aid = inferred.trim();
+        const aid = answerText;
         const rowId = crypto.randomUUID();
         setTranscript((t) => [...t, { id: rowId, user: uid, assistant: aid }]);
       }
@@ -509,6 +560,202 @@ export function UnifiedChatPageClient() {
     />
   );
 
+  const chatComposerSection = (
+    <section className="space-y-3 rounded-2xl border border-[color:var(--color-border)] bg-white/40 px-4 py-4">
+      <div className="text-[11px] text-slate-500">推荐问法</div>
+      <div className="flex flex-wrap gap-2">
+        {suggestedChips.map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => setDraft(s)}
+            className="rounded-full border border-[color:var(--color-border)] bg-[#f9f9f7] px-3 py-1.5 text-[11px] text-slate-700 hover:bg-white/70"
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+
+      {errorText ? (
+        <p className="text-[12px] leading-relaxed text-red-600/90">{errorText}</p>
+      ) : null}
+
+      {pendingPlanConfirm ? (
+        <div className="space-y-2 rounded-xl border border-indigo-300/70 bg-indigo-50/50 px-3 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="text-[12px] font-semibold text-indigo-950">
+              {pendingPlanConfirm.tool === AGENT_PLAN_PREVIEW_TOOL_RAG
+                ? "低置信 · 预览 RAG 方案已就绪"
+                : "低置信 · 预览 SQL 已就绪"}
+            </div>
+            {planPreviewTtlRemainingSec != null ? (
+              <span className="rounded-full border border-indigo-400/40 bg-white/80 px-2 py-0.5 font-mono text-[10px] text-indigo-900">
+                约 {planPreviewTtlRemainingSec}s 后过期
+              </span>
+            ) : null}
+          </div>
+          <p className="text-[11px] leading-relaxed text-slate-700">
+            须使用与预览时相同的 <span className="font-mono">query</span> 与{" "}
+            <span className="font-mono">session_id</span>。若修改输入框中的问题并点击「发送」，将丢弃本令牌。令牌过期后将自动以同问句重新请求（不带令牌）。
+          </p>
+          {planPreviewTtlRemainingSec === 0 && !loading ? (
+            <p className="text-[11px] font-medium text-amber-900/90">令牌已过期，正在自动重新请求…</p>
+          ) : null}
+          {pendingPlanConfirm.tool === AGENT_PLAN_PREVIEW_TOOL_RAG ? (
+            <div className="space-y-2 text-[11px] text-slate-800">
+              <div>
+                <div className="text-[10px] font-medium text-indigo-900/90">改写检索 query</div>
+                <div className="mt-1 max-h-[20vh] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-indigo-200/80 bg-white/70 px-2 py-2 font-mono text-[11px] leading-relaxed text-slate-900">
+                  {pendingPlanConfirm.rewriteQuery.trim()
+                    ? pendingPlanConfirm.rewriteQuery
+                    : "（预览不可用：缺少 rewrite_query）"}
+                </div>
+              </div>
+              {pendingPlanConfirm.plannedTopK != null ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[10px] text-slate-500">计划条数 top_k</span>
+                  <span className="font-mono text-slate-900">{pendingPlanConfirm.plannedTopK}</span>
+                </div>
+              ) : null}
+              {pendingPlanConfirm.previewHeadlines.length > 0 ? (
+                <div>
+                  <div className="text-[10px] font-medium text-slate-600">标题级摘要</div>
+                  <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[12px] leading-relaxed text-slate-900">
+                    {pendingPlanConfirm.previewHeadlines.map((h, hi) => (
+                      <li key={hi}>{h}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <div className="max-h-[28vh] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-indigo-200/80 bg-white/70 px-2 py-2 font-mono text-[11px] text-slate-900">
+              {pendingPlanConfirm.sqlDraft.trim() ? pendingPlanConfirm.sqlDraft : "（无 sql_draft）"}
+            </div>
+          )}
+          {pendingPlanConfirm.warnings.length > 0 ? (
+            <ul className="list-disc space-y-1 pl-4 text-[11px] text-slate-800">
+              {pendingPlanConfirm.warnings.map((w, wi) => (
+                <li key={wi}>{typeof w === "string" ? w : safeStringify(w)}</li>
+              ))}
+            </ul>
+          ) : null}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              disabled={
+                loading ||
+                sessionId !== pendingPlanConfirm.sessionId ||
+                planPreviewTtlRemainingSec === 0
+              }
+              onClick={() => {
+                setDraft(pendingPlanConfirm.boundQuery);
+                void send(pendingPlanConfirm.boundQuery, {
+                  planExecutionToken: pendingPlanConfirm.token,
+                });
+              }}
+              className="rounded-xl bg-indigo-700 px-4 py-2 text-sm text-white hover:bg-indigo-800 disabled:opacity-40"
+            >
+              按预览执行
+            </button>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => {
+                const q = pendingPlanConfirm.boundQuery.trim();
+                setPendingPlanConfirm(null);
+                if (q) void send(q);
+              }}
+              className="rounded-xl border border-[color:var(--color-border)] bg-white/70 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+            >
+              取消（丢弃令牌）
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      <textarea
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        rows={3}
+        className="w-full resize-none rounded-xl border border-[color:var(--color-border)] bg-white/65 px-3 py-2 text-sm text-[#2c2c2c] outline-none focus:border-slate-400"
+        placeholder="输入问题…"
+      />
+
+      <div className="flex items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={handleNewSession}
+          className="rounded-xl border border-[color:var(--color-border)] bg-white/60 px-3 py-2 text-sm text-slate-700"
+        >
+          新会话
+        </button>
+        <button
+          type="button"
+          onClick={() => void send(draft.trim())}
+          disabled={loading || !draft.trim()}
+          className="rounded-xl bg-[#2c2c2c] px-4 py-2 text-sm text-[#f9f9f7] disabled:opacity-40"
+        >
+          {loading ? "…" : "发送"}
+        </button>
+      </div>
+    </section>
+  );
+
+  const messagesSection = (
+    <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
+      <div className="border-b border-[color:var(--color-border)] px-4 py-3">
+        <div className="font-serif text-sm text-[#2c2c2c]">消息</div>
+        <div className="mt-0.5 text-[11px] text-slate-500">
+          最终答案以 <span className="font-mono">assistant.message</span> 为准
+          {typewriterFromUrl ? (
+            <span className="text-slate-400">
+              {" "}
+              · 打字机效果（<span className="font-mono">?typewriter=0</span> 关闭）
+            </span>
+          ) : (
+            <span className="text-slate-400">
+              {" "}
+              · 块级直出（<span className="font-mono">?typewriter=1</span> 开启）
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="max-h-[50vh] overflow-auto px-4 py-4">
+        {displayAnswer.trim() ? (
+          <div className="mb-4 rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/90 px-3 py-2">
+            <div className="text-[10px] text-slate-400">最终答案</div>
+            <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">
+              {displayAnswer}
+              {typewriterActive && displayAnswer.length < roundStreamingText.length ? (
+                <span className="ml-0.5 inline-block animate-pulse text-slate-500">▍</span>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+        {messages.length === 0 ? (
+          <p className="text-[12px] leading-relaxed text-slate-500">
+            发送一次问题后，这里会显示从 events 提取的 user/assistant 消息。
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {messages.map((m) => (
+              <div
+                key={m.id}
+                className="rounded-xl border border-[color:var(--color-border)] bg-[#f9f9f7]/80 px-3 py-2"
+              >
+                <div className="text-[10px] text-slate-400">{m.role}</div>
+                <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{m.text}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+
+  const showDebugTooling = showRouterDebug || debugEnabled;
+
   return (
     <div className="space-y-4">
       {locked ? (
@@ -538,7 +785,7 @@ export function UnifiedChatPageClient() {
                   。
                 </>
               )}
-              通过后令牌写入 <span className="font-mono">localStorage</span>，后续 Unified / 历史请求均带{" "}
+              通过后令牌写入 <span className="font-mono">localStorage</span>，后续对话与历史请求均带{" "}
               <span className="font-mono">Authorization: Bearer &lt;明文&gt;</span>。
             </p>
             <label className="block text-[11px] text-slate-500">
@@ -636,13 +883,18 @@ export function UnifiedChatPageClient() {
               档位未知，已按访客视图展示（Timeline / 调试 URL 已隐藏）。请重新解锁或稍后重试。
             </p>
           ) : null}
+
+          {chatComposerSection}
+
+          {messagesSection}
+
           <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40 px-4 py-3">
             <div className="flex flex-wrap items-end gap-4">
               <div className="min-w-0 flex-1 space-y-2 text-[11px] text-slate-600">
                 <p className="leading-relaxed text-slate-600">
                   同一浏览器内连续提问共享上下文，直至点击「新会话」。只要{" "}
                   <span className="font-mono">session_id</span> 不变且后端已落库，刷新或再次进入本页会从{" "}
-                  <span className="font-mono">/api/py/chat/history</span> 恢复下方「历史消息」摘要；Timeline
+                  <span className="font-mono">/api/py/chat/history</span> 恢复「历史消息」摘要；Timeline
                   仍仅展示当前轮 SSE。
                 </p>
                 {debugEnabled ? (
@@ -713,7 +965,7 @@ export function UnifiedChatPageClient() {
               <div className="border-b border-[color:var(--color-border)] px-4 py-3">
                 <div className="font-serif text-sm text-[#2c2c2c]">历史消息</div>
                 <div className="mt-0.5 text-[11px] text-slate-500">
-                  已完成轮次摘要（来自 rag_conversation_logs）；当前轮 Timeline 与下方「消息」区仅展示本轮
+                  已完成轮次摘要（来自 rag_conversation_logs）；当前轮 Timeline 与顶部「消息」区仅展示本轮
                 </div>
               </div>
               <div className="max-h-[36vh] space-y-3 overflow-auto px-4 py-3">
@@ -773,56 +1025,7 @@ export function UnifiedChatPageClient() {
           </div>
           ) : null}
 
-          <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
-            <div className="border-b border-[color:var(--color-border)] px-4 py-3">
-              <div className="font-serif text-sm text-[#2c2c2c]">消息</div>
-              <div className="mt-0.5 text-[11px] text-slate-500">
-                最终答案以 <span className="font-mono">assistant.message</span> 为准
-                {typewriterFromUrl ? (
-                  <span className="text-slate-400">
-                    {" "}
-                    · 打字机 v0（<span className="font-mono">?typewriter=0</span> 关闭）
-                  </span>
-                ) : (
-                  <span className="text-slate-400">
-                    {" "}
-                    · 块级直出（<span className="font-mono">?typewriter=1</span> 开启）
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="max-h-[50vh] overflow-auto px-4 py-4">
-              {displayAnswer.trim() ? (
-                <div className="mb-4 rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/90 px-3 py-2">
-                  <div className="text-[10px] text-slate-400">最终答案</div>
-                  <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">
-                    {displayAnswer}
-                    {typewriterActive && displayAnswer.length < stream.streamingText.length ? (
-                      <span className="ml-0.5 inline-block animate-pulse text-slate-500">▍</span>
-                    ) : null}
-                  </div>
-                </div>
-              ) : null}
-              {messages.length === 0 ? (
-                <p className="text-[12px] leading-relaxed text-slate-500">
-                  发送一次问题后，这里会显示从 events 提取的 user/assistant 消息。
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {messages.map((m) => (
-                    <div
-                      key={m.id}
-                      className="rounded-xl border border-[color:var(--color-border)] bg-[#f9f9f7]/80 px-3 py-2"
-                    >
-                      <div className="text-[10px] text-slate-400">{m.role}</div>
-                      <div className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{m.text}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </section>
-
+          {showDebugTooling ? (
           <section className="space-y-3 rounded-2xl border border-[color:var(--color-border)] bg-white/40 px-4 py-4">
             {showRouterDebug ? (
             <div className="rounded-2xl border border-[color:var(--color-border)] bg-[#f9f9f7]/70 p-3">
@@ -924,159 +1127,8 @@ export function UnifiedChatPageClient() {
                 </details>
               ) : null}
 
-              <div className="text-[11px] text-slate-500">推荐问法</div>
-              <div className="flex flex-wrap gap-2">
-                {suggestedChips.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => setDraft(s)}
-                    className="rounded-full border border-[color:var(--color-border)] bg-[#f9f9f7] px-3 py-1.5 text-[11px] text-slate-700 hover:bg-white/70"
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-
-              {errorText ? (
-                <p className="text-[12px] leading-relaxed text-red-600/90">
-                  {errorText}
-                </p>
-              ) : null}
-
-              {pendingPlanConfirm ? (
-                <div className="space-y-2 rounded-xl border border-indigo-300/70 bg-indigo-50/50 px-3 py-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="text-[12px] font-semibold text-indigo-950">
-                      {pendingPlanConfirm.tool === AGENT_PLAN_PREVIEW_TOOL_RAG
-                        ? "低置信 · 预览 RAG 方案已就绪"
-                        : "低置信 · 预览 SQL 已就绪"}
-                    </div>
-                    {planPreviewTtlRemainingSec != null ? (
-                      <span className="rounded-full border border-indigo-400/40 bg-white/80 px-2 py-0.5 font-mono text-[10px] text-indigo-900">
-                        约 {planPreviewTtlRemainingSec}s 后过期
-                      </span>
-                    ) : null}
-                  </div>
-                  <p className="text-[11px] leading-relaxed text-slate-700">
-                    须使用与预览时相同的 <span className="font-mono">query</span> 与{" "}
-                    <span className="font-mono">session_id</span>。若修改输入框中的问题并点击「发送」，将丢弃本令牌。令牌过期后将自动以同问句重新请求（不带令牌）。
-                  </p>
-                  {planPreviewTtlRemainingSec === 0 && !loading ? (
-                    <p className="text-[11px] font-medium text-amber-900/90">令牌已过期，正在自动重新请求…</p>
-                  ) : null}
-                  {pendingPlanConfirm.tool === AGENT_PLAN_PREVIEW_TOOL_RAG ? (
-                    <div className="space-y-2 text-[11px] text-slate-800">
-                      <div>
-                        <div className="text-[10px] font-medium text-indigo-900/90">改写检索 query</div>
-                        <div className="mt-1 max-h-[20vh] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-indigo-200/80 bg-white/70 px-2 py-2 font-mono text-[11px] leading-relaxed text-slate-900">
-                          {pendingPlanConfirm.rewriteQuery.trim()
-                            ? pendingPlanConfirm.rewriteQuery
-                            : "（预览不可用：缺少 rewrite_query）"}
-                        </div>
-                      </div>
-                      {pendingPlanConfirm.plannedTopK != null ? (
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-[10px] text-slate-500">计划条数 top_k</span>
-                          <span className="font-mono text-slate-900">{pendingPlanConfirm.plannedTopK}</span>
-                        </div>
-                      ) : null}
-                      {pendingPlanConfirm.previewHeadlines.length > 0 ? (
-                        <div>
-                          <div className="text-[10px] font-medium text-slate-600">标题级摘要</div>
-                          <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[12px] leading-relaxed text-slate-900">
-                            {pendingPlanConfirm.previewHeadlines.map((h, hi) => (
-                              <li key={hi}>{h}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : (
-                    <div className="max-h-[28vh] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-indigo-200/80 bg-white/70 px-2 py-2 font-mono text-[11px] text-slate-900">
-                      {pendingPlanConfirm.sqlDraft.trim() ? pendingPlanConfirm.sqlDraft : "（无 sql_draft）"}
-                    </div>
-                  )}
-                  {pendingPlanConfirm.warnings.length > 0 ? (
-                    <ul className="list-disc space-y-1 pl-4 text-[11px] text-slate-800">
-                      {pendingPlanConfirm.warnings.map((w, wi) => (
-                        <li key={wi}>
-                          {typeof w === "string" ? w : safeStringify(w)}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      disabled={
-                        loading ||
-                        sessionId !== pendingPlanConfirm.sessionId ||
-                        planPreviewTtlRemainingSec === 0
-                      }
-                      onClick={() => {
-                        setDraft(pendingPlanConfirm.boundQuery);
-                        void send(pendingPlanConfirm.boundQuery, {
-                          planExecutionToken: pendingPlanConfirm.token,
-                        });
-                      }}
-                      className="rounded-xl bg-indigo-700 px-4 py-2 text-sm text-white hover:bg-indigo-800 disabled:opacity-40"
-                    >
-                      按预览执行
-                    </button>
-                    <button
-                      type="button"
-                      disabled={loading}
-                      onClick={() => {
-                        const q = pendingPlanConfirm.boundQuery.trim();
-                        setPendingPlanConfirm(null);
-                        if (q) void send(q);
-                      }}
-                      className="rounded-xl border border-[color:var(--color-border)] bg-white/70 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-40"
-                    >
-                      取消（丢弃令牌）
-                    </button>
-                  </div>
-                </div>
-              ) : null}
-
-              <textarea
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                rows={3}
-                className="w-full resize-none rounded-xl border border-[color:var(--color-border)] bg-white/65 px-3 py-2 text-sm text-[#2c2c2c] outline-none focus:border-slate-400"
-                placeholder="输入问题…"
-              />
-
-              <div className="flex items-center justify-between gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    stream.stop();
-                    resetSession();
-                    setTranscript([]);
-                    stream.clearEvents();
-                    setPendingPlanConfirm(null);
-                    dismissedPlanTokenRef.current = null;
-                    setTimelineBatchOpen(false);
-                    setTimelineBatchNonce((n) => n + 1);
-                    setErrorText(null);
-                    setFinalAnswer("");
-                  }}
-                  className="rounded-xl border border-[color:var(--color-border)] bg-white/60 px-3 py-2 text-sm text-slate-700"
-                >
-                  新会话
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void send(draft.trim())}
-                  disabled={loading || !draft.trim()}
-                  className="rounded-xl bg-[#2c2c2c] px-4 py-2 text-sm text-[#f9f9f7] disabled:opacity-40"
-                >
-                  {loading ? "…" : "发送"}
-                </button>
-              </div>
           </section>
+          ) : null}
         </>
       )}
     </div>
