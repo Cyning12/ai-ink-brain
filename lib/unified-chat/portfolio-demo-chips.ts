@@ -12,7 +12,7 @@ export const PORTFOLIO_DEMO_CHIPS: readonly PortfolioDemoChip[] = [
   },
   {
     id: "Q2",
-    label: "RAG 混合检索怎么做的？",
+    label: "Tech Graph 是什么",
   },
   {
     id: "Q3",
@@ -20,11 +20,11 @@ export const PORTFOLIO_DEMO_CHIPS: readonly PortfolioDemoChip[] = [
   },
   {
     id: "Q4",
-    label: "11 年经历里 AI Coding 相关成果？",
+    label: "简单介绍下刘新宁",
   },
   {
     id: "Q5",
-    label: "按需读图相对整图灌入 token/效果？边界？",
+    label: "AI Ink Brain 的架构是怎样的",
   },
 ] as const;
 

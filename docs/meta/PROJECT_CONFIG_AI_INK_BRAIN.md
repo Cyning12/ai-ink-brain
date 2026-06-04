@@ -74,7 +74,7 @@
 | `SYNC_ADMIN_SECRET` | `POST /api/admin/sync` Bearer；与 Python admin 同值 |
 | **解锁主路径** | **ChatBI DB 明文 token** → `GET /api/py/chatbi/access/verify` → `access_level` 映射 visitor / visitor-admin（见 `lib/unified-chat/portfolio-chat-tier.ts`） |
 | `PORTFOLIO_VISITOR_SECRET` / `PORTFOLIO_VISITOR_ADMIN_SECRET` | **可选后门**（`POST /api/auth/unlock` `secret` 分支）；**非** W4 主路径 |
-| 五问 chip | `lib/unified-chat/portfolio-demo-chips.ts` · 联调 task `task_portfolio_e2e_demo_qa_v1.md` |
+| 五问 chip | 运行时 `GET /api/py/chat/suggested-questions`（BFF 转发 Python）；静态降级 `lib/unified-chat/portfolio-demo-chips.ts` 须与 api-python PR #114 列表一致 · task `task_frontend_suggested_questions_api_v1.md` |
 
 ---
 
@@ -88,6 +88,7 @@
 | `pnpm build` / `pnpm start` | 生产构建与启动 |
 | `pnpm lint` | ESLint |
 | `pnpm tech-graph:graph-export` | 自 `docs/_tech_graph/*.ai.md` 重生成 `graph.json`（需 sibling `ai-ink-brain-api-python`） |
+| `pnpm tech-graph:manifest-check` | 前端 BFF/pages 与 `_manifest.json` 一致（CI **quality** job） |
 | `pnpm tech-graph:graph-check` | `graph.json` 漂移校验（CI 同源） |
 | `pnpm tech-graph:equivalence-check` | graph_v2 等价门禁（锚点/label 阈值） |
 | `pnpm tech-graph:schema-check` | `graph.json` 结构校验（可选本地） |
@@ -107,7 +108,7 @@
 |------|------|
 | `app/` | App Router 页面、布局、`app/api/**/route.ts` |
 | `app/api/chat/route.ts` | **本地 Node RAG**：Embedding → Supabase `match_documents` → SiliconFlow Chat 流式（UIMessage） |
-| `app/api/py/chat/route.ts`、`app/api/py/chat/history/route.ts` | **BFF**：转发到 `{PY_API_URL}/api/py/chat` 等 |
+| `app/api/py/chat/route.ts`、`app/api/py/chat/history/route.ts`、`app/api/py/chat/suggested-questions/route.ts` | **BFF**：转发到 `{PY_API_URL}/api/py/chat` 等（含推荐问法 GET） |
 | `app/api/admin/sync/route.ts`、`app/api/admin/ingest/route.ts` | 管理动作转发到 Python |
 | `app/api/ingest/route.ts` | 文件上传入库（Node） |
 | `app/api/auth/*` | 解锁 / session / logout（HttpOnly Cookie 等） |
