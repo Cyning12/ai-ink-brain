@@ -110,9 +110,18 @@
 
 ## ### KPI（00）
 
-> 由 `kpi_aggregator` 填写（默认 CLOSE）。
+**rubric**: KPI_RUBRIC_v1_2 · **汇总**: 94% · **状态**: pass · **帽**: 22-R2 · 30 · 40 · 50 · **aggregator**: CLOSE
 
-（占位 · 关账后删除）
+| hat_code | round | agent_mode | D1 | D2 | D3 | D4 | D5 | judgment_notes |
+|----------|-------|------------|----|----|----|----|-----|----------------|
+| 22 | R2 | main_chat | 100 | 100 | 100 | 60 | — | D4 warn: task 文内 HG-TASK-DRAFT/HG-AUDIT-R1 仍 pending（light kickoff pre-approve；关账前建议人改 approved） |
+| 30 | R1 | main_chat | 100 | 100 | 100 | 100 | — | — |
+| 40 | R1 | main_chat | 100 | 100 | 100 | 100 | — | — |
+| 50 | close | main_chat | 100 | 100 | 100 | 100 | 100 | pass-with-notes: 自动化全绿；§B 浏览器验收待 CHECKLIST + HG-REINSPECT |
+
+**Task 维聚合**: D1=100 · D2=100 · D3=100 · D4=60 · D5=100 → **94%**
+
+**blocked 原因**: 无（KPI 语义 pass）；**关账硬规则**仍 blocked：`HG-REINSPECT pending` + CHECKLIST §B 未签
 
 ---
 

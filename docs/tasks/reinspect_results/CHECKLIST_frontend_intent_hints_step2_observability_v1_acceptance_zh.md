@@ -8,7 +8,7 @@
 | **分支** | `task/frontend-intent-hints-step2-observability-v1` |
 | **acceptance_interaction** | `required` |
 | **Agent 批次** | 2026-06-04（帽 22 R2 创建 · 50 复检引用） |
-| **50 复检** | `docs/tasks/reinspect_results/reinspect_frontend_intent_hints_step2_observability_v1_20260604_v1.md`（50 后补链） |
+| **50 复检** | [`reinspect_frontend_intent_hints_step2_observability_v1_20260604_v1.md`](./reinspect_frontend_intent_hints_step2_observability_v1_20260604_v1.md) · 2026-06-04 帽 50 |
 
 > 在 **浏览器 / Preview** 上逐项勾选。关账须 task 验收 + **HG-REINSPECT** approved（仅人）。
 
@@ -42,9 +42,9 @@
 
 | 命令 / 项 | Agent | 维护者 |
 |-----------|-------|--------|
-| `pnpm lint` | ☑ 40 自检 | ☐ |
-| `pnpm test` | ☑ 52 passed | ☐ |
-| `pnpm build` | ☑ 40 自检 | ☐ |
+| `pnpm lint` | ☑ 50 exit 0 | ☐ |
+| `pnpm test` | ☑ 50 · 52 passed | ☐ |
+| `pnpm build` | ☑ 50 exit 0 | ☐ |
 
 ---
 
@@ -52,10 +52,10 @@
 
 | 工件 | 状态 |
 |------|------|
-| 22 R2 review | ☐ |
-| 50 reinspect | ☐ |
+| 22 R2 review | ☑ Agent |
+| 50 reinspect | ☑ Agent |
 | `HG-REINSPECT` | ☐ pending → approved（**仅人**） |
-| task `### KPI（00）` | ☐ |
+| task `### KPI（00）` | ☑ Agent |
 | `git mv` → `done/` | ☐ |
 
 ---
