@@ -3,7 +3,7 @@
 > **状态**：in_progress
 > **关联图谱**：无（本任务不改流程图谱）
 > **关联 Issue/PR**：无
-> **后端依赖**：后端已提供 `GET /api/py/chat/suggested-questions`（见 `ai-ink-brain-api-python` 当前分支）
+> **后端依赖**：`GET /api/py/chat/suggested-questions` · 配对 PR [ai-ink-brain-api-python#114](https://github.com/Cyning12/ai-ink-brain-api-python/pull/114)（推荐问法列表 + `AGENT_MAX_LATENCY_MS` 默认 45s，后者仅后端）
 
 ---
 
@@ -45,6 +45,7 @@
   - [x] API 加载中：骨架 chip，不阻塞主流程。
   - [x] API 失败：静默降级为 `suggestedQuestionsDefaults` 静态列表。
 - [x] **缓存策略**：`loadSuggestedQuestionsOnce` 模块级会话缓存，同会话仅一次上游请求。
+- [x] **静态降级与后端对齐**（2026-06-04）：`portfolio-demo-chips.ts` 五条与 api-python `chat_suggested_questions` 一致（含 Q2 Tech Graph · Q4 刘新宁 · Q5 架构）。
 
 ## 非范围
 
@@ -59,7 +60,8 @@
 | 依赖项 | 路径/说明 |
 |--------|-----------|
 | PROJECT_CONFIG | `docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md` |
-| 后端 API | `GET /api/py/chat/suggested-questions`（`ai-ink-brain-api-python/api/index.py:1146`） |
+| 后端 API | `GET /api/py/chat/suggested-questions`（api-python `api/index.py` · PR #114） |
+| 图谱 / CI | 本仓 `pnpm tech-graph:manifest-check`；**后端**改 `api/` 还须 `manifest_check` + **`tech_graph_drift_check`** + `graph_export --check`（见 api-python `RUNBOOK_graph_contract_ci_red_v1.md`） |
 | 现有 chip 数据 | `lib/unified-chat/portfolio-demo-chips.ts` |
 | Unified Chat 页 | `components/unified-chat/UnifiedChatPageClient.tsx` |
 | Chain Chat 页 | `components/chain-chat/ChainChatPageClient.tsx` |
