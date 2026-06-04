@@ -38,6 +38,7 @@
         "warningsLines",
         "rewriteQuery",
         "plannedTopK",
+        "pathSummary",
         "previewHeadlines"
       ],
       "type_values": [
@@ -107,6 +108,12 @@
         "agent.llm.truncated": ["dropped_chars", "reason"],
         "text2sql.phase.start": ["subphase_id", "phase_id", "phase_kind"],
         "text2sql.phase.end": ["subphase_id", "phase_id", "latency_ms"]
+      },
+      "payload_optional_keys_by_type": {
+        "_note": "CHATBI-INTENT-HINTS-FE-OBS@2026-06-04 · Intent Hints Step2 可观测 optional keys（向后兼容）",
+        "agent.intent": ["intent_path", "intent_attempt", "hints_arbitration"],
+        "agent.think": ["agent_step_routing", "intent_path", "intent_attempt", "hints_arbitration"],
+        "router.decision.evidence": ["intent_path", "intent_attempt", "hints_arbitration"]
       }
     },
     "done": {

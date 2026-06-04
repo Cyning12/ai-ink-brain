@@ -1,4 +1,7 @@
-/** Portfolio 演示五问 chip（与 SPEC §6.4 · 投递计划 §2 提问列逐字一致） */
+/**
+ * Portfolio / development 推荐问法静态降级列表（API 失败时使用）。
+ * 运行时优先 `GET /api/py/chat/suggested-questions`（见 suggestedQuestionsApi.ts）。
+ */
 
 export type PortfolioDemoChip = { id: "Q1" | "Q2" | "Q3" | "Q4" | "Q5"; label: string };
 

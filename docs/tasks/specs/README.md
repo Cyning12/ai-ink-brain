@@ -23,3 +23,6 @@
 | [`PROMPT_looptask_startup_portfolio_w3_v1_zh.md`](PROMPT_looptask_startup_portfolio_w3_v1_zh.md) | **W3 LoopTask** · 访客鉴权 · 关账至 CLOSE+KPI |
 | [`PROMPT_looptask_startup_portfolio_w4_v1_zh.md`](PROMPT_looptask_startup_portfolio_w4_v1_zh.md) | **W4 LoopTask** · Unified 裁剪 + 五问 chip · **done**（#50） |
 | [`PROMPT_looptask_startup_portfolio_w6_v1_zh.md`](PROMPT_looptask_startup_portfolio_w6_v1_zh.md) | **W6 LoopTask（当前）** · 五问 E2E 联调 · 录屏 · CLOSE |
+| [`SPEC-ChatBI-Intent-Hints-Step2-Frontend-Observability-v1_zh.md`](SPEC-ChatBI-Intent-Hints-Step2-Frontend-Observability-v1_zh.md) | Intent Hints Step2 · 前端 Timeline 路径/仲裁/软超时可观测 |
+| [`PROMPT_semi_auto_startup_intent_hints_step2_frontend_v1_zh.md`](PROMPT_semi_auto_startup_intent_hints_step2_frontend_v1_zh.md) | Step2 前端可观测 · semi_auto 30→50 · §3 可复制 Prompt |
+| [`SPEC-harness-semi-auto-frontend-backend-parity-v1_zh.md`](SPEC-harness-semi-auto-frontend-backend-parity-v1_zh.md) | **draft** · 前端 Harness semi_auto 与后端 parity · **Step2 关账后再开 task** |

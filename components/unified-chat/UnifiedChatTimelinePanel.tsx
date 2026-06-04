@@ -5,6 +5,7 @@ import { ChainTimeline, chainTimelineExpandBtnClass } from "@/components/chain-c
 
 type Props = {
   timelineEvents: ChainEvent[];
+  debugRouter?: boolean;
   timelineBatchNonce: number;
   timelineBatchOpen: boolean;
   onExpandAll: () => void;
@@ -15,6 +16,7 @@ type Props = {
 
 export function UnifiedChatTimelinePanel({
   timelineEvents,
+  debugRouter = false,
   timelineBatchNonce,
   timelineBatchOpen,
   onExpandAll,
@@ -56,6 +58,7 @@ export function UnifiedChatTimelinePanel({
         <ChainTimeline
           events={timelineEvents}
           sortByTs={false}
+          debugRouter={debugRouter}
           showExpandToolbar={false}
           batchExpandNonce={timelineBatchNonce}
           batchExpandOpen={timelineBatchOpen}

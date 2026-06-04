@@ -1,5 +1,7 @@
 import type { ChainEvent } from "@/components/chain-chat/types";
 import { isValidAgentPlanPreviewPayload } from "@/lib/unified-chat/sse";
+import { extractIntentPathObs } from "@/lib/unified-chat/chainEventSelectors";
+import { buildIntentPathSummaryLine } from "@/lib/unified-chat/intentPathLabels";
 import { extractText2sqlPhasesMsFromToolOutput } from "@/lib/unified-chat/text2sqlPhaseSse";
 
 function safeStringify(v: unknown): string {
@@ -37,7 +39,7 @@ export function phaseHintCn(phase: string): string {
 export type ExecSection =
   | { kind: "llm_block"; phase: string; body: string; ok: boolean }
   | { kind: "router"; finalMode: string }
-  | { kind: "intent"; tool: string; mode: string }
+  | { kind: "intent"; tool: string; mode: string; pathSummary?: string }
   | { kind: "think"; thought: string; tool: string; mode: string }
   | { kind: "clarify"; message: string; prompt_for_user: string }
   | {
@@ -134,7 +136,8 @@ export function buildExecutionTraceSections(events: ChainEvent[]): ExecSection[]
     if (e.type === "agent.intent") {
       const tool = typeof e.payload.tool === "string" ? e.payload.tool : "—";
       const mode = typeof e.payload.mode === "string" ? e.payload.mode : "—";
-      out.push({ kind: "intent", tool, mode });
+      const pathSummary = buildIntentPathSummaryLine(extractIntentPathObs(e.payload)) ?? undefined;
+      out.push({ kind: "intent", tool, mode, pathSummary });
       i += 1;
       continue;
     }
@@ -279,7 +282,8 @@ export function buildExecutionTraceCopyText(query: string, sections: ExecSection
     } else if (s.kind === "router") {
       lines.push(`router.decision → ${s.finalMode}`);
     } else if (s.kind === "intent") {
-      lines.push(`agent.intent · ${s.tool} · mode ${s.mode}`);
+      const pathPart = s.pathSummary ? ` · ${s.pathSummary}` : "";
+      lines.push(`agent.intent · ${s.tool} · mode ${s.mode}${pathPart}`);
     } else if (s.kind === "think") {
       lines.push("agent.think", s.thought || "—", `tool ${s.tool || "—"} · mode ${s.mode || "—"}`);
     } else if (s.kind === "clarify") {

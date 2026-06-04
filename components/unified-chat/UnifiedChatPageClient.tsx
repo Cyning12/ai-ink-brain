@@ -30,10 +30,8 @@ import {
 } from "@/lib/unified-chat/hooks/useTypewriterReveal";
 import { useUnifiedChatStream } from "@/lib/unified-chat/hooks/useUnifiedChatStream";
 import { safeStringify } from "@/lib/unified-chat/stringify";
-import {
-  DEVELOPMENT_SUGGESTED_PROMPTS,
-  PORTFOLIO_DEMO_CHIPS,
-} from "@/lib/unified-chat/portfolio-demo-chips";
+import { useSuggestedQuestions } from "@/lib/unified-chat/hooks/useSuggestedQuestions";
+import { PORTFOLIO_DEMO_CHIPS } from "@/lib/unified-chat/portfolio-demo-chips";
 import {
   portfolioDebugUrlAllowed,
   portfolioRouterDebugVisible,
@@ -215,9 +213,11 @@ export function UnifiedChatPageClient() {
   const showTimelinePanels = !portfolio || portfolioTimelineVisible(portfolioTier);
   const debugUrlAllowed = !portfolio || portfolioDebugUrlAllowed(portfolioTier);
   const showRouterDebug = !portfolio || portfolioRouterDebugVisible();
-  const suggestedChips = portfolio
-    ? PORTFOLIO_DEMO_CHIPS.map((c) => c.label)
-    : [...DEVELOPMENT_SUGGESTED_PROMPTS];
+  const { chips: suggestedChips, loading: suggestedChipsLoading } = useSuggestedQuestions({
+    enabled: mounted && !locked,
+    mode: portfolio ? "portfolio" : "development",
+    headers,
+  });
 
   const debugEnabled = debugUrlAllowed && debugFromUrl;
 
@@ -545,6 +545,7 @@ export function UnifiedChatPageClient() {
   const timelineSection = (
     <UnifiedChatTimelinePanel
       timelineEvents={timelineEvents}
+      debugRouter={debugRouter}
       timelineBatchNonce={timelineBatchNonce}
       timelineBatchOpen={timelineBatchOpen}
       onExpandAll={() => {
@@ -564,16 +565,24 @@ export function UnifiedChatPageClient() {
     <section className="space-y-3 rounded-2xl border border-[color:var(--color-border)] bg-white/40 px-4 py-4">
       <div className="text-[11px] text-slate-500">推荐问法</div>
       <div className="flex flex-wrap gap-2">
-        {suggestedChips.map((s) => (
-          <button
-            key={s}
-            type="button"
-            onClick={() => setDraft(s)}
-            className="rounded-full border border-[color:var(--color-border)] bg-[#f9f9f7] px-3 py-1.5 text-[11px] text-slate-700 hover:bg-white/70"
-          >
-            {s}
-          </button>
-        ))}
+        {suggestedChipsLoading
+          ? Array.from({ length: 3 }, (_, i) => (
+              <span
+                key={`sq-skel-${i}`}
+                className="h-7 w-28 animate-pulse rounded-full bg-slate-200/70"
+                aria-hidden
+              />
+            ))
+          : suggestedChips.map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setDraft(s)}
+                className="rounded-full border border-[color:var(--color-border)] bg-[#f9f9f7] px-3 py-1.5 text-[11px] text-slate-700 hover:bg-white/70"
+              >
+                {s}
+              </button>
+            ))}
       </div>
 
       {errorText ? (

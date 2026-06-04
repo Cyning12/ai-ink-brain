@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { useSuggestedQuestions } from "@/lib/unified-chat/hooks/useSuggestedQuestions";
 import { useSessionId } from "@/lib/hooks/useSessionId";
 import type { ChainChatResponse, ChainEvent } from "@/components/chain-chat/types";
 import { ChainTimeline, chainTimelineExpandBtnClass } from "@/components/chain-chat/ChainTimeline";
@@ -202,6 +203,12 @@ export function ChainChatPageClient() {
   }, [token]);
 
   const { sessionId, resetSession } = useSessionId("chain-chat");
+
+  const { chips: suggestedChips, loading: suggestedChipsLoading } = useSuggestedQuestions({
+    enabled: mounted && !locked,
+    mode: "chain",
+    headers,
+  });
 
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(false);
@@ -438,20 +445,24 @@ export function ChainChatPageClient() {
                 推荐问法
               </div>
               <div className="flex flex-wrap gap-2">
-                {[
-                  "统计 agent_info 表里有多少条数据",
-                  "按日期统计订单数量（最近 7 天）",
-                  "Top5 用户的订单金额",
-                ].map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => setDraft(s)}
-                    className="rounded-full border border-[color:var(--color-border)] bg-[#f9f9f7] px-3 py-1.5 text-[11px] text-slate-700 hover:bg-white/70"
-                  >
-                    {s}
-                  </button>
-                ))}
+                {suggestedChipsLoading
+                  ? Array.from({ length: 3 }, (_, i) => (
+                      <span
+                        key={`sq-skel-${i}`}
+                        className="h-7 w-28 animate-pulse rounded-full bg-slate-200/70"
+                        aria-hidden
+                      />
+                    ))
+                  : suggestedChips.map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setDraft(s)}
+                        className="rounded-full border border-[color:var(--color-border)] bg-[#f9f9f7] px-3 py-1.5 text-[11px] text-slate-700 hover:bg-white/70"
+                      >
+                        {s}
+                      </button>
+                    ))}
               </div>
 
               {errorText ? (

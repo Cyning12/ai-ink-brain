@@ -123,6 +123,47 @@ export function extractRouterEvidence(events: ChainEvent[]): RouterEvidence | nu
   };
 }
 
+export type HintsArbitrationObs = Readonly<{
+  applied: true;
+  reason: string;
+}>;
+
+export type IntentPathObs = Readonly<{
+  intent_path: string | null;
+  intent_attempt: number | null;
+  hints_arbitration: HintsArbitrationObs | null;
+  agent_step_routing: "intent" | "agent_soft_timeout_v1" | null;
+}>;
+
+/** 从 agent.intent / agent.think / router.decision.evidence 解析 optional 路径字段；缺字段不抛错 */
+export function extractIntentPathObs(
+  payload: Record<string, unknown> | null | undefined,
+): IntentPathObs {
+  const obj = payload && typeof payload === "object" ? payload : {};
+  const intent_path =
+    typeof obj.intent_path === "string" && obj.intent_path.trim() ? obj.intent_path.trim() : null;
+  const attemptRaw = obj.intent_attempt;
+  const intent_attempt =
+    typeof attemptRaw === "number" && Number.isFinite(attemptRaw) && attemptRaw >= 1
+      ? Math.round(attemptRaw)
+      : null;
+
+  let hints_arbitration: HintsArbitrationObs | null = null;
+  const ha = obj.hints_arbitration;
+  if (ha && typeof ha === "object" && !Array.isArray(ha)) {
+    const h = ha as Record<string, unknown>;
+    if (h.applied === true && typeof h.reason === "string") {
+      hints_arbitration = { applied: true, reason: h.reason };
+    }
+  }
+
+  const routingRaw = obj.agent_step_routing;
+  const agent_step_routing =
+    routingRaw === "intent" || routingRaw === "agent_soft_timeout_v1" ? routingRaw : null;
+
+  return { intent_path, intent_attempt, hints_arbitration, agent_step_routing };
+}
+
 export type AgentIntentObsRow = {
   tool: string;
   mode: string;
@@ -130,6 +171,7 @@ export type AgentIntentObsRow = {
   cache: string;
   cache_key_hash: string;
   latency_ms: string;
+  path: IntentPathObs;
 };
 
 export function extractAgentIntentObs(events: ChainEvent[]): AgentIntentObsRow | null {
@@ -154,7 +196,15 @@ export function extractAgentIntentObs(events: ChainEvent[]): AgentIntentObsRow |
   const lat = obj.latency_ms;
   const latency_ms =
     typeof lat === "number" && Number.isFinite(lat) ? `${Math.round(lat)} ms` : "—";
-  return { tool, mode, confidence: conf, cache, cache_key_hash, latency_ms };
+  return {
+    tool,
+    mode,
+    confidence: conf,
+    cache,
+    cache_key_hash,
+    latency_ms,
+    path: extractIntentPathObs(obj),
+  };
 }
 
 export function modeTone(mode: string): string {
