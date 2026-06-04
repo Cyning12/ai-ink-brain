@@ -1,7 +1,8 @@
 ---
 title: 在线简历（Portfolio · RAG 同源）
 description: 由 PDF 导出 · 刘新宁-11年-AICoding.pdf
-date: 2026-06-03
+date: 2026-06-04
+last_portfolio_sync: 2026-06-04
 source_pdf: 刘新宁-11年-AICoding.pdf
 sync_target: ../../Projects/ai-ink-brain/content/resume/cv-online.md
 ---
@@ -18,14 +19,20 @@ sync_target: ../../Projects/ai-ink-brain/content/resume/cv-online.md
 
 ## 个人优势
 
-11 年软件开发经验，腾讯云架构师同盟成员，具备大型电商 App、跨端 B 端（UniApp 小程序 + Web）与中台化交付背景。2025 年起在般果运营平台用 Cursor 完成日常需求开发、维护与迭代；2026 年起沉淀 AI 辅助研发实践（任务签收、评审与发布检查 + 按模块供给架构说明，避免全量架构文档一次性交给 AI），在生产与个人项目中验证，减少改码跑偏与变更难追溯。
+11 年软件开发经验，腾讯云架构师同盟成员，具备大型电商 App、跨端 B 端（UniApp 小程序 + Web）与中台化交付背景。2025 年起在般果运营平台用 Cursor 完成日常需求开发、维护与迭代；2026 年起沉淀 AI 辅助研发实践（任务签收、评审与发布检查 + 按模块供给架构说明，避免全量架构文档一次性交给 AI），在生产与个人项目中验证，减少改码跑偏与变更难追溯。**公开连载《AI 编程可闭环协作》**（[方法论导读](https://cloud.tencent.com/developer/article/2681553) + 卷一～五 · [GitHub](https://github.com/Cyning12/ai-coding-closed-loop-articles)）。
 
-个人全栈：文档 RAG 问答（已落地） + ChatBI 多助手（建设中）；AI 主导编码，本人负责架构、需求拆解与验收。技术栈：Next.js、Python、向量库与混合检索。
+个人全栈：文档 RAG 问答（已落地） + ChatBI 多助手（建设中）；AI 主导编码，本人负责架构、需求拆解与验收。演示站：https://ai-ink-brain.vercel.app/ · 对话秘钥 231127227@qq.com 邮件申请。技术栈：Next.js、Python、向量库与混合检索。
+
+## 公开作品与演示
+
+- [方法论导读](https://cloud.tencent.com/developer/article/2681553) · [GitHub 连载](https://github.com/Cyning12/ai-coding-closed-loop-articles)
+- 演示站：https://ai-ink-brain.vercel.app/
+- 访客秘钥：231127227@qq.com（邮件申请 · 普通/深度两档 · 过期失效）
 
 ## 专业技能
 
 - 【AI Coding】Cursor 日常研发；AI 协作规范（任务拆分、评审签收、测试/发布检查）；Harness 过程治理
-- 【AI 应用】RAG · Text2SQL · Prompt · LangChain / LangGraph · 混合检索 · Supabase(pgvector)
+- 【AI 应用】RAG · Text2SQL · Prompt · 自研 Agent 编排（ReAct · Tool 注册 · SSE）· 混合检索 · Supabase(pgvector)
 - 【前端 / 跨端】Vue3 · TypeScript · Vuex · UniApp · 小程序 + Web
 - 【移动端】iOS（Objective-C / Swift / UIKit）— 多年核心架构经验
 - 【工程化】Python · FastAPI · Node.js · REST / SSE · Git · Docker
@@ -64,9 +71,9 @@ sync_target: ../../Projects/ai-ink-brain/content/resume/cv-online.md
 
 1、设计协作链：任务拆分、变更说明、评审签收、自动化测试与发布检查（Harness Inform / Constrain / Verify）
 2、设计上下文链：按模块/任务范围向 Agent 提供架构说明，禁止全量架构文档一次性灌入；规范落盘 .cursor/rules 并抽象为 跨 Agent SKILL（Claude Code、Kimi Code 等）
-3、个人项目：RAG 文档问答（已上线）+ ChatBI 多助手编排（建设中）
+3、个人项目：RAG 文档问答（已上线）+ ChatBI 多助手编排（建设中）；后端自研多阶段 RAG + Unified 路由 + ChatBI Agent 循环（ToolRegistry · ReAct · SQL 闸口 · SSE events）
 4、业绩：对比全量灌入基线，静态 token 约 1/9；冷启动架构问答 +50%+
-5、技术栈：Next.js、FastAPI、混合检索、LangChain、LangGraph、Cursor、Harness
+5、技术栈：Next.js、FastAPI、混合检索 + rerank、自研 ChatBI Agent、Cursor、Harness
 ### 般果运营管理平台(uniApp+Web) · 前端研发 · 2024.01-2026.01
 
 百果园控股 B2B 水果供应链平台（总仓 + 城市仓），对接上游供应商与下游小微零售商，覆盖多省城市采销与仓储协同。
