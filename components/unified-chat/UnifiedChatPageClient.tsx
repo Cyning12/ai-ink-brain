@@ -545,6 +545,7 @@ export function UnifiedChatPageClient() {
   const timelineSection = (
     <UnifiedChatTimelinePanel
       timelineEvents={timelineEvents}
+      debugRouter={debugRouter}
       timelineBatchNonce={timelineBatchNonce}
       timelineBatchOpen={timelineBatchOpen}
       onExpandAll={() => {

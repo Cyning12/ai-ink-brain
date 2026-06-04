@@ -64,6 +64,18 @@ export type AgentPlanPreviewRagPayload = AgentPlanPreviewPayloadBase &
 
 export type AgentPlanPreviewPayload = AgentPlanPreviewText2SqlPayload | AgentPlanPreviewRagPayload;
 
+/** Step2 optional：`agent.intent` / `agent.think` / `router.decision.evidence` 路径可观测 */
+export type IntentPathPayloadFields = Readonly<{
+  intent_path?: string | null;
+  intent_attempt?: number | null;
+  hints_arbitration?: { applied: true; reason: string } | null;
+}>;
+
+export type AgentThinkPayloadPathFields = IntentPathPayloadFields &
+  Readonly<{
+    agent_step_routing?: "intent" | "agent_soft_timeout_v1" | null;
+  }>;
+
 export type ChainEvent = {
   type: ChainEventType;
   ts: number; // ms

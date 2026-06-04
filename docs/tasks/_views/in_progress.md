@@ -9,4 +9,5 @@
 
 ## 待排期 / 草稿 / pending
 
+- [Intent Hints Step2 · Timeline 可观测（前端）](../active/task_frontend_intent_hints_step2_observability_v1.md) — `pending` · 后端 PR #111
 - 其余见 `docs/tasks/active/` 目录内各文件头部 `状态` 字段。
