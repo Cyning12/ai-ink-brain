@@ -1,6 +1,6 @@
 import {
   DEVELOPMENT_SUGGESTED_PROMPTS,
-  PORTFOLIO_DEMO_CHIPS,
+  PORTFOLIO_ALL_DEMO_CHIPS,
 } from "@/lib/unified-chat/portfolio-demo-chips";
 
 export type SuggestedQuestionsMode = "portfolio" | "development" | "chain";
@@ -16,7 +16,7 @@ export const CHAIN_SUGGESTED_PROMPTS: readonly string[] = [
 export function getDefaultSuggestedQuestions(mode: SuggestedQuestionsMode): string[] {
   switch (mode) {
     case "portfolio":
-      return PORTFOLIO_DEMO_CHIPS.map((c) => c.label);
+      return PORTFOLIO_ALL_DEMO_CHIPS.map((c) => c.label);
     case "development":
       return [...DEVELOPMENT_SUGGESTED_PROMPTS];
     case "chain":

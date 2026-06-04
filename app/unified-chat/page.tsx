@@ -11,10 +11,10 @@ export default function UnifiedChatPage() {
         <>
           <p className="text-xs tracking-wide text-slate-500">对话</p>
           <h1 className="mt-2 font-serif text-3xl font-semibold tracking-tight text-[#2C2C2C]">
-            RAG 演示对话
+            RAG + Text2SQL 演示对话
           </h1>
           <p className="mt-3 text-sm text-slate-600">
-            流式 RAG + Timeline · 发消息需邮件申请临时秘钥
+            流式 RAG + Text2SQL + Timeline · 发消息需邮件申请临时秘钥；下方可展开查看样例库说明
           </p>
         </>
       ) : (
