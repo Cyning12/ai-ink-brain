@@ -118,4 +118,28 @@
 
 ## ### 自检结论（执行者）
 
-（40 帽回填）
+**工作目录**：`ai-ink-brain` · **分支**：`task/frontend-intent-hints-step2-observability-v1` · **commit**：`1cc3954`
+
+### 验证命令
+
+| 命令 | 退出码 | 摘要 |
+| --- | ---: | --- |
+| `pnpm lint` | 0 | eslint 无报错 |
+| `pnpm test` | 0 | 13 files · 52 tests passed（含 `chainEventSelectors.test.ts` ×4） |
+| `pnpm build` | 0 | Next.js 16.2.3 编译与 TS 检查通过 |
+
+### 验收标准（40 · 命令可证 + 代码审查）
+
+| # | 项 | 结果 | 证据 |
+| --- | --- | --- | --- |
+| AC1 | Debug **关**无视觉回归 | **待 50 交互** | 新 UI 均 `debugRouter` 门控；无浏览器烟测 |
+| AC2 | Debug **开** agent.intent path/attempt/仲裁 | **pass（代码）** | `ChainEventCard` + `UnifiedChatRouterDebugPanel` |
+| AC3 | Debug **开** agent.think 软超时 badge | **pass（代码）** | step-1 + `agent_soft_timeout_v1` |
+| AC4 | router.decision.evidence 路径摘要 | **pass（代码）** | `IntentEvidenceSummaryBlock` |
+| AC5 | rule:portfolio_* chips | **pass（未改）** | `RouterDecisionBlock` rule_hits 逻辑未动 |
+| AC6 | 缺字段旧 payload 不报错 | **pass** | 单测 + `extractIntentPathObs` 缺键返回 null |
+| AC7 | lint · test · build 绿 | **pass** | 见上表 |
+
+**已知未测**：Portfolio Q4 实 SSE / Debug 开关联动（`acceptance_interaction: required` → 50 + CHECKLIST）。
+
+**audit_profile: light** · HG-AUDIT-R1 已由人 pre-approve（开 30 前用户 Prompt 声明）；无 R1 review 文件。
