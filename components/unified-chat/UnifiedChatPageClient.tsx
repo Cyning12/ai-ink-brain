@@ -31,7 +31,8 @@ import {
 import { useUnifiedChatStream } from "@/lib/unified-chat/hooks/useUnifiedChatStream";
 import { safeStringify } from "@/lib/unified-chat/stringify";
 import { useSuggestedQuestions } from "@/lib/unified-chat/hooks/useSuggestedQuestions";
-import { PORTFOLIO_DEMO_CHIPS } from "@/lib/unified-chat/portfolio-demo-chips";
+import { Text2SqlDemoGuidePanel } from "@/components/unified-chat/Text2SqlDemoGuidePanel";
+import { PORTFOLIO_ALL_DEMO_CHIPS } from "@/lib/unified-chat/portfolio-demo-chips";
 import {
   portfolioDebugUrlAllowed,
   portfolioRouterDebugVisible,
@@ -767,6 +768,7 @@ export function UnifiedChatPageClient() {
 
   return (
     <div className="space-y-4">
+      <Text2SqlDemoGuidePanel />
       {locked ? (
         <section className="mx-auto max-w-lg rounded-2xl border border-[color:var(--color-border)] bg-white/40 p-4">
           <div className="space-y-2">
@@ -861,7 +863,7 @@ export function UnifiedChatPageClient() {
               <div className="space-y-2 border-t border-[color:var(--color-border)] pt-3">
                 <div className="text-[11px] text-slate-500">推荐问法（解锁后可发送）</div>
                 <div className="flex flex-wrap gap-2">
-                  {PORTFOLIO_DEMO_CHIPS.map((chip) => (
+                  {PORTFOLIO_ALL_DEMO_CHIPS.map((chip) => (
                     <button
                       key={chip.id}
                       type="button"
