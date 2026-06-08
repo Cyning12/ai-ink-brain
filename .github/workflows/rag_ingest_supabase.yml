@@ -47,10 +47,13 @@ jobs:
           # Supabase
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          # SiliconFlow
+          # SiliconFlow — 须与 Vercel Python API / 本地 .env 完全一致；换模型须三处同改 + 本 workflow
           SILICONFLOW_API_KEY: ${{ secrets.SILICONFLOW_API_KEY }}
           SILICONFLOW_BASE_URL: ${{ secrets.SILICONFLOW_BASE_URL }}
-          # 关键：指向“前端仓库”的 content 目录
+          SILICONFLOW_EMBEDDING_MODEL: "Qwen/Qwen3-Embedding-0.6B"
+          SILICONFLOW_EMBEDDING_DIMENSIONS: "1024"
+          EMBEDDING_DIM: "1024"
+          # 关键：指向前端仓库 content 目录
           CONTENT_ROOT: ${{ github.workspace }}/content
           DEBUG_INGEST: "1"
         run: |
@@ -59,4 +62,15 @@ jobs:
           result = sync_content_to_vector()
           print(result)
           PY
+
+      - name: Verify embedding fingerprint alignment
+        working-directory: ai-ink-brain-api-python
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SILICONFLOW_EMBEDDING_MODEL: "Qwen/Qwen3-Embedding-0.6B"
+          SILICONFLOW_EMBEDDING_DIMENSIONS: "1024"
+          EMBEDDING_DIM: "1024"
+          RAG_EMBEDDING_MISMATCH_MODE: block
+        run: python tools/rag_embedding_consistency_check.py
 
