@@ -1,16 +1,15 @@
----
+<hr />
 title: 证据摘要卡（按需读图 · 记忆分层）
 description: Portfolio RAG 演示用压缩摘要；相对 methodology 长文与 methodology-card 全文，专供 Q3/Q5 检索
 date: 2026-06-03
----
+<hr />
 
 # 证据摘要卡
 
-> **定位**：`evidence` 目录下的 **检索用摘要**（distill card），不是卷三正文替代品。
-> 长文见 `methodology/vol3_*`；协作细节见 `evidence/methodology-card.md`（PUBLISH 节选）。
-> 本卡把 **Q3 纠偏** 与 **Q5 token 边界** 压成短段，便于 RAG 命中关键词。
-
----
+<blockquote>
+<p><strong>定位</strong>：<code>evidence</code> 目录下的 <strong>检索用摘要</strong>（distill card），不是卷三正文替代品。 长文见 <code>methodology/vol3_*</code>；协作细节见 <code>evidence/methodology-card.md</code>（PUBLISH 节选）。 本卡把 <strong>Q3 纠偏</strong> 与 <strong>Q5 token 边界</strong> 压成短段，便于 RAG 命中关键词。</p>
+</blockquote>
+<hr />
 
 ## 冷 / 温 / 热 与架构三层（Q3）
 
@@ -18,13 +17,28 @@ date: 2026-06-03
 - **架构三层**：**Inform / Constrain / Verify** 等工程分层，描述「写什么真值、用什么规则、如何验收」。
 - **二者不是同一维度**：记忆分层 ≠ 架构分层；勿把「冷层」直接等同于「Inform 层」。
 
-| 层 | 一句话 |
-| --- | --- |
-| **冷层** | 不常变的结构地图（≈ 卷二技术图谱）；任务单里的 **图谱入口** |
-| **温层** | 协作轨迹：任务单 + 书面签收 + 回顾摘要 |
-| **热层** | 运行时事件记忆（远期、非日常必做） |
-
----
+<div class="md-table-wrap">
+<table>
+<thead><tr>
+<th>层</th>
+<th>一句话</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>冷层</strong></td>
+<td>不常变的结构地图（≈ 卷二技术图谱）；任务单里的 <strong>图谱入口</strong></td>
+</tr>
+<tr>
+<td><strong>温层</strong></td>
+<td>协作轨迹：任务单 + 书面签收 + 回顾摘要</td>
+</tr>
+<tr>
+<td><strong>热层</strong></td>
+<td>运行时事件记忆（远期、非日常必做）</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
 
 ## 按需读图 vs 整图灌入（Q5）
 
@@ -39,6 +53,8 @@ date: 2026-06-03
 
 **检索关键词**：按需读图、整图灌入、graph_query、graph.json、token、约 1/9、十分之一、小样本边界。
 
----
+<hr />
 
-> 由 `tools/sync-portfolio-content.sh` · `stub:evidence-card` 生成；ingest 后 category=`evidence`。
+<blockquote>
+<p>由 <code>tools/sync-portfolio-content.sh</code> · <code>stub:evidence-card</code> 生成；ingest 后 category=<code>evidence</code>。</p>
+</blockquote>
