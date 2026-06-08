@@ -7,7 +7,9 @@ export const MARKDOWN_PROSE_CLASS =
   "[&_ul]:ml-5 [&_ul]:list-disc [&_ol]:ml-5 [&_ol]:list-decimal [&_li]:my-1 " +
   "[&_blockquote]:border-l-2 [&_blockquote]:border-slate-300 [&_blockquote]:pl-4 [&_blockquote]:text-slate-600 " +
   "[&_hr]:my-8 [&_hr]:border-[color:var(--color-border)] " +
+  "[&_.md-table-wrap]:my-4 [&_.md-table-wrap]:overflow-x-auto " +
   "[&_table]:w-full [&_table]:border-collapse [&_table]:text-sm " +
+  "[&_blockquote]:space-y-3 [&_blockquote_h2]:mt-0 [&_blockquote_h3]:mt-0 " +
   "[&_th]:border [&_th]:border-[color:var(--color-border)] [&_th]:bg-slate-50/80 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left " +
   "[&_td]:border [&_td]:border-[color:var(--color-border)] [&_td]:px-3 [&_td]:py-2 " +
   "[&_img]:my-4 [&_img]:max-w-full [&_img]:rounded-lg " +

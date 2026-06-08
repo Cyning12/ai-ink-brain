@@ -1,37 +1,110 @@
-| 卷 | 副标题（连载） | 你得到什么 |
-| --- | --- | --- |
-| — | [从「更会写」到「敢合并」](https://cloud.tencent.com/developer/article/2681553) | 从「更会写」到「敢合并」· 15 分钟导读 |
-| [卷一](https://cloud.tencent.com/developer/article/2675471) | 怎样才算「做完」 | 动机、双轨总览、最小起步 |
-| [卷二](https://cloud.tencent.com/developer/article/2676250) | 技术图谱 | 子图、读法对照、图谱 CI |
-| [卷三](https://cloud.tencent.com/developer/article/2678669) | Harness 与 SDD | 实践 SDD 的 Harness 协作流程（任务单、签收、阶段流） |
-| [卷四](https://cloud.tencent.com/developer/article/2680278) | 闭环交付与经验沉淀 | 专题流水线、跨轮回顾摘要 |
-| [卷五](https://cloud.tencent.com/developer/article/2681115) | 存量怎么落地 | 案例机制、FAQ、阶段 0～3、诚实边界 |
-
+<div class="md-table-wrap">
+<table>
+<thead><tr>
+<th>卷</th>
+<th>副标题（连载）</th>
+<th>你得到什么</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>—</td>
+<td><a href="https://cloud.tencent.com/developer/article/2681553">从「更会写」到「敢合并」</a></td>
+<td>从「更会写」到「敢合并」· 15 分钟导读</td>
+</tr>
+<tr>
+<td><a href="https://cloud.tencent.com/developer/article/2675471">卷一</a></td>
+<td>怎样才算「做完」</td>
+<td>动机、双轨总览、最小起步</td>
+</tr>
+<tr>
+<td><a href="https://cloud.tencent.com/developer/article/2676250">卷二</a></td>
+<td>技术图谱</td>
+<td>子图、读法对照、图谱 CI</td>
+</tr>
+<tr>
+<td><a href="https://cloud.tencent.com/developer/article/2678669">卷三</a></td>
+<td>Harness 与 SDD</td>
+<td>实践 SDD 的 Harness 协作流程（任务单、签收、阶段流）</td>
+</tr>
+<tr>
+<td><a href="https://cloud.tencent.com/developer/article/2680278">卷四</a></td>
+<td>闭环交付与经验沉淀</td>
+<td>专题流水线、跨轮回顾摘要</td>
+</tr>
+<tr>
+<td><a href="https://cloud.tencent.com/developer/article/2681115">卷五</a></td>
+<td>存量怎么落地</td>
+<td>案例机制、FAQ、阶段 0～3、诚实边界</td>
+</tr>
+</tbody>
+</table></div>
 ## 目录
 
-| 节 | 标题 |
-| --- | --- |
-| — | 摘要 |
-| 0 | 缘起：个人约束与团队经验 |
-| 1 | 为什么「会写代码」不等于「能交付」 |
-| 2 | 两条轨：结构（图谱）与过程（协作流程） |
-| | 2.1 技术图谱：让 Agent「先看地图再动手」 |
-| | 2.2 协作流程：可签收、可合并 |
-| | 2.3 叠放：缺一条都会「差点意思」 |
-| 3 | 一轮交付怎样算「做完」：意图、成果、验收 |
-| 4 | 与 TDD、Code Review、DevOps 的关系 |
-| 5 | 适合谁、不适合谁 |
-| 6 | 最小起步（给想试的读者） |
-| 7 | 结语 |
-
----
+<div class="md-table-wrap">
+<table>
+<thead><tr>
+<th>节</th>
+<th>标题</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>—</td>
+<td>摘要</td>
+</tr>
+<tr>
+<td>0</td>
+<td>缘起：个人约束与团队经验</td>
+</tr>
+<tr>
+<td>1</td>
+<td>为什么「会写代码」不等于「能交付」</td>
+</tr>
+<tr>
+<td>2</td>
+<td>两条轨：结构（图谱）与过程（协作流程）</td>
+</tr>
+<tr>
+<td></td>
+<td>2.1 技术图谱：让 Agent「先看地图再动手」</td>
+</tr>
+<tr>
+<td></td>
+<td>2.2 协作流程：可签收、可合并</td>
+</tr>
+<tr>
+<td></td>
+<td>2.3 叠放：缺一条都会「差点意思」</td>
+</tr>
+<tr>
+<td>3</td>
+<td>一轮交付怎样算「做完」：意图、成果、验收</td>
+</tr>
+<tr>
+<td>4</td>
+<td>与 TDD、Code Review、DevOps 的关系</td>
+</tr>
+<tr>
+<td>5</td>
+<td>适合谁、不适合谁</td>
+</tr>
+<tr>
+<td>6</td>
+<td>最小起步（给想试的读者）</td>
+</tr>
+<tr>
+<td>7</td>
+<td>结语</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
 
 ## 摘要
 
 AI 写代码的**交付质量**，往往不仅取决于模型，更取决于 **上下文是否够用**、**交付是否验得动**。  
 本文介绍一套在真实项目里跑过的做法：**用技术图谱回答「改哪里、会影响谁」**，**用协作流程（Harness 类任务单流程）回答「谁来做、何时能合并」**——二者叠放，才能把一轮需求做成 **可闭环的交付**（有意图、有成果、有验收），而不是聊完即散。
 
----
+<hr />
 
 ## 0. 缘起：个人约束与团队经验
 
@@ -39,8 +112,9 @@ AI 写代码的**交付质量**，往往不仅取决于模型，更取决于 **�
 
 **一条线：当下的个人约束**
 
-> **个人 AI Coding 使用者，预算有限，必须在有限资源里把价值放到最大。**
-
+<blockquote>
+<p><strong>个人 AI Coding 使用者，预算有限，必须在有限资源里把价值放到最大。</strong></p>
+</blockquote>
 日常主力是 **Cursor Pro**，实现阶段多用 **Auto 模式**——往往**不能**随时指定最强、最贵的模型；Auto 还会**在不同模型之间切换**。不能赌「这一次一定是顶配模型」，而要让**不同档位的模型**，在同一套框架里，尽量产出**可预期、可验收**的结果。
 
 **另一条线：之前在团队里形成的习惯**
@@ -49,35 +123,71 @@ AI 写代码的**交付质量**，往往不仅取决于模型，更取决于 **�
 
 两条线合在一起，探索方向变成：
 
-| 痛点（个人 + 延续团队习惯） | 方法上的回应（卷一总览） |
-| --- | --- |
-| 上下文贵、不能整仓灌 Prompt | **技术图谱 + 子图**：先给「地图」，少读无关文件 |
-| Auto 换模型、输出风格飘 | **任务单 + 协作流程**：意图 / 成果 / 验收写死，不完全依赖模型脾气 |
-| 一个人也要能说清「做完了」 | **闭环交付**：签收 + CI，而不是「感觉差不多了」 |
-| 同类坑下次重讲一遍 | **（可选）经验卡片 / Skill**：闭环后蒸馏，不替代图谱与任务单 |
-
+<div class="md-table-wrap">
+<table>
+<thead><tr>
+<th>痛点（个人 + 延续团队习惯）</th>
+<th>方法上的回应（卷一总览）</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>上下文贵、不能整仓灌 Prompt</td>
+<td><strong>技术图谱 + 子图</strong>：先给「地图」，少读无关文件</td>
+</tr>
+<tr>
+<td>Auto 换模型、输出风格飘</td>
+<td><strong>任务单 + 协作流程</strong>：意图 / 成果 / 验收写死，不完全依赖模型脾气</td>
+</tr>
+<tr>
+<td>一个人也要能说清「做完了」</td>
+<td><strong>闭环交付</strong>：签收 + CI，而不是「感觉差不多了」</td>
+</tr>
+<tr>
+<td>同类坑下次重讲一遍</td>
+<td><strong>（可选）经验卡片 / Skill</strong>：闭环后蒸馏，不替代图谱与任务单</td>
+</tr>
+</tbody>
+</table></div>
 后面各卷是在真实仓库里的**落地、对照实验与归纳**；卷一先把「图谱 + 过程」为何叠放讲清。若你是 **Pro + Auto、预算敏感** 的独立开发者，又曾在团队里吃过「没留痕、没验收」的亏，可以把本文当作**个人约束 + 团队经验压缩版**的工程化总结。
 
 日常主力仍是 **Cursor Pro（Auto）**；也曾用过 **Kimi Code**，近期在 **Claude Code** 上用同一套任务单试了几项任务，协作流程可复用。**工具会变，意图 / 成果 / 验收不变**——本文不绑某一品牌。
 
----
+<hr />
 
 ## 1. 为什么「会写代码」不等于「能交付」
 
 很多团队已经习惯：自然语言描述需求 → Agent 改文件 → 人眼看 diff → 合并。  
 问题在于：
 
-| 常见痛点 | 根因（简化） |
-| --- | --- |
-| 改 A 漏 B，联调才发现 | Agent **不知道系统结构** 与依赖 |
-| 同一需求反复解释 | **没有可复用的规格与任务依据**（SPEC、配置、任务单） |
-| PR 能合但心里没底 | **缺少书面签收与自动化验收** |
-| 对话很长、账单很高 | **整仓塞给模型**，无关文件太多 |
-
+<div class="md-table-wrap">
+<table>
+<thead><tr>
+<th>常见痛点</th>
+<th>根因（简化）</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>改 A 漏 B，联调才发现</td>
+<td>Agent <strong>不知道系统结构</strong> 与依赖</td>
+</tr>
+<tr>
+<td>同一需求反复解释</td>
+<td><strong>没有可复用的规格与任务依据</strong>（SPEC、配置、任务单）</td>
+</tr>
+<tr>
+<td>PR 能合但心里没底</td>
+<td><strong>缺少书面签收与自动化验收</strong></td>
+</tr>
+<tr>
+<td>对话很长、账单很高</td>
+<td><strong>整仓塞给模型</strong>，无关文件太多</td>
+</tr>
+</tbody>
+</table></div>
 TDD、Code Review、CI 并没有过时；AI 加入后，缺的是 **面向 Agent 的结构化上下文** 和 **面向人的协作纪律**。  
 这就是 **AI Coding 治理** 要补的块：不是再发明一套敏捷，而是让 **告知 · 约束 · 验证** 在 AI 场景下可执行（业内也常对应 Inform / Constrain / Verify）。
 
----
+<hr />
 
 ## 2. 两条轨：结构（图谱）与过程（协作流程）
 
@@ -108,19 +218,33 @@ flowchart LR
 
 **怎么读这张图**
 
-| 层次 | 是什么 | 本示例里对应什么 |
-| --- | --- | --- |
-| **主图** | 一张「鸟瞰」：模块怎么连、请求从哪进、从哪出 | **就是上图**——方块如 `RAG 召回`、`Text2SQL` 是**入口名**，不是实现细节 |
-| **子图** | 单独一篇 `.md`，只展开主图里**某一个方块**内部的步骤、依赖、测试锚点 | 主图不画满细节；在子图标题或图注里写「详见 `10_flow_rag.md`」即可（文件名按你仓库约定） |
-
+<div class="md-table-wrap">
+<table>
+<thead><tr>
+<th>层次</th>
+<th>是什么</th>
+<th>本示例里对应什么</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>主图</strong></td>
+<td>一张「鸟瞰」：模块怎么连、请求从哪进、从哪出</td>
+<td><strong>就是上图</strong>——方块如 <code>RAG 召回</code>、<code>Text2SQL</code> 是<strong>入口名</strong>，不是实现细节</td>
+</tr>
+<tr>
+<td><strong>子图</strong></td>
+<td>单独一篇 <code>.md</code>，只展开主图里<strong>某一个方块</strong>内部的步骤、依赖、测试锚点</td>
+<td>主图不画满细节；在子图标题或图注里写「详见 <code>10_flow_rag.md</code>」即可（文件名按你仓库约定）</td>
+</tr>
+</tbody>
+</table></div>
 流向：**用户在左** → API 入口 → 意图路由分叉 → 各分支处理 → 右侧 **回答 / 响应** 回传客户端（回包节点不要误标成第二个「对话 API」）。
 
 **Agent 怎么用它（举例）**
 
-> 任务：**改 RAG 召回策略**（例如阈值、融合排序、降级路径）。  
-> 做法：在主图上定位到 **`RAG 召回`** 这一格 → **只打开** 对应的子图（如 `10_flow_rag.md`）→ 在子图里做**关联性分析**：会动哪些函数、是否牵连向量/全文检索、要补哪些单测。  
-> **不必**把主图 + 所有子图 + 整仓目录一次性塞进 Prompt。
-
+<blockquote>
+<p>任务：<strong>改 RAG 召回策略</strong>（例如阈值、融合排序、降级路径）。 做法：在主图上定位到 <strong>@@PH0@@</strong> 这一格 → <strong>只打开</strong> 对应的子图（如 <code>10_flow_rag.md</code>）→ 在子图里做<strong>关联性分析</strong>：会动哪些函数、是否牵连向量/全文检索、要补哪些单测。 <strong>不必</strong>把主图 + 所有子图 + 整仓目录一次性塞进 Prompt。</p>
+</blockquote>
 可概括为：**主图定入口与边界，子图定这次改动的纵深**；从「要改的那一格」钻进去，比从仓库根目录乱翻更快，也更不容易漏关联。卷二会写子图怎么拆、怎么链回主图。
 
 实践要点（与具体工具无关）：
@@ -157,49 +281,109 @@ flowchart LR
 
 与日常研发概念的对应：
 
-| 大家熟悉的事 | 协作流程里强调什么 |
-| --- | --- |
-| 需求 / SPEC | 写清验收与非范围 |
-| Code Review | **书面审查** 落盘，终审 = 可以结束任务 |
-| CI | **合并前必绿**，不是「聊过了就算」 |
-| TDD / 单测 | 关键路径 **先能失败再改实现**（策略写在任务单里） |
-
+<div class="md-table-wrap">
+<table>
+<thead><tr>
+<th>大家熟悉的事</th>
+<th>协作流程里强调什么</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>需求 / SPEC</td>
+<td>写清验收与非范围</td>
+</tr>
+<tr>
+<td>Code Review</td>
+<td><strong>书面审查</strong> 落盘，终审 = 可以结束任务</td>
+</tr>
+<tr>
+<td>CI</td>
+<td><strong>合并前必绿</strong>，不是「聊过了就算」</td>
+</tr>
+<tr>
+<td>TDD / 单测</td>
+<td>关键路径 <strong>先能失败再改实现</strong>（策略写在任务单里）</td>
+</tr>
+</tbody>
+</table></div>
 协作流程解决的是 **「别乱合并」**——过程可追溯，不替代技术图谱。
 
 ### 2.3 叠放：缺一条都会「差点意思」
 
-| 只有过程 | 只有图谱 |
-| --- | --- |
-| 知道怎么审、怎么测 | 知道改哪里、影响谁 |
-| 仍可能改错范围、漏依赖 | 仍可能没签收、没 CI 就合并 |
-
+<div class="md-table-wrap">
+<table>
+<thead><tr>
+<th>只有过程</th>
+<th>只有图谱</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>知道怎么审、怎么测</td>
+<td>知道改哪里、影响谁</td>
+</tr>
+<tr>
+<td>仍可能改错范围、漏依赖</td>
+<td>仍可能没签收、没 CI 就合并</td>
+</tr>
+</tbody>
+</table></div>
 **推荐叠放**：同一轮需求里，任务单同时引用 **规格 / 图谱入口 / 测试策略**；审查签收前对照 **审查记录 + CI +（如有）实验结论**。
 
----
+<hr />
 
 ## 3. 一轮交付怎样算「做完」：意图、成果、验收
 
 对大众读者，一轮 **可闭环的交付**（也可称 **专题 / 一轮交付**）至少包含：
 
-| 要素 | 一句话 |
-| --- | --- |
-| **意图** | 要达成什么、不做什么（需求或 SPEC + 边界） |
-| **成果** | 可合并的代码、配置、文档、规则变更 |
-| **验收** | 测试 / CI 通过 + 审查签收 + 关键结论可追溯 |
-
+<div class="md-table-wrap">
+<table>
+<thead><tr>
+<th>要素</th>
+<th>一句话</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>意图</strong></td>
+<td>要达成什么、不做什么（需求或 SPEC + 边界）</td>
+</tr>
+<tr>
+<td><strong>成果</strong></td>
+<td>可合并的代码、配置、文档、规则变更</td>
+</tr>
+<tr>
+<td><strong>验收</strong></td>
+<td>测试 / CI 通过 + 审查签收 + 关键结论可追溯</td>
+</tr>
+</tbody>
+</table></div>
 **示例：小需求如何填三要素（给登录加图片验证码）**
 
-| 要素 | 示例内容 |
-| --- | --- |
-| **意图** | 支持图片验证码防暴力破解；不影响已有短信登录 |
-| **成果** | `login` 增加校验；新增 `captcha`；配置 `captcha_ttl=300`；`api.yaml` 更新 |
-| **验收** | 单测 `TestLoginWithCaptcha` 通过；错误验证码 curl 返回 401；CI 全绿；审查签收 |
-
+<div class="md-table-wrap">
+<table>
+<thead><tr>
+<th>要素</th>
+<th>示例内容</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>意图</strong></td>
+<td>支持图片验证码防暴力破解；不影响已有短信登录</td>
+</tr>
+<tr>
+<td><strong>成果</strong></td>
+<td><code>login</code> 增加校验；新增 <code>captcha</code>；配置 <code>captcha_ttl=300</code>；<code>api.yaml</code> 更新</td>
+</tr>
+<tr>
+<td><strong>验收</strong></td>
+<td>单测 <code>TestLoginWithCaptcha</code> 通过；错误验证码 curl 返回 401；CI 全绿；审查签收</td>
+</tr>
+</tbody>
+</table></div>
 研发功能与基础设施改造 **同一套骨架**：差别只在「意图」来自产品需求还是技术专题，验收证据里有没有额外的对照实验报告。
 
 **可选第四步**：闭环后把教训蒸馏成 **半页以内的经验卡片** 或团队 Skill，服务下一同类任务——不替代图谱，也不替代任务单。例如：「缓存失效坑：改 A 必须清 B 缓存」——**一句话教训即可**。
 
----
+<hr />
 
 ## 4. 与 TDD、Code Review、DevOps 的关系
 
@@ -208,7 +392,7 @@ flowchart LR
 - **CI/CD**：自动化验收的硬背压；Agent 自检不能代替流水线。  
 - **Prompt / Rules / Skills**：偏 **个人与项目习惯**；协作流程 + 图谱偏 **团队可审计的交付**。可叠加，避免两套冲突流程。
 
----
+<hr />
 
 ## 5. 适合谁、不适合谁
 
@@ -233,7 +417,7 @@ flowchart LR
 
 若你**尚无 CI**，可先定合并前必须手动跑的命令（如 `npm test && npm run build`）作为**手动门禁**，写在任务单里，再逐步补流水线。
 
----
+<hr />
 
 ## 6. 最小起步（给想试的读者）
 
@@ -243,8 +427,9 @@ flowchart LR
 4. **跑通一轮**：需求 → 审核 → 实现 → 自检 → **CI 全绿** → 审查签收 → 合并。  
 5. **（可选）** 闭环后写一张经验卡片：同类需求下次少踩坑；可放在仓库 `docs/experience/` 下，或你的个人笔记里。
 
-> **提示**：实际执行中，你可能遇到 **图谱/契约检查 CI 变红**、**任务单被拒开工**、**独立复检打回** 等分支。本文先讲 **理想路径**；恢复策略与真实案例见 **卷三**（签收纪律）与 **卷四**（专题收尾 · 含契约/锚点 CI 主失败分支）。
-
+<blockquote>
+<p><strong>提示</strong>：实际执行中，你可能遇到 <strong>图谱/契约检查 CI 变红</strong>、<strong>任务单被拒开工</strong>、<strong>独立复检打回</strong> 等分支。本文先讲 <strong>理想路径</strong>；恢复策略与真实案例见 <strong>卷三</strong>（签收纪律）与 <strong>卷四</strong>（专题收尾 · 含契约/锚点 CI 主失败分支）。</p>
+</blockquote>
 **任务单模板示例（可复制）**
 
 ```markdown
@@ -275,7 +460,7 @@ flowchart LR
 - `npm run lint && npm test && npm run build`
 ```
 
----
+<hr />
 
 ## 7. 结语
 
@@ -311,4 +496,4 @@ AI Coding 的竞争力，越来越多来自 **「上下文工程 + 工程纪律�
 **图谱** 让 Agent 像熟路司机一样看导航；**协作流程** 让团队像有交接单的工班一样交棒。  
 两者叠好，一轮需求才能从「聊完了」变成 **「做完了，且说得清依据」**——这才是 AI 时代研发治理该瞄准的状态。
 
----
+<hr />

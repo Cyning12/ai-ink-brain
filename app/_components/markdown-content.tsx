@@ -1,14 +1,13 @@
 import { MDXRemote } from "next-mdx-remote/rsc";
-import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 
 import { markdownComponents } from "@/components/markdown/markdown-code";
 import { MARKDOWN_PROSE_CLASS } from "@/components/markdown/markdown-prose";
+import { CONTENT_REHYPE_PLUGINS } from "@/components/markdown/rehype-plugins";
 import { RichMarkdown } from "@/components/markdown/rich-markdown";
 
 const REMARK_PLUGINS = [remarkGfm, remarkMath];
-const REHYPE_PLUGINS = [rehypeKatex];
 
 type MarkdownContentProps = {
   content: string;
@@ -29,7 +28,7 @@ export function MarkdownContent({ content, ext, className = "" }: MarkdownConten
           options={{
             mdxOptions: {
               remarkPlugins: REMARK_PLUGINS,
-              rehypePlugins: REHYPE_PLUGINS,
+              rehypePlugins: CONTENT_REHYPE_PLUGINS,
             },
           }}
         />
