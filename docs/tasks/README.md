@@ -24,6 +24,7 @@
 | KPI 细则 | 工作区 [`docs/harness/guides/KPI_RUBRIC_v1_2.md`](../../../docs/harness/guides/KPI_RUBRIC_v1_2.md) |
 | 字段政策 | 工作区 [`docs/harness/HARNESS_V2_PLAN.md`](../../../docs/harness/HARNESS_V2_PLAN.md) §5.8 |
 | 迁移方案 | 工作区 [`docs/harness/guides/PLAN_frontend_harness_kpi_migration_v1_zh.md`](../../../docs/harness/guides/PLAN_frontend_harness_kpi_migration_v1_zh.md) |
+| 链式常模 | 工作区 [`GUIDANCE_epic_orchestration_task_chain_v1_zh.md`](../../../docs/harness/guides/GUIDANCE_epic_orchestration_task_chain_v1_zh.md) · [`PROMPT_cursor_task_chain_serial_v1.md`](../../../docs/harness/prompts/PROMPT_cursor_task_chain_serial_v1.md)（`semi_auto` deprecated） |
 
 - **新建** `task_*.md`：文首 **Harness 元信息** + 关账前 **`### KPI（00）`**；默认 **`kpi_aggregator: CLOSE`**。  
 - **前端交互验收**（Preview/浏览器/录屏/五问等）：`acceptance_interaction: required` → 关账前 **必有** [`CHECKLIST_*_acceptance_zh.md`](reinspect_results/)（规约 [`specs/SPEC-harness_acceptance_checklist_v1_zh.md`](specs/SPEC-harness_acceptance_checklist_v1_zh.md)）。  

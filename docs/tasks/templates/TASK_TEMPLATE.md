@@ -15,7 +15,9 @@
 | **task_slug** | `<kebab-case>` |
 | **test_strategy** | `required` \| `recommended` \| `not_applicable`（`not_applicable` 须一行理由） |
 | **freeze_id** | `<SCOPE>@YYYY-MM-DD` 或 commit |
-| **semi_auto** | `true` \| `false` |
+| **orchestration** | `Cursor Task 链`（前端默认）/ `MANIFEST 仅` |
+| **chain_prompt** | 工作区 `docs/harness/prompts/PROMPT_cursor_task_chain_serial_v1.md`（或已填占位符实例） |
+| **semi_auto** | **`deprecated`** — 新 task 填 `false`；禁止 `true` 作总闸 |
 | **audit_profile** | `full` \| `light` \| `post_close` |
 | **experience_capture** | `required` \| `recommended` \| `not_applicable` |
 | **kpi_rubric** | `KPI_RUBRIC_v1_2` |

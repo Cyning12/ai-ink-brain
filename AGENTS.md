@@ -139,20 +139,20 @@
 
 ---
 
-## Harness Semi Auto
+## Harness Chain Orchestration
 
-> Harness 半自动 — 无人工闸阻塞时链式续跑 task，invoke 落盘优先
+> Harness 链式常模 — `00` / Task 链 + invoke 落盘；`semi_auto` 已 deprecated（对齐后端 2026-06-08）
 
-# Harness 半自动续跑（本仓）
+# Harness 链式执行（本仓）
 
 执行 `docs/tasks/active/*.md` 或用户 `@task` 时：
 
-1. **先读** task 文首 `semi_auto`、`human_gate`、`audit_profile`；通则见工作区 `Projects/docs/harness/prompts/HANDOFF_SEMI_AUTO.md`（及 `HANDOFF_AUTO_COMMIT`、`HANDOFF_CLOSE_TRACE`）。
-2. **无阻塞则连续跑**：凡 `human_gate` 对下一棒 **非** `pending`（或 `blocks_hats` 不含该帽），**同会话**自动戴下一帽；**禁止**每棒要求用户重贴 `TEMPLATE-*` §3。
-3. **下一棒前必落盘**：将下一棒 §3 全文写入 `docs/harness/invokes/by-task/<task_slug>/invoke_*.md`（历史根目录扁平 `invoke_*.md` 只读）；跨子仓 task 落工作区 `docs/harness/invokes/by-task/<slug>/`。再 **commit** 本轮路径，然后执行。
-4. **人工闸**：仅 **人** 可将 `pending`→`approved`；遇 `pending` **停**，只输出须改的 `gate_id` 与文件路径，**不得**代填、不得标 `done`。
-5. **新会话续跑**：读 task + **最新** `docs/harness/invokes/by-task/<task_slug>/`（或历史扁平 invokes）下与本 task 相关的 invoke，按其中 §3 继续；用户可说「按 semi_auto 继续」。
-6. **关账**：无下一棒时输出 **执行路线与 Commit 回溯**（`HANDOFF_CLOSE_TRACE`），非空 Prompt。
+1. **先读** task 文首 `orchestration`、`chain_prompt`（若有）、`human_gate`、`audit_profile`；常模见工作区 [`docs/harness/guides/GUIDANCE_epic_orchestration_task_chain_v1_zh.md`](../docs/harness/guides/GUIDANCE_epic_orchestration_task_chain_v1_zh.md) + [`PROMPT_cursor_task_chain_serial_v1.md`](../docs/harness/prompts/PROMPT_cursor_task_chain_serial_v1.md)。
+2. **换帽**：父 Agent 按链式 PROMPT 串行 `Task`；**禁止**以 `semi_auto: true` 作总闸（历史见 `handoff/HANDOFF_SEMI_AUTO.md` **deprecated**）。
+3. **下一棒前必落盘**：下一棒 §3 写入 `docs/harness/invokes/by-task/<task_slug>/`（跨子仓 task 落工作区 `docs/harness/invokes/by-task/<slug>/`）→ **commit** → 再执行。
+4. **人工闸**：仅 **人** 可将 `pending`→`approved`；遇 `pending` **停**，只输出 `gate_id` 与路径。
+5. **续跑**：读 task + 最新 invoke §3；用户可说「按 Task 链继续」。
+6. **关账**：`HANDOFF_CLOSE_TRACE`（工作区 `docs/harness/prompts/handoff/`）。
 
 ---
 
@@ -171,7 +171,7 @@
 5. **VERIFY（D5）**：`pnpm lint` → `pnpm test` → `pnpm build`（与根 `AGENTS.md` §8 一致）
 6. **跨子仓 Harness task**：Open **`Projects/`**，读 `docs/harness/tasks/`；遵守工作区 `05-harness-workspace.mdc`
 
-半自动续跑见 [`05-harness-semi-auto.mdc`](05-harness-semi-auto.mdc)。
+链式常模见工作区 [`GUIDANCE_epic_orchestration_task_chain_v1_zh.md`](../docs/harness/guides/GUIDANCE_epic_orchestration_task_chain_v1_zh.md)；后端 SPEC [`SPEC-Governance-Harness-Chain-Orchestration-v1.md`](../ai-ink-brain-api-python/docs/spec/governance/SPEC-Governance-Harness-Chain-Orchestration-v1.md)。
 
 ---
 
