@@ -164,7 +164,7 @@
 
 执行 Harness、`docs/tasks/active/*.md` 或用户 `@task` 时：
 
-1. **入口**：[`docs/harness/README.md`](docs/harness/README.md) · [`docs/tasks/README.md`](docs/tasks/README.md)
+1. **入口**：[`docs/harness/README.md`](docs/harness/README.md) · [`docs/tasks/README.md`](docs/tasks/README.md) · [`docs/standards/README.md`](docs/standards/README.md)（L2 编码规范）
 2. **prompts**：工作区 `Projects/docs/harness/prompts/`（`templates/` · `hats/` · `handoff/`）— **禁止**复制到本仓
 3. **落盘**：invoke → `docs/harness/invokes/by-task/<task_slug>/`；22 → `docs/harness/reviews/`；50 → `docs/tasks/reinspect_results/`
 4. **新建 task**：必填 `test_strategy`、`kpi_rubric: KPI_RUBRIC_v1_2`、`kpi_aggregator`（默认 **CLOSE**）、关账前 **`### KPI（00）`** — 见 [`docs/tasks/templates/TASK_TEMPLATE.md`](docs/tasks/templates/TASK_TEMPLATE.md)

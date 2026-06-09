@@ -115,6 +115,7 @@ docs/*
 !docs/meta/
 !docs/tasks/
 !docs/harness/
+!docs/standards/
 # 联调烟测标准样本（§5-2/5-3 等 · 与后端 docs/diary/samples 对称）
 !docs/diary/
 docs/diary/*
