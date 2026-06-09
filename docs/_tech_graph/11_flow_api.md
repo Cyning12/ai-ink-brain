@@ -74,11 +74,21 @@ flowchart LR
 - **浏览器 → Next（Unified / verify / RAG history BFF）**：**不**再强制 `NEXT_PUBLIC_ADMIN_SECRET`；仅 **`X-ChatBI-Access-Token: <明文>`**（`localStorage`：`chatbi_access_token_plain`）即可由 Python 鉴权；假登录触发点为 **Unified 页「解锁」**（`GET /api/py/chatbi/access/verify`）。
 - **兼容**：无 `X-ChatBI-Access-Token` 时 BFF 仍透传客户端 **`Authorization`**（旧 Ink admin 客户端）。
 
+## admin/sync · admin/ingest（维护者 · 服务端密钥）
+
+- **维护者 → Python（推荐）**：`Authorization: Bearer <ADMIN_TOKEN>` → `POST /api/py/admin/sync`（投递计划 §3.3；`ADMIN_TOKEN` 为 shell 别名，值 = `SYNC_ADMIN_SECRET`）。
+- **维护者 → BFF（curl）**：`Authorization: Bearer <SYNC_ADMIN_SECRET>` → `POST /api/admin/sync`。
+- **页面 → BFF（SystemStatus）**：`chatbi_site_bearer` HttpOnly Cookie + 上游 verify 有效（与 `session.admin`）→ `POST /api/admin/sync`；`credentials: include`。
+- **入站还可**：Ink admin session Cookie（`validateAdmin` · Legacy）。
+- **出站 BFF → Python**：`forwardToPyAdmin` 注入 `SYNC_ADMIN_SECRET` Bearer（与 curl 路径分离）。
+- **已废弃**：`x-admin-token` + 文档示例 `NEXT_PUBLIC_ADMIN_SECRET`（admin/sync 链 · 2026-06-30 移除 `x-admin-token` 兼容）。
+- **真值**：`lib/auth/sync-admin-env.ts` · `require-sync-admin-access.ts` · [`SPEC-portfolio_admin_sync_auth_v1_zh.md`](../../docs/tasks/specs/SPEC-portfolio_admin_sync_auth_v1_zh.md)
+
 ## ChatBI V3 · Text2SQL 子阶段 SSE（Unified 增量路径）
 
 - **消费入口**：`UnifiedChatPageClient` → `POST /api/py/unified/chat/stream`（`X-ChatBI-Sse-Contract: 2`）。  
 - **契约帧**：`text2sql.phase.start` / `text2sql.phase.end`；终态汇总 **`tool.call.end` → `output.text2sql_phases_ms`**。  
-- **任务与真值**：`content/tasks/active/task_chatbi_v3_text2sql_phase_sse_timeline_frontend_v1.md`（§V1 交付、§数据源与 UI 策略）；后端 L1 摘要见配对仓 `SPEC-ChatBI-V3-Observability-Text2SQL.md` §5.1。
+- **任务与真值**：`docs/tasks/active/task_chatbi_v3_text2sql_phase_sse_timeline_frontend_v1.md`（§V1 交付、§数据源与 UI 策略）；后端 L1 摘要见配对仓 `SPEC-ChatBI-V3-Observability-Text2SQL.md` §5.1。
 
 ## ChatBI V3 · 多轮澄清 SSE（`agent.clarify`）
 

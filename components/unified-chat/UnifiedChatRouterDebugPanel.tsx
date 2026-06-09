@@ -2,6 +2,7 @@
 
 import {
   extractAgentIntentObs,
+  extractIntentPathObs,
   extractRouterDecision,
   extractRouterEvidence,
   modeTone,
@@ -9,6 +10,11 @@ import {
   type RouterDecision,
   type RouterEvidence,
 } from "@/lib/unified-chat/chainEventSelectors";
+import {
+  buildIntentPathSummaryLine,
+  formatIntentAttempt,
+  formatIntentPathLabel,
+} from "@/lib/unified-chat/intentPathLabels";
 import { safeStringify } from "@/lib/unified-chat/stringify";
 import type { ChainEvent } from "@/components/chain-chat/types";
 
@@ -89,12 +95,7 @@ function RouterDecisionBlock({ routerDecision }: { routerDecision: RouterDecisio
         </div>
       ) : null}
       {routerDecision.evidence ? (
-        <div className="space-y-1">
-          <div className="text-[11px] text-slate-500">evidence</div>
-          <pre className="max-h-[22vh] overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2 font-mono text-[10px] text-slate-700">
-            {safeStringify(routerDecision.evidence)}
-          </pre>
-        </div>
+        <IntentEvidenceSummaryBlock evidence={routerDecision.evidence} />
       ) : null}
       {typeof routerDecision.fallback === "string" && routerDecision.fallback.trim() ? (
         <div className="space-y-1">
@@ -103,6 +104,41 @@ function RouterDecisionBlock({ routerDecision }: { routerDecision: RouterDecisio
         </div>
       ) : null}
     </>
+  );
+}
+
+function IntentEvidenceSummaryBlock({ evidence }: { evidence: Record<string, unknown> }) {
+  const pathObs = extractIntentPathObs(evidence);
+  const summary = buildIntentPathSummaryLine(pathObs);
+  return (
+    <div className="space-y-2">
+      <div className="text-[11px] text-slate-500">evidence · Intent 路径</div>
+      {summary ? (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-violet-500/25 bg-violet-500/5 px-2 py-1.5 text-[11px] text-slate-800">
+          {pathObs.intent_path ? (
+            <span className="rounded-full border border-violet-500/30 bg-white/70 px-2 py-0.5 font-mono">
+              {formatIntentPathLabel(pathObs.intent_path)}
+            </span>
+          ) : null}
+          {pathObs.intent_attempt != null ? (
+            <span className="font-mono text-slate-700">{formatIntentAttempt(pathObs.intent_attempt)}</span>
+          ) : null}
+          {pathObs.hints_arbitration?.applied ? (
+            <span className="rounded-full border border-amber-500/50 bg-amber-50 px-2 py-0.5 text-amber-950">
+              配置仲裁 → rag
+            </span>
+          ) : null}
+        </div>
+      ) : (
+        <div className="text-[11px] text-slate-500">（evidence 无 intent_path 等 optional 字段）</div>
+      )}
+      <details className="rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2">
+        <summary className="cursor-pointer select-none text-[11px] text-slate-700">evidence JSON</summary>
+        <pre className="mt-2 max-h-[22vh] overflow-auto whitespace-pre-wrap break-words font-mono text-[10px] text-slate-700">
+          {safeStringify(evidence)}
+        </pre>
+      </details>
+    </div>
   );
 }
 
@@ -142,6 +178,14 @@ function AgentIntentBlock({ agentIntentObs }: { agentIntentObs: AgentIntentObsRo
               ["cache", agentIntentObs.cache],
               ["cache_key_hash", agentIntentObs.cache_key_hash],
               ["latency_ms", agentIntentObs.latency_ms],
+              ["intent_path", formatIntentPathLabel(agentIntentObs.path.intent_path)],
+              ["intent_attempt", formatIntentAttempt(agentIntentObs.path.intent_attempt)],
+              [
+                "hints_arbitration",
+                agentIntentObs.path.hints_arbitration?.applied
+                  ? agentIntentObs.path.hints_arbitration.reason.trim() || "—"
+                  : "—",
+              ],
             ] as const
           ).map(([label, value]) => (
             <div key={label} className="flex flex-wrap items-baseline justify-between gap-2">

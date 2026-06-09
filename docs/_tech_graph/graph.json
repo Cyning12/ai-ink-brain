@@ -602,13 +602,163 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "lib/site-mode.ts",
+          "symbol": ""
+        }
+      ],
       "from": "HM",
       "graph_id": "10_flow_route",
       "label": "",
       "mark": "->",
       "sync": true,
-      "to": "HOME_LINKS",
+      "to": "SM",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "app/about/page.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "HM_DEV",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "L_ABOUT",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "HM_DEV",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "L_ADMIN",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "app/blog/page.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "HM_DEV",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "L_BLOG",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "app/diary/page.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "HM_DEV",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "L_DIARY",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "app/learning/page.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "HM_DEV",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "L_LEARNING",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "app/projects/page.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "HM_DEV",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "L_TASKS",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "app/page.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "HM_PF",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "P_HOME",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "app/methodology/page.tsx（W2）",
+          "symbol": ""
+        }
+      ],
+      "from": "HM_PF",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "P_METH",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "app/resume/page.tsx（W2）",
+          "symbol": ""
+        }
+      ],
+      "from": "HM_PF",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "P_RESUME",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "app/unified-chat/page.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "HM_PF",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "P_UNI",
       "type": "depends_on"
     },
     {
@@ -629,86 +779,71 @@
     {
       "anchors": [
         {
-          "path": "app/about/page.tsx",
+          "path": "app/layout.tsx",
           "symbol": ""
         }
       ],
-      "from": "HOME_LINKS",
+      "from": "META",
       "graph_id": "10_flow_route",
       "label": "",
       "mark": "->",
       "sync": true,
-      "to": "L_ABOUT",
+      "to": "SM",
       "type": "depends_on"
     },
     {
       "anchors": [],
-      "from": "HOME_LINKS",
+      "from": "MODE",
       "graph_id": "10_flow_route",
       "label": "",
-      "mark": "->",
+      "mark": "[development]",
       "sync": true,
-      "to": "L_ADMIN",
+      "to": "HM_DEV",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "MODE",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "[portfolio]",
+      "sync": true,
+      "to": "HM_PF",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "MODE",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "[development]",
+      "sync": true,
+      "to": "NAV_DEV",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "MODE",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "[portfolio]",
+      "sync": true,
+      "to": "NAV_PF",
       "type": "depends_on"
     },
     {
       "anchors": [
         {
-          "path": "app/blog/page.tsx",
+          "path": "lib/site-mode.ts",
           "symbol": ""
         }
       ],
-      "from": "HOME_LINKS",
+      "from": "NAV",
       "graph_id": "10_flow_route",
       "label": "",
       "mark": "->",
       "sync": true,
-      "to": "L_BLOG",
-      "type": "depends_on"
-    },
-    {
-      "anchors": [
-        {
-          "path": "app/diary/page.tsx",
-          "symbol": ""
-        }
-      ],
-      "from": "HOME_LINKS",
-      "graph_id": "10_flow_route",
-      "label": "",
-      "mark": "->",
-      "sync": true,
-      "to": "L_DIARY",
-      "type": "depends_on"
-    },
-    {
-      "anchors": [
-        {
-          "path": "app/learning/page.tsx",
-          "symbol": ""
-        }
-      ],
-      "from": "HOME_LINKS",
-      "graph_id": "10_flow_route",
-      "label": "",
-      "mark": "->",
-      "sync": true,
-      "to": "L_LEARNING",
-      "type": "depends_on"
-    },
-    {
-      "anchors": [
-        {
-          "path": "app/projects/page.tsx",
-          "symbol": ""
-        }
-      ],
-      "from": "HOME_LINKS",
-      "graph_id": "10_flow_route",
-      "label": "",
-      "mark": "->",
-      "sync": true,
-      "to": "L_TASKS",
+      "to": "SM",
       "type": "depends_on"
     },
     {
@@ -718,22 +853,12 @@
           "symbol": ""
         }
       ],
-      "from": "NAV",
+      "from": "NAV_DEV",
       "graph_id": "10_flow_route",
       "label": "",
       "mark": "->",
       "sync": true,
       "to": "ADMINS",
-      "type": "depends_on"
-    },
-    {
-      "anchors": [],
-      "from": "NAV",
-      "graph_id": "10_flow_route",
-      "label": "",
-      "mark": "->",
-      "sync": true,
-      "to": "NAV_ITEMS",
       "type": "depends_on"
     },
     {
@@ -743,7 +868,7 @@
           "symbol": ""
         }
       ],
-      "from": "NAV_ITEMS",
+      "from": "NAV_DEV",
       "graph_id": "10_flow_route",
       "label": "",
       "mark": "->",
@@ -758,7 +883,7 @@
           "symbol": ""
         }
       ],
-      "from": "NAV_ITEMS",
+      "from": "NAV_DEV",
       "graph_id": "10_flow_route",
       "label": "",
       "mark": "->",
@@ -773,7 +898,7 @@
           "symbol": ""
         }
       ],
-      "from": "NAV_ITEMS",
+      "from": "NAV_DEV",
       "graph_id": "10_flow_route",
       "label": "",
       "mark": "->",
@@ -788,7 +913,7 @@
           "symbol": ""
         }
       ],
-      "from": "NAV_ITEMS",
+      "from": "NAV_DEV",
       "graph_id": "10_flow_route",
       "label": "",
       "mark": "->",
@@ -803,7 +928,7 @@
           "symbol": ""
         }
       ],
-      "from": "NAV_ITEMS",
+      "from": "NAV_DEV",
       "graph_id": "10_flow_route",
       "label": "",
       "mark": "->",
@@ -818,7 +943,7 @@
           "symbol": ""
         }
       ],
-      "from": "NAV_ITEMS",
+      "from": "NAV_DEV",
       "graph_id": "10_flow_route",
       "label": "",
       "mark": "->",
@@ -833,7 +958,7 @@
           "symbol": ""
         }
       ],
-      "from": "NAV_ITEMS",
+      "from": "NAV_DEV",
       "graph_id": "10_flow_route",
       "label": "",
       "mark": "->",
@@ -848,12 +973,67 @@
           "symbol": ""
         }
       ],
-      "from": "NAV_ITEMS",
+      "from": "NAV_DEV",
       "graph_id": "10_flow_route",
       "label": "",
       "mark": "->",
       "sync": true,
       "to": "N_UNIFIED",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "app/page.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "NAV_PF",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "N_HOME",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "app/methodology/page.tsx（W2）",
+          "symbol": ""
+        }
+      ],
+      "from": "NAV_PF",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "N_METH",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "app/resume/page.tsx（W2）",
+          "symbol": ""
+        }
+      ],
+      "from": "NAV_PF",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "N_RESUME",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "NAV_PF",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "N_UNI_PF",
       "type": "depends_on"
     },
     {
@@ -874,6 +1054,21 @@
     {
       "anchors": [
         {
+          "path": "app/layout.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "ROOT",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "META",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
           "path": "app/_components/site-nav.tsx",
           "symbol": ""
         }
@@ -884,6 +1079,16 @@
       "mark": "->",
       "sync": true,
       "to": "NAV",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "SM",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "MODE",
       "type": "depends_on"
     },
     {
@@ -1268,6 +1473,21 @@
       "type": "depends_on"
     },
     {
+      "anchors": [
+        {
+          "path": "lib/auth/portfolio-session.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "API_SESSION",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "PFSESS",
+      "type": "depends_on"
+    },
+    {
       "anchors": [],
       "from": "API_UNLOCK",
       "graph_id": "12_flow_auth",
@@ -1280,10 +1500,20 @@
     {
       "anchors": [
         {
-          "path": "lib/hooks/useAdminSession.ts",
+          "path": "lib/auth/portfolio-env.ts",
           "symbol": ""
         }
       ],
+      "from": "API_UNLOCK",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "[secret]",
+      "sync": true,
+      "to": "PFENV",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
       "from": "COOKIE",
       "graph_id": "12_flow_auth",
       "label": "Set-Cookie HttpOnly",
@@ -1293,16 +1523,11 @@
       "type": "depends_on"
     },
     {
-      "anchors": [
-        {
-          "path": "lib/auth/admin-env.ts",
-          "symbol": ""
-        }
-      ],
+      "anchors": [],
       "from": "ENV",
       "graph_id": "12_flow_auth",
       "label": "",
-      "mark": "[secret configured]",
+      "mark": "[Ink secret configured]",
       "sync": true,
       "to": "TSE",
       "type": "depends_on"
@@ -1325,6 +1550,36 @@
       "mark": "->",
       "sync": true,
       "to": "TSE",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "lib/auth/portfolio-session.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "PFENV",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "[visitor|visitor-admin]",
+      "sync": true,
+      "to": "PFSESS",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "lib/hooks/useAdminSession.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "PFSESS",
+      "graph_id": "12_flow_auth",
+      "label": "Set-Cookie HttpOnly",
+      "mark": "->",
+      "sync": true,
+      "to": "SESSION_UI",
       "type": "depends_on"
     },
     {
@@ -1393,12 +1648,7 @@
       "type": "depends_on"
     },
     {
-      "anchors": [
-        {
-          "path": "lib/auth/admin-cookie.ts",
-          "symbol": ""
-        }
-      ],
+      "anchors": [],
       "from": "TSE",
       "graph_id": "12_flow_auth",
       "label": "",
@@ -1442,6 +1692,14 @@
         },
         {
           "path": "lib/auth/admin-env.ts",
+          "symbol": ""
+        },
+        {
+          "path": "lib/auth/portfolio-env.ts",
+          "symbol": ""
+        },
+        {
+          "path": "lib/auth/portfolio-session.ts",
           "symbol": ""
         },
         {
@@ -1749,6 +2007,21 @@
       "type": "depends_on"
     },
     {
+      "anchors": [
+        {
+          "path": "lib/unified-chat/portfolio-chat-tier.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "UCP",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "?>",
+      "sync": true,
+      "to": "UC_PORT",
+      "type": "condition"
+    },
+    {
       "anchors": [],
       "from": "UCP",
       "graph_id": "13_flow_components",
@@ -1784,6 +2057,26 @@
       "type": "depends_on"
     },
     {
+      "anchors": [],
+      "from": "UC_PORT",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "[visitor]",
+      "sync": true,
+      "to": "UC_HIDE",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "UC_PORT",
+      "graph_id": "13_flow_components",
+      "label": "",
+      "mark": "[visitor-admin]",
+      "sync": true,
+      "to": "UC_PART",
+      "type": "depends_on"
+    },
+    {
       "anchors": [
         {
           "path": "components/unified-chat/UnifiedChatPageClient.tsx",
@@ -1800,7 +2093,7 @@
     }
   ],
   "freeze_id": "TECH_GRAPH_S2_FREEZE_20260519_V2_3",
-  "generated_at": "2026-05-20T10:08:16Z",
+  "generated_at": "2026-06-02T13:38:04Z",
   "graphs": [
     {
       "id": "00_main",
@@ -2010,14 +2303,19 @@
       "label": "HomeModules"
     },
     {
-      "graph_id": "00_main",
-      "id": "HOME",
-      "label": "/ Home"
+      "graph_id": "10_flow_route",
+      "id": "HM_DEV",
+      "label": "modules[] development"
     },
     {
       "graph_id": "10_flow_route",
-      "id": "HOME_LINKS",
-      "label": "modules[]"
+      "id": "HM_PF",
+      "label": "modules[] portfolio"
+    },
+    {
+      "graph_id": "00_main",
+      "id": "HOME",
+      "label": "/ Home"
     },
     {
       "graph_id": "00_main",
@@ -2070,6 +2368,16 @@
       "label": "ReactMarkdown + remark/rehype"
     },
     {
+      "graph_id": "10_flow_route",
+      "id": "META",
+      "label": "generateMetadata"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "MODE",
+      "label": "portfolio?"
+    },
+    {
       "graph_id": "00_main",
       "id": "NAV",
       "label": "SiteNav"
@@ -2081,8 +2389,13 @@
     },
     {
       "graph_id": "10_flow_route",
-      "id": "NAV_ITEMS",
-      "label": "NAV[]"
+      "id": "NAV_DEV",
+      "label": "NAV[] development"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "NAV_PF",
+      "label": "NAV[] portfolio"
     },
     {
       "graph_id": "10_flow_route",
@@ -2106,8 +2419,23 @@
     },
     {
       "graph_id": "10_flow_route",
+      "id": "N_HOME",
+      "label": "/"
+    },
+    {
+      "graph_id": "10_flow_route",
       "id": "N_LEARNING",
       "label": "/learning"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "N_METH",
+      "label": "/methodology"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "N_RESUME",
+      "label": "/resume"
     },
     {
       "graph_id": "10_flow_route",
@@ -2125,9 +2453,24 @@
       "label": "/unified-chat"
     },
     {
+      "graph_id": "10_flow_route",
+      "id": "N_UNI_PF",
+      "label": "/unified-chat"
+    },
+    {
       "graph_id": "12_flow_auth",
       "id": "PARSE",
       "label": "PARSE"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "PFENV",
+      "label": "PFENV"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "PFSESS",
+      "label": "PFSESS"
     },
     {
       "graph_id": "00_main",
@@ -2185,14 +2528,29 @@
       "label": "P_HIS"
     },
     {
+      "graph_id": "10_flow_route",
+      "id": "P_HOME",
+      "label": "/"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "P_METH",
+      "label": "/methodology"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "P_RESUME",
+      "label": "/resume"
+    },
+    {
       "graph_id": "11_flow_api",
       "id": "P_T2S",
       "label": "P_T2S"
     },
     {
-      "graph_id": "11_flow_api",
+      "graph_id": "10_flow_route",
       "id": "P_UNI",
-      "label": "P_UNI"
+      "label": "/unified-chat"
     },
     {
       "graph_id": "11_flow_api",
@@ -2228,6 +2586,11 @@
       "graph_id": "13_flow_components",
       "id": "SID",
       "label": "useSessionId()"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "SM",
+      "label": "getSiteMode()"
     },
     {
       "graph_id": "13_flow_components",
@@ -2286,6 +2649,11 @@
     },
     {
       "graph_id": "13_flow_components",
+      "id": "UC_HIDE",
+      "label": "隐藏 Router Debug Timeline debug URL"
+    },
+    {
+      "graph_id": "13_flow_components",
       "id": "UC_HIST",
       "label": "历史 transcript 跨轮"
     },
@@ -2298,6 +2666,16 @@
       "graph_id": "13_flow_components",
       "id": "UC_MSG",
       "label": "底 消息区 当前轮"
+    },
+    {
+      "graph_id": "13_flow_components",
+      "id": "UC_PART",
+      "label": "Timeline + debug URL 可见"
+    },
+    {
+      "graph_id": "13_flow_components",
+      "id": "UC_PORT",
+      "label": "portfolio access_level 档位"
     },
     {
       "graph_id": "13_flow_components",

@@ -7,8 +7,9 @@
 
 ## 文件分工（当前）
 - `00-core.mdc`：语言、职责边界、修改前确认、完成后报告（`globs: *`）
-- `05-harness-semi-auto.mdc`：Harness 半自动续跑、`content/tasks/active/` 与 `content/harness/invokes/by-task/`（`alwaysApply`）
+- `05-harness-semi-auto.mdc`：Harness 半自动续跑、`docs/tasks/active/` 与 `docs/harness/invokes/by-task/`（`alwaysApply`）
 - `06-harness-content.mdc`：Harness 落盘 taxonomy、工作区 prompts 单源、KPI v1.2 新建 task 必填（`alwaysApply`）
+- `07-coding-standards-l2.mdc`：编码规范 L2 短链（F-01～F-14 · L1 对照）；`globs: **/*.{ts,tsx}`（P3）
 - `08-docs-diary.mdc`：`docs/diary/`、`content/diary/` 非必读；实验轨 jsonPKmermaid 跨仓只读后端（`alwaysApply`）
 - `10-tech-graph.mdc`：`_tech_graph/` 生产轨 + `graph_query` 机器轨；globs 含 `app/`、`components/`、`lib/`
 - `20-tech-graph-update.mdc`：图谱增量更新规则

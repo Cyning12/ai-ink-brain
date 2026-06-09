@@ -1,7 +1,7 @@
 /**
  * Python API（PY_API_URL）转发单点：BFF Route Handler 与 lib/server 须经本模块，禁止散落 fetch + env。
  */
-import { getAdminApiSecret } from "@/lib/auth/admin-env";
+import { getSyncAdminSecret } from "@/lib/auth/sync-admin-env";
 
 /** PY_API_URL 是否在 env 中显式配置（非默认 fallback） */
 export function isPyApiUrlConfigured(): boolean {
@@ -222,12 +222,13 @@ export async function forwardToPyAdmin(
   pathAndQuery: string,
   init?: RequestInit,
 ): Promise<Response> {
-  const secret = getAdminApiSecret();
+  const secret = getSyncAdminSecret();
   if (!secret) {
     return Response.json(
       {
         ok: false,
-        error: "服务端未配置环境变量 NEXT_PUBLIC_ADMIN_SECRET（或兼容 CHAT_API_SECRET）",
+        error:
+          "服务端未配置 SYNC_ADMIN_SECRET（或兼容 CHAT_API_SECRET）；无法转发 Python admin 接口",
       },
       { status: 500 },
     );

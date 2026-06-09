@@ -3,6 +3,12 @@
 import { useMemo, useState } from "react";
 
 import type { ChainEvent } from "@/components/chain-chat/types";
+import { extractIntentPathObs } from "@/lib/unified-chat/chainEventSelectors";
+import {
+  buildAgentIntentTitleSuffix,
+  formatIntentAttempt,
+  formatIntentPathLabel,
+} from "@/lib/unified-chat/intentPathLabels";
 import { AGENT_PLAN_PREVIEW_TOOL_RAG } from "@/lib/unified-chat/sse";
 import { SqlResultTable } from "@/components/chain-chat/SqlResultTable";
 import {
@@ -19,6 +25,8 @@ import type { SourceCitation } from "@/lib/chat/chatApi";
 
 type Props = {
   event: ChainEvent;
+  /** Debug Router 开：展示 intent_path / 仲裁 / 软超时等 Step2 可观测字段 */
+  debugRouter?: boolean;
   /** 父级「全部展开/收起」：与 batchExpandOpen 同时更新时同步子卡片展开态 */
   batchExpandNonce?: number;
   batchExpandOpen?: boolean;
@@ -41,7 +49,12 @@ function badgeTone(type: ChainEvent["type"]): string {
   return "bg-emerald-500/10 text-emerald-800 border-emerald-500/20";
 }
 
-export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Props) {
+export function ChainEventCard({
+  event,
+  debugRouter = false,
+  batchExpandNonce,
+  batchExpandOpen,
+}: Props) {
   /** 批量展开由父级 key（含 nonce/open）驱动 remount，避免在 effect 内同步 setState */
   const [open, setOpen] = useState(
     batchExpandNonce !== undefined && batchExpandOpen !== undefined ? batchExpandOpen : false,
@@ -57,7 +70,8 @@ export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Pro
     if (event.type === "assistant.message") return "assistant.message";
     if (event.type === "agent.intent") {
       const name = typeof p.tool === "string" && p.tool.trim() ? p.tool : "intent";
-      return `agent.intent · ${name}`;
+      const suffix = debugRouter ? buildAgentIntentTitleSuffix(extractIntentPathObs(p)) : "";
+      return `agent.intent · ${name}${suffix}`;
     }
     if (event.type === "agent.llm.start") {
       const ph = typeof p.phase === "string" && p.phase.trim() ? p.phase : "llm";
@@ -121,7 +135,7 @@ export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Pro
       return `${event.type} · ${name}`;
     }
     return event.type;
-  }, [event]);
+  }, [event, debugRouter]);
 
   const renderBody = () => {
     if (event.type === "user.message") {
@@ -261,6 +275,7 @@ export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Pro
     }
     if (event.type === "agent.intent") {
       const p = event.payload ?? {};
+      const pathObs = extractIntentPathObs(p);
       const tool = typeof p.tool === "string" ? p.tool : "—";
       const mode = typeof p.mode === "string" ? p.mode : "—";
       const conf = typeof p.confidence === "number" && Number.isFinite(p.confidence) ? p.confidence : null;
@@ -277,6 +292,11 @@ export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Pro
       );
       return (
         <div className="space-y-2 text-[11px] text-slate-700">
+          {debugRouter && pathObs.hints_arbitration?.applied ? (
+            <span className="inline-flex rounded-full border border-amber-500/50 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-950">
+              配置仲裁 → rag
+            </span>
+          ) : null}
           <div className="grid gap-1 rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2">
             {kv("tool", tool)}
             {kv("mode", mode)}
@@ -284,6 +304,11 @@ export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Pro
             {kv("cache", cache)}
             {kv("cache_key_hash", hash)}
             {kv("latency_ms", latStr)}
+            {debugRouter ? kv("intent_path", formatIntentPathLabel(pathObs.intent_path)) : null}
+            {debugRouter ? kv("intent_attempt", formatIntentAttempt(pathObs.intent_attempt)) : null}
+            {debugRouter && pathObs.hints_arbitration?.applied
+              ? kv("hints_arbitration", pathObs.hints_arbitration.reason.trim() || "—")
+              : null}
           </div>
           <details className="rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2">
             <summary className="cursor-pointer select-none text-[11px] text-slate-700">reasoning / fallback</summary>
@@ -415,14 +440,23 @@ export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Pro
     }
     if (event.type === "agent.think") {
       const p = event.payload ?? {};
+      const pathObs = extractIntentPathObs(p);
       const thought = typeof p.thought === "string" ? p.thought : "";
       const tool = typeof p.selected_tool === "string" ? p.selected_tool : "—";
       const mode = typeof p.mode === "string" ? p.mode : "—";
       const stepNo = p.step_number;
       const stepStr =
         typeof stepNo === "number" && Number.isFinite(stepNo) ? String(Math.round(stepNo)) : "—";
+      const isStep1 = stepNo === 1;
+      const showSoftTimeout =
+        debugRouter && isStep1 && pathObs.agent_step_routing === "agent_soft_timeout_v1";
       return (
         <div className="space-y-2 text-[11px] text-slate-700">
+          {showSoftTimeout ? (
+            <span className="inline-flex rounded-full border border-amber-600/50 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-950">
+              Agent 软超时 → V1
+            </span>
+          ) : null}
           <div className="grid gap-1 rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <span className="text-[10px] text-slate-500">step</span>
@@ -437,6 +471,27 @@ export function ChainEventCard({ event, batchExpandNonce, batchExpandOpen }: Pro
               <span className="font-mono">{mode}</span>
             </div>
           </div>
+          {debugRouter && isStep1 && (pathObs.intent_path || pathObs.intent_attempt != null) ? (
+            <details className="rounded-xl border border-[color:var(--color-border)] bg-white/60 p-2">
+              <summary className="cursor-pointer select-none text-[11px] text-slate-700">
+                Intent 路径
+              </summary>
+              <div className="mt-2 space-y-1">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-[10px] text-slate-500">intent_path</div>
+                  <div className="font-mono text-[11px] text-slate-700">
+                    {formatIntentPathLabel(pathObs.intent_path)}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-[10px] text-slate-500">intent_attempt</div>
+                  <div className="font-mono text-[11px] text-slate-700">
+                    {formatIntentAttempt(pathObs.intent_attempt)}
+                  </div>
+                </div>
+              </div>
+            </details>
+          ) : null}
           <div>
             <div className="text-[10px] text-slate-500">thought</div>
             <div className="mt-1 max-h-[42vh] overflow-auto whitespace-pre-wrap break-words text-[12px] leading-relaxed text-slate-900">

@@ -23,7 +23,12 @@ flowchart TB
         UCP --"->"--> UC_RIGHT[[右 执行链路 当前轮]]
         UCP --"->"--> UC_MSG[[底 消息区 当前轮]]
         UCP --"->"--> UC_DBG[[Router Debug 与输入]]
+        UCP --"?>"--> UC_PORT[[portfolio access_level 档位]]
+        // → lib/unified-chat/portfolio-chat-tier.ts
     end
+
+    UC_PORT --"[visitor]"--> UC_HIDE[[隐藏 Router Debug Timeline debug URL]]
+    UC_PORT --"[visitor-admin]"--> UC_PART[[Timeline + debug URL 可见]]
 
     UC_MID --"->"--> TL[[ChainTimeline]]
     // → components/chain-chat/ChainTimeline.tsx
@@ -64,6 +69,6 @@ flowchart TB
 
     class CHAT,UNIFIED,CHAIN,T2S page
     class CP,UCP,CCP,T2P,TL,EC,SQLT,SC,MD comp
-    class UC_TOP,UC_HIST,UC_MID,UC_RIGHT,UC_MSG,UC_DBG ui
+    class UC_TOP,UC_HIST,UC_MID,UC_RIGHT,UC_MSG,UC_DBG,UC_PORT,UC_HIDE,UC_PART ui
     class STREAM,HISTORY,SID lib
 ```

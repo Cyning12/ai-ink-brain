@@ -1,9 +1,9 @@
----
+<hr />
 title: RunnableWithMessageHistory 速查
 source_url: https://python.langchain.com/
 captured_at_utc: 2026-04-23T00:00:00Z
 category: learning
----
+<hr />
 
 ## 什么是 `RunnableWithMessageHistory`
 
@@ -23,8 +23,9 @@ category: learning
 
 ## 最小示例（示意）
 
-> 说明：下面代码是为了展示概念与关键参数命名，具体 API 可能因 LangChain 版本有所差异。
-
+<blockquote>
+<p>说明：下面代码是为了展示概念与关键参数命名，具体 API 可能因 LangChain 版本有所差异。</p>
+</blockquote>
 ```python
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder

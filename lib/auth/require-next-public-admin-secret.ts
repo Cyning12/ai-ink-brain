@@ -1,4 +1,7 @@
 /**
+ * @deprecated admin/sync · admin/ingest 已迁移至 {@link requireSyncAdminAccess} + SYNC_ADMIN_SECRET。
+ * 保留供历史引用；新代码禁止调用。
+ *
  * 校验管理员密钥：仅使用 NEXT_PUBLIC_ADMIN_SECRET（与教程一致）。
  * 支持 Authorization: <secret> 或 Authorization: Bearer <secret>。
  */

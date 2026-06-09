@@ -9,6 +9,8 @@ type Props = {
   events: ChainEvent[];
   /** 默认 true（兼容旧页）；Unified Chat vNext 传 false 以保留 SSE 到达序（见 SPEC §8.2） */
   sortByTs?: boolean;
+  /** Router Debug 开：Timeline 展示 Step2 intent 路径可观测 */
+  debugRouter?: boolean;
   /** 列表内右上方工具条；与 batchExpandNonce 受控并存时，由父级在标题栏放按钮则置 false */
   showExpandToolbar?: boolean;
   /** 受控：与 batchExpandOpen 成对传入时，由父级递增 nonce 驱动批量展开/收起，且不渲染内部工具条 */
@@ -48,6 +50,7 @@ export const chainTimelineExpandBtnClass =
 export function ChainTimeline({
   events,
   sortByTs = true,
+  debugRouter = false,
   showExpandToolbar = true,
   batchExpandNonce: controlledNonce,
   batchExpandOpen: controlledOpen,
@@ -98,6 +101,7 @@ export function ChainTimeline({
           <ChainEventCard
             key={`${stableTimelineKey(e, idx)}-b${batchNonce}-${String(batchOpen)}`}
             event={e}
+            debugRouter={debugRouter}
             batchExpandNonce={batchNonce}
             batchExpandOpen={batchOpen}
           />

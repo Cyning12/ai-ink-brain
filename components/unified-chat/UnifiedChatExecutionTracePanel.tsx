@@ -80,6 +80,9 @@ export function UnifiedChatExecutionTracePanel({
                   <div className="font-mono text-[12px] text-slate-800">
                     agent.intent · <span className="text-slate-900">{s.tool}</span>
                     <span className="text-slate-500"> · mode {s.mode}</span>
+                    {s.pathSummary ? (
+                      <span className="text-violet-900/90"> · {s.pathSummary}</span>
+                    ) : null}
                   </div>
                 ) : null}
                 {s.kind === "think" ? (

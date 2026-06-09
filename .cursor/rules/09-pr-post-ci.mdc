@@ -1,0 +1,15 @@
+---
+description: PR 后 CI — body 同步、automerge 白名单、禁止未绿 merge
+globs:
+alwaysApply: true
+---
+
+# PR Post-CI（本仓 · Ink 前端）
+
+真值（语义）：配对后端 [`SPEC-Governance-PR-Post-CI-v1.md`](https://github.com/Cyning12/ai-ink-brain-api-python/blob/main/docs/spec/governance/SPEC-Governance-PR-Post-CI-v1.md)
+
+- **push 后**：须对照 `gh pr diff` 更新 PR **Summary**；Test plan 可由 `pr-post-ci` workflow 勾选，**不**替代 Summary。
+- **Required checks**：`lint-and-build` · `verify`（见 `tools/pr_post_ci_update_body.py`）。
+- **禁止** Required checks 未全绿时 `gh pr merge`。
+- **`automerge` 标签**：仅 **人** 可打；且 diff **不得** 含 `app/`、`lib/`、`components/`、`.github/workflows/`（见 `.mergify.yml`）。
+- **多主题 PR**：Summary 须分节，禁止仅依赖 bot 统计表。

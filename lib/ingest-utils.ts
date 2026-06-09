@@ -28,6 +28,9 @@ type MarkdownFileInfo = {
   relativePathFromContent: string;
 };
 
+/** 不参与 RAG ingest 的 content 子目录（tasks/harness 已迁至 docs/，此处作防御性跳过） */
+const INGEST_SKIP_DIRS = new Set(["tasks", "harness"]);
+
 function isMarkdownFile(filename: string) {
   const ext = path.extname(filename).toLowerCase();
   return ext === ".md" || ext === ".mdx";
@@ -54,6 +57,7 @@ function walkDirRecursive(
 
     const abs = path.join(currentDir, ent.name);
     if (ent.isDirectory()) {
+      if (INGEST_SKIP_DIRS.has(ent.name)) continue;
       walkDirRecursive(rootDir, abs, out);
       continue;
     }

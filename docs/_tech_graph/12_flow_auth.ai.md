@@ -28,6 +28,10 @@ flowchart TD
     subgraph AUTH_CORE[[Auth Core]]
         ENV[[getAdminApiSecret()]]
         // → lib/auth/admin-env.ts
+        PFENV[[matchPortfolioSecret()]]
+        // → lib/auth/portfolio-env.ts
+        PFSESS[[portfolio_visitor_session]]
+        // → lib/auth/portfolio-session.ts
         PARSE[[getAdminTokenFromRequest()]]
         // → lib/auth/parse-admin-token.ts
         COOKIE[[ADMIN_SESSION_COOKIE]]
@@ -40,17 +44,24 @@ flowchart TD
         // → node:crypto
     end
 
-    %% === Unlock 流程 ===
-    UNLOCK_UI --"~>"--> API_UNLOCK --"->"--> ENV
-    ENV --"[secret configured]"--> TSE
-    // → lib/auth/admin-env.ts
-    TSE --"[ok]"--> COOKIE
-    // → lib/auth/admin-cookie.ts
-    COOKIE --"Set-Cookie HttpOnly"--> SESSION_UI
+    %% === Unlock 流程（portfolio 优先 · W3） ===
+    UNLOCK_UI --"~>"--> API_UNLOCK
+    API_UNLOCK --"[secret]"--> PFENV
+    // → lib/auth/portfolio-env.ts
+    PFENV --"[visitor|visitor-admin]"--> PFSESS
+    // → lib/auth/portfolio-session.ts
+    PFSESS --"Set-Cookie HttpOnly"--> SESSION_UI
     // → lib/hooks/useAdminSession.ts
+    API_UNLOCK --"->"--> ENV
+    ENV --"[Ink secret configured]"--> TSE
+    TSE --"[ok]"--> COOKIE
+    COOKIE --"Set-Cookie HttpOnly"--> SESSION_UI
 
     %% === Session 检查 ===
-    SESSION_UI --"~>"--> API_SESSION --"->"--> ENV
+    SESSION_UI --"~>"--> API_SESSION
+    API_SESSION --"->"--> PFSESS
+    // → lib/auth/portfolio-session.ts
+    API_SESSION --"->"--> ENV
     API_SESSION --"->"--> COOKIE
     // → lib/auth/admin-cookie.ts
 

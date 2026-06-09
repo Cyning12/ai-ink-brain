@@ -1,33 +1,47 @@
 import { verifyAdminSessionCookie } from "@/lib/auth/admin-cookie";
 import { getAdminApiSecret } from "@/lib/auth/admin-env";
+import { isPortfolioAuthConfigured } from "@/lib/auth/portfolio-env";
+import { parsePortfolioSessionCookie } from "@/lib/auth/portfolio-session";
+import { hasChatbiAdminSession } from "@/lib/auth/require-sync-admin-access";
 import { isPyApiUrlConfigured } from "@/lib/py-service-proxy";
-import {
-  decodeChatbiTokenFromCookie,
-  readChatbiSiteCookieRaw,
-} from "@/lib/auth/chatbi-site-cookie";
-import { verifyChatbiPlainUpstream } from "@/lib/server/chatbi-access-verify-upstream";
 
 export const runtime = "nodejs";
 
-/** 供前端判断「管理入口可见」：Ink 管理员 Cookie 或 ChatBI 站点 HttpOnly Cookie 且上游仍有效 */
+export type AuthRole = "none" | "visitor" | "visitor-admin" | "admin";
+
+/** 供前端判断会话：Ink/ChatBI admin 或 Portfolio visitor 档位 */
 export async function GET(request: Request): Promise<Response> {
   const ink = getAdminApiSecret();
   let admin = false;
+  let role: AuthRole = "none";
+  let expiresAt: string | undefined;
+
+  const portfolio = parsePortfolioSessionCookie(request.headers.get("cookie"));
+  if (portfolio) {
+    role = portfolio.role;
+    expiresAt = new Date(portfolio.expiresAt).toISOString();
+  }
+
   if (ink && verifyAdminSessionCookie(request.headers.get("cookie"), ink)) {
     admin = true;
+    role = "admin";
   }
-  if (!admin) {
-    const raw = readChatbiSiteCookieRaw(request.headers.get("cookie"));
-    if (raw) {
-      const plain = decodeChatbiTokenFromCookie(raw);
-      if (plain && (await verifyChatbiPlainUpstream(plain))) {
-        admin = true;
-      }
-    }
+  if (!admin && (await hasChatbiAdminSession(request))) {
+    admin = true;
+    if (role === "none") role = "admin";
   }
+
   const configured =
     Boolean(ink) ||
+    isPortfolioAuthConfigured() ||
     isPyApiUrlConfigured() ||
     process.env.NODE_ENV === "development";
-  return Response.json({ ok: true, admin, configured });
+
+  return Response.json({
+    ok: true,
+    admin,
+    role,
+    configured,
+    expiresAt,
+  });
 }

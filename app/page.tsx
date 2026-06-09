@@ -1,6 +1,12 @@
 import { HomeModules } from "@/app/_components/home-modules";
+import { PortfolioHome } from "@/app/_components/portfolio-home";
+import { getSiteMode } from "@/lib/site-mode";
 
 export default function Home() {
+  if (getSiteMode() === "portfolio") {
+    return <PortfolioHome />;
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center px-8 py-28">

@@ -17,6 +17,8 @@ flowchart TD
 
   subgraph AUTH[Auth Core]
     ENV["getAdminApiSecret()\nlib/auth/admin-env.ts"]:::s
+    PFENV["matchPortfolioSecret()\nlib/auth/portfolio-env.ts"]:::s
+    PFSESS["portfolio_visitor_session\nlib/auth/portfolio-session.ts"]:::s
     PARSE["getAdminTokenFromRequest()\nlib/auth/parse-admin-token.ts"]:::s
     COOKIE["ADMIN_SESSION_COOKIE\nlib/auth/admin-cookie.ts"]:::s
     VALIDATE["validateAdmin(request)\nlib/auth.ts"]:::s
@@ -24,14 +26,20 @@ flowchart TD
     TSE["timingSafeEqual()\nnode:crypto"]:::s
   end
 
-  %% unlock cookie mint
-  UNLOCK_UI --> API_UNLOCK --> ENV
-  ENV -->|secret configured| TSE
+  %% unlock cookie mint（portfolio 优先 · W3）
+  UNLOCK_UI --> API_UNLOCK
+  API_UNLOCK -->|secret| PFENV
+  PFENV -->|visitor / visitor-admin| PFSESS
+  PFSESS -->|Set-Cookie HttpOnly| SESSION_UI
+  API_UNLOCK --> ENV
+  ENV -->|Ink secret| TSE
   TSE -->|ok| COOKIE
   COOKIE -->|Set-Cookie HttpOnly| SESSION_UI
 
   %% session check
-  SESSION_UI --> API_SESSION --> ENV
+  SESSION_UI --> API_SESSION
+  API_SESSION --> PFSESS
+  API_SESSION --> ENV
   API_SESSION --> COOKIE
 
   %% bearer path (token in header)

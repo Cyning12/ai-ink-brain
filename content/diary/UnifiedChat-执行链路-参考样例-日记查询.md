@@ -1,10 +1,9 @@
 # Unified Chat 执行链路 —— 参考样例（日记类 Query）
 
-> **用途**：后续对照 **SSE 到达序**、右侧「**执行链路**」摘要与左侧 **`ChainTimeline`** 时作参考。  
-> **关联实现**：前端 `buildExecutionTraceSections`；后端 `api/agent.py`（含 `AGENT_MAX_LATENCY_MS` 软超时、`FailureTypeHandler` RAG 空 gating）。  
-> 本文含 **两段** 样例：**A** 真实链路上的历史抓包（含已修复的重复 rag）；**B** pytest **mock 工具桩** 后 `RAG_RETRIEVE_EMPTY` → `direct_answer` 的干净两步。
-
----
+<blockquote>
+<p><strong>用途</strong>：后续对照 <strong>SSE 到达序</strong>、右侧「<strong>执行链路</strong>」摘要与左侧 <strong>@@PH0@@</strong> 时作参考。 <strong>关联实现</strong>：前端 <code>buildExecutionTraceSections</code>；后端 <code>api/agent.py</code>（含 <code>AGENT_MAX_LATENCY_MS</code> 软超时、<code>FailureTypeHandler</code> RAG 空 gating）。 本文含 <strong>两段</strong> 样例：<strong>A</strong> 真实链路上的历史抓包（含已修复的重复 rag）；<strong>B</strong> pytest <strong>mock 工具桩</strong> 后 <code>RAG_RETRIEVE_EMPTY</code> → <code>direct_answer</code> 的干净两步。</p>
+</blockquote>
+<hr />
 
 ## A. 样例正文（真实链路抓包摘录，含历史异常段）
 
@@ -56,20 +55,38 @@ agent.llm.start · rag_generate（RAG 生成）
 agent.llm.end · rag_generate · ok
 ```
 
----
+<hr />
 
 ## 说明（与「理想正常路径」对照）
 
-| 段落 | 语义 |
-|------|------|
-| step-1～3 | 意图 LLM（`agent.llm.*` intent）→ `agent.intent` → `router.decision` |
-| step-4～6 | `agent.think` → 首工具 `rag_search` → `tool.call.start` / `end` |
-| step-7～12 | **历史异常片段（已修复）**：`Agent 超时，降级到 V1 规则路由` 与 **重复 `rag_search`** 来自旧逻辑在**每步循环开头**用软超时覆盖 `current_tool`，与日记类 V1 路由「恒 rag」叠加后会**打断**本应进入的 `direct_answer` / `text2sql` / 收尾路径，形成多余轮次。**当前后端**：仅在 `len(tools_used)==0` 时允许该次 V1 覆盖（见 `api/agent.py` 中 ReAct 主循环注释）。修复后**不应**再出现多轮无意义的重复 `rag_search`。 |
-| step-12 末～13 | RAG 命中后的正文（或中间结果展示）→ **`rag_generate`** 段 `agent.llm.start` … `end`（最终可读答案的流式/伪流式呈现） |
-
+<div class="md-table-wrap">
+<table>
+<thead><tr>
+<th>段落</th>
+<th>语义</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>step-1～3</td>
+<td>意图 LLM（<code>agent.llm.*</code> intent）→ <code>agent.intent</code> → <code>router.decision</code></td>
+</tr>
+<tr>
+<td>step-4～6</td>
+<td><code>agent.think</code> → 首工具 <code>rag_search</code> → <code>tool.call.start</code> / <code>end</code></td>
+</tr>
+<tr>
+<td>step-7～12</td>
+<td><strong>历史异常片段（已修复）</strong>：<code>Agent 超时，降级到 V1 规则路由</code> 与 <strong>重复 @@PH1@@</strong> 来自旧逻辑在<strong>每步循环开头</strong>用软超时覆盖 <code>current_tool</code>，与日记类 V1 路由「恒 rag」叠加后会<strong>打断</strong>本应进入的 <code>direct_answer</code> / <code>text2sql</code> / 收尾路径，形成多余轮次。<strong>当前后端</strong>：仅在 <code>len(tools_used)==0</code> 时允许该次 V1 覆盖（见 <code>api/agent.py</code> 中 ReAct 主循环注释）。修复后<strong>不应</strong>再出现多轮无意义的重复 <code>rag_search</code>。</td>
+</tr>
+<tr>
+<td>step-12 末～13</td>
+<td>RAG 命中后的正文（或中间结果展示）→ <strong>@@PH0@@</strong> 段 <code>agent.llm.start</code> … <code>end</code>（最终可读答案的流式/伪流式呈现）</td>
+</tr>
+</tbody>
+</table></div>
 **理想正常路径（日记类、首轮 RAG 成功且未触顶超时）**：step-1～6 →（必要时一步失败转路）→ **`rag_generate`**（`agent.llm.*`）→ `assistant.message` / `done` 等（以实际 SSE 为准）。
 
----
+<hr />
 
 ## B. mock 桩后的执行链路（`RAG_RETRIEVE_EMPTY` → `direct_answer`，无 SQL gating）
 
@@ -127,18 +144,49 @@ agent.llm.start · direct（直接生成）
 agent.llm.end · direct · ok
 ```
 
-| 段落 | 语义 |
-|------|------|
-| step-1～6 | 与样例 A 相同前缀：intent → intent 卡片 → router → think → **首轮** `rag_search` |
-| step-7 | **失败转路**：`agent.think` 文案来自 `FailureTypeHandler`（RAG 空且无 SQL fallback）→ 下一工具 **`direct_answer`** / `no_data` |
-| step-8～9 | `direct_answer` 的 `tool.call.*`；正文为桩或真实 LLM 生成（此处为通用拒答式草稿） |
-| step-10 | **`phase: direct`** 的 `agent.llm.*` 伪流式/流式包装最终答句（与 `tool.call.end` 后答案对齐，具体以 unified_chat 实现为准） |
-
----
+<div class="md-table-wrap">
+<table>
+<thead><tr>
+<th>段落</th>
+<th>语义</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>step-1～6</td>
+<td>与样例 A 相同前缀：intent → intent 卡片 → router → think → <strong>首轮</strong> <code>rag_search</code></td>
+</tr>
+<tr>
+<td>step-7</td>
+<td><strong>失败转路</strong>：<code>agent.think</code> 文案来自 <code>FailureTypeHandler</code>（RAG 空且无 SQL fallback）→ 下一工具 <strong>@@PH2@@</strong> / <code>no_data</code></td>
+</tr>
+<tr>
+<td>step-8～9</td>
+<td><code>direct_answer</code> 的 <code>tool.call.*</code>；正文为桩或真实 LLM 生成（此处为通用拒答式草稿）</td>
+</tr>
+<tr>
+<td>step-10</td>
+<td><strong>@@PH0@@</strong> 的 <code>agent.llm.*</code> 伪流式/流式包装最终答句（与 <code>tool.call.end</code> 后答案对齐，具体以 unified_chat 实现为准）</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
 
 ## 修订记录
 
-| 日期 | 说明 |
-|------|------|
-| 2026-05-06 | 落盘用户提供的执行链路样例；标注 step-7～12 与软超时修复的关系 |
-| 2026-05-06 | 增补 **§B**：mock 后 `RAG_RETRIEVE_EMPTY` → `direct_answer` 执行链路样例，并链到 pytest 用例名 |
+<div class="md-table-wrap">
+<table>
+<thead><tr>
+<th>日期</th>
+<th>说明</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>2026-05-06</td>
+<td>落盘用户提供的执行链路样例；标注 step-7～12 与软超时修复的关系</td>
+</tr>
+<tr>
+<td>2026-05-06</td>
+<td>增补 <strong>§B</strong>：mock 后 <code>RAG_RETRIEVE_EMPTY</code> → <code>direct_answer</code> 执行链路样例，并链到 pytest 用例名</td>
+</tr>
+</tbody>
+</table></div>
