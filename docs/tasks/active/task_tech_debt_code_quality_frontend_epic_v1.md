@@ -103,7 +103,7 @@
 
 - [ ] SPEC 状态 `active` 或 Epic 关账时注明修订版本
 - [x] M01～M06（或修订后全集）均为 `done` 且已 `git mv` 至 `docs/tasks/done/`
-- [ ] PR **`production` ← `task/tech-debt-code-quality-frontend`** 已开；`lint-and-build` 绿
+- [x] PR **`production` ← `task/tech-debt-code-quality-frontend`** 已开；`lint-and-build` 绿 — https://github.com/Cyning12/ai-ink-brain/pull/64
 - [ ] **未** merge 至 `main`
 - [ ] `HG-PRODUCTION-MERGE` 人签
 
