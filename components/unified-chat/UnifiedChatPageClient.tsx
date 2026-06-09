@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import type { ChatHistoryRow } from "@/lib/chat/chatApi";
-import { fetchChatHistory } from "@/lib/chat/chatApi";
+import { buildChatbiBearerHeaders } from "@/lib/chat/buildChatAuthHeaders";
 import {
   readChatbiAccessLevel,
   readChatbiToken,
@@ -29,6 +28,7 @@ import {
   useTypewriterReveal,
 } from "@/lib/unified-chat/hooks/useTypewriterReveal";
 import { useUnifiedChatStream } from "@/lib/unified-chat/hooks/useUnifiedChatStream";
+import { useUnifiedChatTranscript } from "@/lib/unified-chat/hooks/useUnifiedChatTranscript";
 import { safeStringify } from "@/lib/unified-chat/stringify";
 import { useSuggestedQuestions } from "@/lib/unified-chat/hooks/useSuggestedQuestions";
 import { Text2SqlDemoGuidePanel } from "@/components/unified-chat/Text2SqlDemoGuidePanel";
@@ -41,37 +41,6 @@ import {
 } from "@/lib/unified-chat/portfolio-chat-tier";
 
 type PreferMode = "auto" | "rag" | "text2sql";
-
-/** 跨轮会话摘要（进入页面时从 GET /api/py/chat/history 恢复，与 session_id 对齐） */
-type TranscriptTurn = { id: string; user: string; assistant: string };
-
-/** 将历史接口的扁平 messages（user/assistant 交替）转为 transcript 轮次 */
-function mapHistoryRowsToTranscript(messages: ChatHistoryRow[] | undefined): TranscriptTurn[] {
-  if (!messages?.length) return [];
-  const out: TranscriptTurn[] = [];
-  let pendingUser = "";
-  for (const m of messages) {
-    if (m.role === "user") {
-      pendingUser = typeof m.content === "string" ? m.content.trim() : "";
-    } else if (m.role === "assistant") {
-      const a = typeof m.content === "string" ? m.content.trim() : "";
-      out.push({
-        id: `hist-${out.length}`,
-        user: pendingUser,
-        assistant: a,
-      });
-      pendingUser = "";
-    }
-  }
-  if (pendingUser) {
-    out.push({
-      id: `hist-pending-${out.length}`,
-      user: pendingUser,
-      assistant: "",
-    });
-  }
-  return out;
-}
 
 export function UnifiedChatPageClient() {
   const [mounted, setMounted] = useState(false);
@@ -116,13 +85,16 @@ export function UnifiedChatPageClient() {
     pendingPlanConfirmRef.current = pendingPlanConfirm;
   }, [pendingPlanConfirm]);
 
+  useEffect(() => {
+    if (pendingPlanConfirm) setTtlTick(0);
+  }, [pendingPlanConfirm?.receivedAtMs]);
+
   const [errorText, setErrorText] = useState<string | null>(null);
   const [finalAnswer, setFinalAnswer] = useState<string>("");
   /** 本轮流式结束后立即展示的完整答案（不经过打字机滞后） */
   const [committedAnswer, setCommittedAnswer] = useState<string>("");
   const [streamEpoch, setStreamEpoch] = useState(0);
   const streamBaselineRef = useRef("");
-  const [transcript, setTranscript] = useState<TranscriptTurn[]>([]);
 
   const portfolio = isPortfolioMode();
 
@@ -159,19 +131,23 @@ export function UnifiedChatPageClient() {
     if (mounted && locked) tokenInputRef.current?.focus();
   }, [mounted, locked]);
 
-  const headers: Record<string, string> = useMemo(() => {
-    const c = chatbiToken.replace(/^bearer\s+/i, "").trim();
-    if (!c) return {} as Record<string, string>;
-    // 与 Python GET verify / Unified 一致：Bearer 明文，经 BFF 原样转上游（或 rewrite 直连 Python）
-    return { Authorization: `Bearer ${c}` };
-  }, [chatbiToken]);
+  const headers: Record<string, string> = useMemo(
+    () => buildChatbiBearerHeaders(chatbiToken),
+    [chatbiToken],
+  );
 
   const { sessionId, resetSession } = useSessionId("unified-chat");
   const sessionIdRef = useRef(sessionId);
-  sessionIdRef.current = sessionId;
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+  }, [sessionId]);
 
-  const [historyReady, setHistoryReady] = useState(false);
-  const [historyError, setHistoryError] = useState<string | null>(null);
+  const { transcript, setTranscript, historyReady, historyError } = useUnifiedChatTranscript({
+    mounted,
+    locked,
+    sessionId,
+    headers,
+  });
 
   /** Timeline 卡片：标题栏「全部展开/收起」受控 */
   const [timelineBatchNonce, setTimelineBatchNonce] = useState(0);
@@ -200,6 +176,7 @@ export function UnifiedChatPageClient() {
       sp.set("debug", "1");
     } else {
       sp.delete("debug");
+      setDebugLlmPrompts(false);
     }
     const qs = sp.toString();
     const next = `${window.location.pathname}${qs ? `?${qs}` : ""}${window.location.hash}`;
@@ -237,6 +214,7 @@ export function UnifiedChatPageClient() {
       const ex = rec.expires_in_sec;
       const plannedTopKRaw = rec.planned_top_k;
       const headlinesRaw = rec.preview_headlines;
+      setTtlTick(0);
       setPendingPlanConfirm({
         token,
         boundQuery: boundQuery.trim(),
@@ -265,7 +243,7 @@ export function UnifiedChatPageClient() {
     sessionId,
     prefer,
     debugRouter,
-    debugLlmPrompts,
+    debugLlmPrompts: debugEnabled && debugLlmPrompts,
     headers,
     onError: (error) => {
       if (error.name === "AbortError") return;
@@ -322,52 +300,10 @@ export function UnifiedChatPageClient() {
     setFinalAnswer((prev) => (prev.trim() ? prev : text));
   }, [loading, stream.streamingText, events]);
 
-  useEffect(() => {
-    if (debugEnabled) return;
-    setDebugLlmPrompts(false);
-  }, [debugEnabled]);
-
-  // 与 ChatPanel 一致：解锁后按 session_id 拉 rag_conversation_logs，刷新/重进页面可恢复摘要
-  useEffect(() => {
-    if (!mounted || locked) {
-      return;
-    }
-
-    const ac = new AbortController();
-    const sidAtStart = sessionId;
-    setHistoryReady(false);
-    setHistoryError(null);
-
-    void (async () => {
-      try {
-        const data = await fetchChatHistory({
-          sessionId: sidAtStart,
-          headers,
-          limit: 100,
-          signal: ac.signal,
-        });
-        if (ac.signal.aborted || sessionIdRef.current !== sidAtStart) return;
-        setTranscript(mapHistoryRowsToTranscript(data.messages));
-      } catch (e) {
-        if (ac.signal.aborted) return;
-        if (e instanceof DOMException && e.name === "AbortError") return;
-        if (sessionIdRef.current !== sidAtStart) return;
-        setHistoryError(e instanceof Error ? e.message : String(e));
-      } finally {
-        if (!ac.signal.aborted && sessionIdRef.current === sidAtStart) {
-          setHistoryReady(true);
-        }
-      }
-    })();
-
-    return () => ac.abort();
-  }, [mounted, locked, sessionId, headers]);
-
   const planPreviewTtlRemainingSec = useMemo(() => {
     if (!pendingPlanConfirm) return null;
     void ttlTick;
-    const elapsed = (Date.now() - pendingPlanConfirm.receivedAtMs) / 1000;
-    return Math.max(0, Math.floor(pendingPlanConfirm.expiresInSec - elapsed));
+    return Math.max(0, Math.floor(pendingPlanConfirm.expiresInSec - ttlTick));
   }, [pendingPlanConfirm, ttlTick]);
 
   /** 浏览器下 setTimeout 返回 number，与 NodeJS.Timeout 区分 */
