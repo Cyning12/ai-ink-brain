@@ -1,6 +1,6 @@
 # Tech-debt M03 · Unified Chat 栈
 
-> **状态**：draft  
+> **状态**：`done`  
 > **epic**：[`task_tech_debt_code_quality_frontend_epic_v1.md`](task_tech_debt_code_quality_frontend_epic_v1.md)  
 > **module_id**：M03  
 > **depends_on**：M02 `done`  
@@ -41,13 +41,13 @@
 
 ## 验收标准（10 帽细化）
 
-- [ ] **F-09**：`app/unified-chat/page.tsx` 无 `'use client'`；Client 仅在 `components/unified-chat/*`
-- [ ] **F-01**：`UnifiedChatPageClient.tsx` 拆出 ≥1 hook 文件；主文件行数下降 ≥150 行
-- [ ] **F-10**：`lib/unified-chat/hooks/` 无新增 eslint-disable；useEffect deps 完整
-- [ ] **AF-02**：`app/unified-chat/` 无页面级 useEffect 拉数
-- [ ] **F-08**：无新增 `any`
-- [ ] `pnpm lint` → `pnpm test` → `pnpm build` 绿
-- [ ] commit + 链式 **M04**
+- [x] **F-09**：`app/unified-chat/page.tsx` 无 `'use client'`；Client 仅在 `components/unified-chat/*`
+- [x] **F-01**：`UnifiedChatPageClient.tsx` 拆出 ≥1 hook 文件；主文件行数下降 ≥150 行（1147→918）
+- [x] **F-10**：`lib/unified-chat/hooks/` 无新增 eslint-disable；useEffect deps 完整
+- [x] **AF-02**：`app/unified-chat/` 无页面级 useEffect 拉数
+- [x] **F-08**：无新增 `any`
+- [x] `pnpm lint` → `pnpm test` → `pnpm build` 绿
+- [x] commit + 链式 **M04**（M1 外 · 不阻塞签收）
 
 ## 失败路径
 
@@ -59,8 +59,14 @@
 
 | 项 | 内容 |
 |----|------|
-| 涉及文件 | |
+| 涉及文件 | `UnifiedChatPageClient.tsx`、`useUnifiedChatTranscript.ts`、`UnifiedChatPlanPreviewPanel.tsx`、`UnifiedChatUnlockSection.tsx` |
 
 ## ### 自检结论（执行者）
 
-（40 帽回填）
+| 命令 | cwd | 退出码 | 摘要 |
+|------|-----|--------|------|
+| `wc -l UnifiedChatPageClient.tsx` | `ai-ink-brain` | — | **918** 行（基线 1147，↓229） |
+| `wc -l useUnifiedChatTranscript.ts` | — | — | 100 行 hook |
+| `pnpm lint` / `test` / `build` | `ai-ink-brain` | 0 | 全绿；lint 0 error |
+
+**Judgment**：hat_self **pass** · M1 签收子集最后一棒

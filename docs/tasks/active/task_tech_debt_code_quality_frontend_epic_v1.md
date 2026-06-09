@@ -1,6 +1,6 @@
 # Epic · 前端编码规范 tech-debt（L2 对齐 · 分模块链式执行）
 
-> **状态**：`in_progress`（**M1 试点** · M01～M03 签收子集）  
+> **状态**：`in_progress`（M01～M06 **done** · 待 PR + **HG-PRODUCTION-MERGE**）  
 > **epic**：`tech-debt-code-quality-frontend`  
 > **M1 跟踪**：工作区 [`task_harness_m1_epic_orchestration_frontend_pilot_v1.md`](../../../docs/harness/tasks/active/task_harness_m1_epic_orchestration_frontend_pilot_v1.md) · `freeze_epic_orchestration_pilot_v1`  
 > **关联 SPEC**：[`specs/SPEC-tech_debt_code_quality_frontend_modules_v1_zh.md`](specs/SPEC-tech_debt_code_quality_frontend_modules_v1_zh.md)（**00 帽修订真值**）  
@@ -36,8 +36,8 @@
 
 | human_gate_id | status | blocks_hats | 说明 |
 |---------------|--------|-------------|------|
-| HG-EPIC-SPEC | pending | 30-M01 | **00 帽**确认/修订 SPEC 模块表后改 `approved` |
-| HG-M1-SIGNOFF | pending | — | M01～M03 + invoke 链完成（见工作区 M1 task） |
+| HG-EPIC-SPEC | approved | 30-M01 | **00 帽** SPEC 已确认（2026-06-09 **人签开工**） |
+| HG-M1-SIGNOFF | approved | — | M01～M03 + invoke 链完成（2026-06-09 **人签**） |
 | HG-PRODUCTION-MERGE | pending | done | **全 Epic** M06 后 PR merge **production** 前人签 |
 
 ---
@@ -73,8 +73,8 @@
 ## 范围
 
 - [ ] 00 确认/修订 SPEC 模块表并 commit
-- [ ] **M1**：M01～M03 串行 + invoke 链（见工作区 M1 task）
-- [ ] **Epic 全量**：M04～M06（可在 M1 签收后继续）
+- [x] **M1**：M01～M03 串行 + invoke 链（见工作区 M1 task · **HG-M1-SIGNOFF** approved）
+- [x] **Epic 全量**：M04～M06（M06 40 pass · task 已归档）
 - [ ] 每模块：L2 对齐 + 自检 + CI 三门禁
 - [ ] Epic 关账 PR → `production` + Required checks 绿
 
@@ -102,8 +102,8 @@
 ## 验收标准（Epic）
 
 - [ ] SPEC 状态 `active` 或 Epic 关账时注明修订版本
-- [ ] M01～M06（或修订后全集）均为 `done` 且已 `git mv` 至 `docs/tasks/done/`
-- [ ] PR **`production` ← `task/tech-debt-code-quality-frontend`** 已开；`lint-and-build` 绿
+- [x] M01～M06（或修订后全集）均为 `done` 且已 `git mv` 至 `docs/tasks/done/`
+- [x] PR **`production` ← `task/tech-debt-code-quality-frontend`** 已开；`lint-and-build` 绿 — https://github.com/Cyning12/ai-ink-brain/pull/64
 - [ ] **未** merge 至 `main`
 - [ ] `HG-PRODUCTION-MERGE` 人签
 
@@ -134,6 +134,16 @@
 
 ## 给 Cursor / 前端 Agent
 
-- Open Folder：`ai-ink-brain/`（读 L1 时 Open `Projects/`）
-- 先完善各 `task_tech_debt_cq_frontend_m*.md` 验收细项（10 帽），再 30 执行
+- Open Folder：`Projects/`（或 `ai-ink-brain/` + `@` 工作区 harness）
+- **分支**：`task/tech-debt-code-quality-frontend`（已从 `main` 检出；单 checkout 串行，无 worktree）
+- **派发入口**：[`PROMPT_AGENT_START_M1_v1_zh.md`](PROMPT_AGENT_START_M1_v1_zh.md)
+- M1 试点：M01→M02→M03 链式；`main` 上或已有部分实现 → **40 自检 + invoke 落盘** 优先，缺口再补代码
 - 关键词：`tech-debt`、`code_quality_bar: strict`、`production`、`M01`、`SPEC-tech_debt`、`F-03`、`pnpm lint`
+
+---
+
+## 修订记录
+
+| 日期 | 说明 |
+|------|------|
+| 2026-06-09 | M1 试点 scope；`HG-EPIC-SPEC` 人签开工；任务分支就绪 |
