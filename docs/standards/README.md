@@ -5,7 +5,8 @@
 
 | 文件 | 状态 | 说明 |
 |------|------|------|
-| [CODING_FRONTEND_L2_v1_zh.md](CODING_FRONTEND_L2_v1_zh.md) | `draft` | P2～P4 · TypeScript / Next / BFF / Vitest |
+| [CODING_FRONTEND_L2_v1_zh.md](CODING_FRONTEND_L2_v1_zh.md) | **active** | R1 签收（2026-06-09）· P2～P4 |
+| [reviews/review_frontend_l2_p2_p4_R1_20260609.md](reviews/review_frontend_l2_p2_p4_R1_20260609.md) | 建议签收 | 三方 R1 验收报告 |
 | [PROMPT_third_party_review_FRONTEND_L2_v1_zh.md](PROMPT_third_party_review_FRONTEND_L2_v1_zh.md) | 可用 | 三方验收 Prompt（P2～P4） |
 | [reviews/](reviews/README.md) | — | 验收报告落盘 |
 
@@ -21,3 +22,4 @@
 |------|------|
 | 2026-06-09 | v1：P2 前端 L2 初稿 |
 | 2026-06-09 | v2：P3 规则 · P4 ESLint · 三方验收 Prompt |
+| 2026-06-09 | v3：R1 签收 · L2 **active** v1.2 |

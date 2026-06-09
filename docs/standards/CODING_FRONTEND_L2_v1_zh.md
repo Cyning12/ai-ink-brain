@@ -2,8 +2,8 @@
 
 | 项 | 内容 |
 | --- | --- |
-| **状态** | `draft` — P2 交付物 |
-| **版本** | v1.0 |
+| **状态** | `active` — R1 三方验收签收（2026-06-09） |
+| **版本** | v1.2 |
 | **日期** | 2026-06-09 |
 | **栈** | Next **16** App Router · React **19** · TypeScript **strict** · pnpm · Vitest |
 | **L1** | 工作区 [`docs/standards/CODING_BASELINE_L1_v1_zh.md`](../../../docs/standards/CODING_BASELINE_L1_v1_zh.md) |
@@ -35,7 +35,7 @@
 | 组件 | 展示组件无 fetch；容器组件可调 hook/数据层 |
 | `lib/` | 按领域分目录（`unified-chat/`、`py-service-proxy.ts` 等）；禁止 `lib/` 单文件承担跨域编排 |
 
-软上限与 L1 一致：函数 ~60 行、文件 ~400 行触发审查。
+软上限：**函数** ~60 行、**文件** ~400 行触发审查（与 L1 B-01 一致）。**Route Handler** 因须串联请求解析、鉴权、调用 `lib/` 与响应组装，**单文件软上限放宽至 ~80 行**（非与 L1 冲突，而是 BFF 边界特例）；超过仍须拆 `lib/` 或子 handler。
 
 ### F-02 早返回与条件（遵循 B-02）
 
@@ -79,6 +79,7 @@
 | 规则 | 落地 |
 | --- | --- |
 | `strict: true` | `tsconfig.json` — **禁止** 在 PR 中关闭 |
+| 路径别名 | `tsconfig.json` → `baseUrl: "."`、`paths: { "@/*": ["./*"] }`；导入用 `@/lib/...`（F-04），**禁止** PR 中改坏 paths |
 | 禁止 `any` | 新代码 **禁止** `: any` / `as any`；边界用 `unknown` + 窄化 |
 | 类型守卫 | 优先 `typeof` / `in` / Zod（若 task 引入）优于断言 |
 | 导出边界 | `lib/` 对外导出须有显式类型；Route Handler 响应 shape 与后端对齐 |
@@ -144,6 +145,7 @@ pnpm build
 | AF-03 | props 下钻 5 层 | context / 组合组件 / hook | F-01 |
 | AF-04 | `eslint-disable` 整块文件 | 修代码或 task 级例外 | F-08, B-08 |
 | AF-05 | `console.log` 代替错误处理 | 结构化返回 + F-05 | F-05 |
+| AF-06 | Client 组件读 `process.env` 非 `NEXT_PUBLIC_*` | 仅 Server / Route Handler 读密钥；Client 用 `NEXT_PUBLIC_*` 或经 props | F-09, F-03 |
 
 全表规划：工作区 `ANTI_PATTERNS_v1_zh.md`（P2 工作区 · 含 notebook 场景）。
 
@@ -158,7 +160,7 @@ pnpm build
 - [ ] Client/Server 边界合理（F-09）
 - [ ] 无硬编码 `PY_API_URL` / 密钥 env（F-03, F-13）
 
-`code_quality_bar: strict` 时 22 审查须逐项引用上表 + L1 §4。
+`code_quality_bar: strict` 时 22 审查须逐项引用上表 + L1 §4。字段定义见工作区 [`docs/harness/HARNESS_V2_PLAN.md`](../../../docs/harness/HARNESS_V2_PLAN.md) **§5.9**（`baseline` 默认 · `strict` = L1 §4 + 本 L2 + 无新增 lint 豁免）。
 
 ---
 
@@ -188,3 +190,4 @@ pnpm build
 | --- | --- | --- |
 | v1.0 | 2026-06-09 | P2 初稿：F-01～F-14 + AF 节选 + PR 自检 |
 | v1.1 | 2026-06-09 | P3 `07-coding-standards-l2.mdc`；P4 ESLint `no-explicit-any` |
+| v1.2 | 2026-06-09 | R1 签收 **active**；S-01 链 Harness §5.9；S-02 F-01 80 行说明；S-04 tsconfig paths；S-05 AF-06 |
