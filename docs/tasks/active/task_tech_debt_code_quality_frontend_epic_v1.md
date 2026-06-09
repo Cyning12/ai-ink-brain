@@ -37,7 +37,7 @@
 | human_gate_id | status | blocks_hats | 说明 |
 |---------------|--------|-------------|------|
 | HG-EPIC-SPEC | approved | 30-M01 | **00 帽** SPEC 已确认（2026-06-09 **人签开工**） |
-| HG-M1-SIGNOFF | pending | — | M01～M03 + invoke 链完成（见工作区 M1 task） |
+| HG-M1-SIGNOFF | approved | — | M01～M03 + invoke 链完成（2026-06-09 **人签**） |
 | HG-PRODUCTION-MERGE | pending | done | **全 Epic** M06 后 PR merge **production** 前人签 |
 
 ---
