@@ -1,5 +1,6 @@
 import { verifyAdminSessionCookie } from "@/lib/auth/admin-cookie";
 import { getAdminApiSecret } from "@/lib/auth/admin-env";
+import { isPyApiUrlConfigured } from "@/lib/py-service-proxy";
 import {
   decodeChatbiTokenFromCookie,
   readChatbiSiteCookieRaw,
@@ -26,7 +27,7 @@ export async function GET(request: Request): Promise<Response> {
   }
   const configured =
     Boolean(ink) ||
-    Boolean((process.env.PY_API_URL ?? "").trim()) ||
+    isPyApiUrlConfigured() ||
     process.env.NODE_ENV === "development";
   return Response.json({ ok: true, admin, configured });
 }
