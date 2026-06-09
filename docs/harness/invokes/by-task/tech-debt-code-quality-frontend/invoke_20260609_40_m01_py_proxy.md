@@ -3,7 +3,7 @@
 | 字段 | 值 |
 |------|-----|
 | task_slug | `tech-debt-cq-frontend-m01-py-proxy` |
-| task | `docs/tasks/active/task_tech_debt_cq_frontend_m01_py_proxy_v1.md` |
+| task | `docs/tasks/done/task_tech_debt_cq_frontend_m01_py_proxy_v1.md` |
 | hat | 40 |
 | git_branch | `task/tech-debt-code-quality-frontend` |
 | m1_tracking | 工作区 `task_harness_m1_epic_orchestration_frontend_pilot_v1.md` |

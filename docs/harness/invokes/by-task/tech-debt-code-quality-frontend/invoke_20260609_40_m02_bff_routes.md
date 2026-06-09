@@ -3,7 +3,7 @@
 | 字段 | 值 |
 |------|-----|
 | task_slug | `tech-debt-cq-frontend-m02-bff-routes` |
-| task | `docs/tasks/active/task_tech_debt_cq_frontend_m02_bff_routes_v1.md` |
+| task | `docs/tasks/done/task_tech_debt_cq_frontend_m02_bff_routes_v1.md` |
 | hat | 40 |
 | git_branch | `task/tech-debt-code-quality-frontend` |
 | date | 2026-06-09 |

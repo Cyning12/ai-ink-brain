@@ -16,7 +16,7 @@
 本 SPEC 定义 **前端历史代码** 按模块对齐 L2（F-01～F-14 · AF-01～AF-06）的 **拆分边界、顺序与验收口径**。
 
 - **00 编排帽**：可合并/拆分模块、调整 `depends_on`、修订路径 glob；修订后 **commit 本 SPEC** 再派发子 task。
-- **子 task**：每模块（或关联组）对应 `docs/tasks/active/task_tech_debt_cq_frontend_m*.md` 之一。
+- **子 task**：每模块（或关联组）对应 `docs/tasks/done/task_tech_debt_cq_frontend_m*.md（Epic 关账后）` 之一。
 - **禁止**：单会话全仓无边界重构。
 
 ---

@@ -2,7 +2,7 @@
 
 > **状态**：`done`（M01～M06 · PR #64→production · #65→main · 2026-06-09）  
 > **epic**：`tech-debt-code-quality-frontend`  
-> **M1 跟踪**：工作区 [`task_harness_m1_epic_orchestration_frontend_pilot_v1.md`](../../../docs/harness/tasks/active/task_harness_m1_epic_orchestration_frontend_pilot_v1.md) · `freeze_epic_orchestration_pilot_v1`  
+> **M1 跟踪**：工作区 [`task_harness_m1_epic_orchestration_frontend_pilot_v1.md`](../../../docs/harness/tasks/done/task_harness_m1_epic_orchestration_frontend_pilot_v1.md) · `freeze_epic_orchestration_pilot_v1`  
 > **关联 SPEC**：[`specs/SPEC-tech_debt_code_quality_frontend_modules_v1_zh.md`](specs/SPEC-tech_debt_code_quality_frontend_modules_v1_zh.md)（**00 帽修订真值**）  
 > **关联图谱**：`docs/_tech_graph/11_flow_api.md` · `13_flow_components.md`（按需增量）  
 > **后端依赖**：无  
@@ -128,17 +128,24 @@
 
 ## ### KPI（00）
 
-（关账由 `kpi_aggregator` 填写）
+**rubric**: KPI_RUBRIC_v1_2 · **汇总**: 88 · **状态**: pass · **帽**: CLOSE（`kpi_aggregator`）
+
+| hat_code | round | agent_mode | D1 | D2 | D3 | D4 | D5 | judgment_notes |
+|----------|-------|------------|----|----|----|----|-----|----------------|
+| 00 | orchestrator | main_chat | pass | pass | pass | pass | pass | SPEC active；派发 M01～M06 链 |
+| 30/40 | M01 | R1 | task_subagent | pass | pass | pass | pass | pass | py-proxy · invoke 40 |
+| 30/40 | M02 | R1 | task_subagent | pass | pass | pass | pass | pass | BFF routes · invoke 40 |
+| 30/40 | M03 | R1 | task_subagent | pass | pass | pass | pass | pass | unified-chat 拆分 · invoke 40 |
+| 30/40 | M04 | R1 | task_subagent | pass | pass | pass | pass | pass | chat-rag · invoke 40 |
+| 30/40 | M05 | R1 | task_subagent | pass | pass | pass | pass | pass | auth-env · invoke 40 |
+| 30/40 | M06 | R1 | task_subagent | pass | pass | pass | pass | pass | components-misc · invoke 40 |
+| CLOSE | close | main_chat | pass | pass | pass | pass | pass | PR #64/#65 · `invoke_20260609_CLOSE_epic.md` |
 
 ---
 
-## 给 Cursor / 前端 Agent
+## 给 Cursor / 前端 Agent（关账后）
 
-- Open Folder：`Projects/`（或 `ai-ink-brain/` + `@` 工作区 harness）
-- **分支**：`task/tech-debt-code-quality-frontend`（已从 `main` 检出；单 checkout 串行，无 worktree）
-- **派发入口**：[`PROMPT_AGENT_START_M1_v1_zh.md`](PROMPT_AGENT_START_M1_v1_zh.md)
-- M1 试点：M01→M02→M03 链式；`main` 上或已有部分实现 → **40 自检 + invoke 落盘** 优先，缺口再补代码
-- 关键词：`tech-debt`、`code_quality_bar: strict`、`production`、`M01`、`SPEC-tech_debt`、`F-03`、`pnpm lint`
+- Epic **done**；索引收尾见工作区 `docs/harness/prompts/PROMPT_closeout_m1_tech_debt_epic_v1_zh.md`；下一步 PLAN **M2** Starter
 
 ---
 
@@ -148,3 +155,4 @@
 |------|------|
 | 2026-06-09 | M1 试点 scope；`HG-EPIC-SPEC` 人签开工；任务分支就绪 |
 | 2026-06-09 | M04～M06 续跑 40 pass；PR #64/#65 merge；Epic **done** |
+| 2026-06-09 | CLOSE KPI 回填；START PROMPT obsolete |

@@ -1,7 +1,9 @@
+> **状态**：`obsolete`（M1 已关账 · 2026-06-09）— 勿再派发执行
+
 # PROMPT · 前端 M1 试点执行（tech-debt Epic · M01 首棒）
 
 > **用途**：新 Agent **单独会话**粘贴 §3 全文；勿与后端 `api-modularization` 混跑。  
-> **前提**：`HG-EPIC-SPEC` **approved**（2026-06-09 人签）；`HG-M1-SIGNOFF` 仍 **pending**（M03 完成后人签）。
+> **前提**：`HG-EPIC-SPEC` **approved**（2026-06-09 人签）；`HG-M1-SIGNOFF` **approved**（M03 完成后人签）。
 
 ---
 
@@ -24,9 +26,9 @@ git checkout task/tech-debt-code-quality-frontend
 ## 2. 必读 `@` 列表
 
 ```text
-@docs/harness/tasks/active/task_harness_m1_epic_orchestration_frontend_pilot_v1.md
-@docs/tasks/active/task_tech_debt_code_quality_frontend_epic_v1.md
-@docs/tasks/active/task_tech_debt_cq_frontend_m01_py_proxy_v1.md
+@docs/harness/tasks/done/task_harness_m1_epic_orchestration_frontend_pilot_v1.md
+@docs/tasks/done/task_tech_debt_code_quality_frontend_epic_v1.md
+@docs/tasks/done/task_tech_debt_cq_frontend_m01_py_proxy_v1.md
 @docs/tasks/specs/SPEC-tech_debt_code_quality_frontend_modules_v1_zh.md
 @docs/harness/prompts/PROMPT_cursor_task_chain_serial_v1.md
 @docs/standards/CODING_FRONTEND_L2_v1_zh.md

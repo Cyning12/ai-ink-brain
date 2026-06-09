@@ -3,7 +3,7 @@
 | 字段 | 值 |
 |------|-----|
 | task_slug | `tech-debt-cq-frontend-m03-unified-chat` |
-| task | `docs/tasks/active/task_tech_debt_cq_frontend_m03_unified_chat_v1.md` |
+| task | `docs/tasks/done/task_tech_debt_cq_frontend_m03_unified_chat_v1.md` |
 | hat | 40 |
 | git_branch | `task/tech-debt-code-quality-frontend` |
 | freeze_id | `freeze_epic_orchestration_pilot_v1` |
