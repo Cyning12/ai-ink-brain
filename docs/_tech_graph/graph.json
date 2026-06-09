@@ -1182,6 +1182,14 @@
         {
           "path": "lib/auth/admin-cookie.ts",
           "symbol": ""
+        },
+        {
+          "path": "lib/py-service-proxy.ts",
+          "symbol": ""
+        },
+        {
+          "path": "lib/server/forward-py-rag-chat.ts",
+          "symbol": ""
         }
       ],
       "from": "ADMINHOOK",
@@ -1264,12 +1272,82 @@
     },
     {
       "anchors": [],
+      "from": "FRAG",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "PSP",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "PSP",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "P_CHAIN",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
+      "from": "PSP",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "P_CHAT",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
+      "from": "PSP",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "P_HIS",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
+      "from": "PSP",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "P_T2S",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
+      "from": "PSP",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "P_UNI",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
+      "from": "PSP",
+      "graph_id": "11_flow_api",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "P_UNI_SSE",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
       "from": "PY_CHAIN",
       "graph_id": "11_flow_api",
       "label": "",
       "mark": "->",
       "sync": true,
-      "to": "REQ",
+      "to": "PSP",
       "type": "depends_on"
     },
     {
@@ -1289,7 +1367,7 @@
       "label": "",
       "mark": "->",
       "sync": true,
-      "to": "REQ",
+      "to": "PSP",
       "type": "depends_on"
     },
     {
@@ -1299,7 +1377,7 @@
       "label": "",
       "mark": "->",
       "sync": true,
-      "to": "REQ",
+      "to": "PSP",
       "type": "depends_on"
     },
     {
@@ -1309,7 +1387,7 @@
       "label": "",
       "mark": "->",
       "sync": true,
-      "to": "REQ",
+      "to": "PSP",
       "type": "depends_on"
     },
     {
@@ -1319,7 +1397,7 @@
       "label": "",
       "mark": "->",
       "sync": true,
-      "to": "REQ",
+      "to": "PSP",
       "type": "depends_on"
     },
     {
@@ -1342,60 +1420,10 @@
       "from": "REQ",
       "graph_id": "11_flow_api",
       "label": "",
-      "mark": "~>",
-      "sync": false,
-      "to": "P_CHAIN",
-      "type": "async_calls"
-    },
-    {
-      "anchors": [],
-      "from": "REQ",
-      "graph_id": "11_flow_api",
-      "label": "",
-      "mark": "~>",
-      "sync": false,
-      "to": "P_CHAT",
-      "type": "async_calls"
-    },
-    {
-      "anchors": [],
-      "from": "REQ",
-      "graph_id": "11_flow_api",
-      "label": "",
-      "mark": "~>",
-      "sync": false,
-      "to": "P_HIS",
-      "type": "async_calls"
-    },
-    {
-      "anchors": [],
-      "from": "REQ",
-      "graph_id": "11_flow_api",
-      "label": "",
-      "mark": "~>",
-      "sync": false,
-      "to": "P_T2S",
-      "type": "async_calls"
-    },
-    {
-      "anchors": [],
-      "from": "REQ",
-      "graph_id": "11_flow_api",
-      "label": "",
-      "mark": "~>",
-      "sync": false,
-      "to": "P_UNI",
-      "type": "async_calls"
-    },
-    {
-      "anchors": [],
-      "from": "REQ",
-      "graph_id": "11_flow_api",
-      "label": "",
-      "mark": "~>",
-      "sync": false,
-      "to": "P_UNI_SSE",
-      "type": "async_calls"
+      "mark": "->",
+      "sync": true,
+      "to": "FRAG",
+      "type": "depends_on"
     },
     {
       "anchors": [],
@@ -2093,7 +2121,7 @@
     }
   ],
   "freeze_id": "TECH_GRAPH_S2_FREEZE_20260519_V2_3",
-  "generated_at": "2026-06-02T13:38:04Z",
+  "generated_at": "2026-06-09T09:25:44Z",
   "graphs": [
     {
       "id": "00_main",
@@ -2251,6 +2279,11 @@
       "graph_id": "10_flow_route",
       "id": "FILTER",
       "label": "isAdmin?"
+    },
+    {
+      "graph_id": "11_flow_api",
+      "id": "FRAG",
+      "label": "FRAG"
     },
     {
       "graph_id": "00_main",
@@ -2476,6 +2509,11 @@
       "graph_id": "00_main",
       "id": "PROJECTS",
       "label": "/projects"
+    },
+    {
+      "graph_id": "11_flow_api",
+      "id": "PSP",
+      "label": "PSP"
     },
     {
       "graph_id": "00_main",

@@ -1,3 +1,5 @@
+> **状态**：done（P1 task 卫生归档 · 2026-06-09 · 功能已在 main；追溯见各 PR / Epic M01–M06）
+
 # 前端：Intent Hints Step2 — Timeline 路径/仲裁/软超时可观测（v1）
 
 > **状态**：pending  

@@ -47,6 +47,14 @@ flowchart LR
         // → localStorage: blog_admin_token；Unified 仅 X-ChatBI-Access-Token，BFF 不强制 Ink secret
     end
 
+    %% === BFF Forward（M01 py-service-proxy 单点 · F-03/F-05） ===
+    subgraph PROXY[[BFF Forward · lib/]]
+        PSP[[py-service-proxy.ts]]
+        // → lib/py-service-proxy.ts
+        FRAG[[forwardPyRagChat]]
+        // → lib/server/forward-py-rag-chat.ts
+    end
+
     %% === Python 后端 ===
     subgraph PY[[Python FastAPI]]
         P_CHAT[[/api/py/chat]]
@@ -64,16 +72,16 @@ flowchart LR
     UNIFIED --"~>"--> AUTH_UNLOCK --"->"--> COOKIE
 
     %% === RAG Chat ===
-    CP --"fetchChatHistory"--> PY_CHAT_HIS --"->"--> REQ --"~>"--> P_HIS
-    CP --"streamChat"--> PY_CHAT --"->"--> REQ --"~>"--> P_CHAT
+    CP --"fetchChatHistory"--> PY_CHAT_HIS --"->"--> PSP --"~>"--> P_HIS
+    CP --"streamChat"--> PY_CHAT --"->"--> REQ --"->"--> FRAG --"->"--> PSP --"~>"--> P_CHAT
 
     %% === Text2SQL / Chain / Unified ===
-    T2S --"~>"--> PY_T2S --"->"--> REQ --"~>"--> P_T2S
-    CHAIN --"~>"--> PY_CHAIN --"->"--> REQ --"~>"--> P_CHAIN
-    UNIFIED --"~>"--> PY_UNIFIED --"->"--> REQ --"~>"--> P_UNI
+    T2S --"~>"--> PY_T2S --"->"--> PSP --"~>"--> P_T2S
+    CHAIN --"~>"--> PY_CHAIN --"->"--> PSP --"~>"--> P_CHAIN
+    UNIFIED --"~>"--> PY_UNIFIED --"->"--> PSP --"~>"--> P_UNI
 
     %% === Unified SSE ===
-    UNIFIED --"fetch POST + ReadableStream"--> PY_UNIFIED_SSE --"->"--> REQ --"~>"--> P_UNI_SSE
+    UNIFIED --"fetch POST + ReadableStream"--> PY_UNIFIED_SSE --"->"--> PSP --"~>"--> P_UNI_SSE
     %% SSE done.data stable keys（跨仓契约）：ok, mode, run_id, session_id, request_id（v1：request_id == run_id）
 
     %% === Sources 传输 ===
@@ -93,6 +101,7 @@ flowchart LR
     class CP,T2S,CHAIN,UNIFIED,ADMINHOOK client
     class AUTH_SESSION,AUTH_UNLOCK,PY_CHAT,PY_CHAT_HIS,PY_T2S,PY_CHAIN,PY_UNIFIED,PY_UNIFIED_SSE api
     class REQ,COOKIE,BEARER auth
+    class PSP,FRAG api
     class P_CHAT,P_HIS,P_T2S,P_CHAIN,P_UNI,P_UNI_SSE,XS py
 ```
 

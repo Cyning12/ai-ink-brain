@@ -2,12 +2,10 @@
 
 > 说明：本视图只做聚合索引，不改变原任务正文。
 
-## 进行中或待人工验收（implemented）
+## 进行中
 
-- [Unified Chat · V2 RAG 改写 + LLM Prompt 调试](../active/task_frontend_unified_chat_v2_rewrite_llm_prompt_debug_v1.md) — `implemented`
-- [Unified Chat · L6 多轮 transcript](../active/task_frontend_unified_chat_multiturn_transcript_l6.md) — `implemented`（验收勾选待确认）
+- [P1 · 11_flow_api 图谱对齐 + task 文档卫生](../active/task_p1_tech_graph_api_flow_and_task_hygiene_v1.md) — `in_progress` · 分支 `task/p1-tech-graph-flow-and-task-hygiene-v1`
 
-## 待排期 / 草稿 / pending
+## 说明
 
-- [Intent Hints Step2 · Timeline 可观测（前端）](../active/task_frontend_intent_hints_step2_observability_v1.md) — `pending` · 后端 PR #111
-- 其余见 `docs/tasks/active/` 目录内各文件头部 `状态` 字段。
+- 2026-06-09 P1 卫生：原 `active/` 积压 17 份已归档至 `done/` 或 `legacy/`（见 [`done.md`](done.md) 增补节）。

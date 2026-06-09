@@ -1,3 +1,5 @@
+> **状态**：done（P1 task 卫生归档 · 2026-06-09 · 功能已在 main；追溯见各 PR / Epic M01–M06）
+
 # 前端 Task：推荐问法走 API 动态拉取（v1）
 
 > **状态**：in_progress
