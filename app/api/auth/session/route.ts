@@ -3,6 +3,7 @@ import { getAdminApiSecret } from "@/lib/auth/admin-env";
 import { isPortfolioAuthConfigured } from "@/lib/auth/portfolio-env";
 import { parsePortfolioSessionCookie } from "@/lib/auth/portfolio-session";
 import { hasChatbiAdminSession } from "@/lib/auth/require-sync-admin-access";
+import { isPyApiUrlConfigured } from "@/lib/py-service-proxy";
 
 export const runtime = "nodejs";
 
@@ -33,7 +34,7 @@ export async function GET(request: Request): Promise<Response> {
   const configured =
     Boolean(ink) ||
     isPortfolioAuthConfigured() ||
-    Boolean((process.env.PY_API_URL ?? "").trim()) ||
+    isPyApiUrlConfigured() ||
     process.env.NODE_ENV === "development";
 
   return Response.json({
