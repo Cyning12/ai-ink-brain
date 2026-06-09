@@ -83,7 +83,7 @@
 | 类型守卫 | 优先 `typeof` / `in` / Zod（若 task 引入）优于断言 |
 | 导出边界 | `lib/` 对外导出须有显式类型；Route Handler 响应 shape 与后端对齐 |
 
-**ESLint**：`eslint-config-next/typescript`（见 `eslint.config.mjs`）。P3 可增 `@typescript-eslint/no-explicit-any: error`。
+**ESLint**：`eslint-config-next/typescript` + **`@typescript-eslint/no-explicit-any: error`**（`eslint.config.mjs` · P4 · 2026-06-09）。
 
 ### F-09 Server / Client 组件（遵循 B-01、REF-NEXT-DATA）
 
@@ -174,9 +174,10 @@ pnpm build
 
 ---
 
-## 6. 与 L3 的关系（P3 待做）
+## 6. 与 L3 的关系（P3 ✅）
 
-- `.cursor/rules` 或 `AGENTS.md` 增 ≤15 行摘要链至本文件。
+- Cursor 规则：[``.cursor/rules/07-coding-standards-l2.mdc`](../../.cursor/rules/07-coding-standards-l2.mdc)（`globs: **/*.{ts,tsx}` · 短链至本文件）。
+- `AGENTS.md` → `docs/standards/README.md`。
 - **禁止** 在 rules 内复制 F-01～F-14 全文。
 
 ---
@@ -186,3 +187,4 @@ pnpm build
 | 版本 | 日期 | 说明 |
 | --- | --- | --- |
 | v1.0 | 2026-06-09 | P2 初稿：F-01～F-14 + AF 节选 + PR 自检 |
+| v1.1 | 2026-06-09 | P3 `07-coding-standards-l2.mdc`；P4 ESLint `no-explicit-any` |
