@@ -1,7 +1,7 @@
 # Tech-debt M05 · 鉴权与环境变量
 
 > **状态**：`done`  
-> **epic**：[`task_tech_debt_code_quality_frontend_epic_v1.md`](task_tech_debt_code_quality_frontend_epic_v1.md)  
+> **epic**：[`task_tech_debt_code_quality_frontend_epic_v1.md`](../done/task_tech_debt_code_quality_frontend_epic_v1.md)  
 > **module_id**：M05  
 > **depends_on**：M04 `done`  
 > **SPEC**：[`specs/SPEC-tech_debt_code_quality_frontend_modules_v1_zh.md`](specs/SPEC-tech_debt_code_quality_frontend_modules_v1_zh.md)
