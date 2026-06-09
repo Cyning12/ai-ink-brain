@@ -2,7 +2,7 @@
 
 | 字段 | 值 |
 |------|-----|
-| task | `docs/tasks/active/task_tech_debt_code_quality_frontend_epic_v1.md` |
+| task | `docs/tasks/done/task_tech_debt_code_quality_frontend_epic_v1.md` |
 | hat | 00 |
 | git_branch | `task/tech-debt-code-quality-frontend` |
 | date | 2026-06-09 |

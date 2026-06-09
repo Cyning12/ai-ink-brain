@@ -2,7 +2,7 @@
 
 | 字段 | 值 |
 |------|-----|
-| task | `docs/tasks/active/task_tech_debt_code_quality_frontend_epic_v1.md` |
+| task | `docs/tasks/done/task_tech_debt_code_quality_frontend_epic_v1.md` |
 | hat | 00（交接 · 非关账） |
 | git_branch | `task/tech-debt-code-quality-frontend` |
 | m1_tracking | 工作区 `task_harness_m1_epic_orchestration_frontend_pilot_v1.md` |
@@ -13,9 +13,9 @@
 - SPEC v1.0 **active**；模块表无修订
 - **HG-EPIC-SPEC**：`approved`（人签开工 · 2026-06-09）
 - **HG-M1-SIGNOFF**：`pending`（M01～M03 + invoke 链完成后人签）
-- 分支 `task/tech-debt-code-quality-frontend` 已从 `main` 创建；派发见 `docs/tasks/active/PROMPT_AGENT_START_M1_v1_zh.md`
+- 分支 `task/tech-debt-code-quality-frontend` 已从 `main` 创建；派发见 `docs/tasks/done/PROMPT_AGENT_START_M1_v1_zh.md`
 
-## M1 试点进度（待新 Agent 回填）
+## M1 试点进度（已完成 · 2026-06-09）
 
 | 棒 | task | 40 | commit | invoke |
 |----|------|-----|--------|--------|
