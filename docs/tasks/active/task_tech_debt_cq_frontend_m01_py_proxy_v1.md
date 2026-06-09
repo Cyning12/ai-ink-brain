@@ -1,6 +1,6 @@
 # Tech-debt M01 · Python 代理层（py-service-proxy）
 
-> **状态**：draft  
+> **状态**：`in_progress`（M1 首棒 · `HG-EPIC-SPEC` 已 approved）  
 > **epic**：[`task_tech_debt_code_quality_frontend_epic_v1.md`](task_tech_debt_code_quality_frontend_epic_v1.md)  
 > **module_id**：M01  
 > **SPEC**：[`specs/SPEC-tech_debt_code_quality_frontend_modules_v1_zh.md`](specs/SPEC-tech_debt_code_quality_frontend_modules_v1_zh.md)  
