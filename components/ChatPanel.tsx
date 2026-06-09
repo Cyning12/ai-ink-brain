@@ -8,6 +8,7 @@ import rehypeKatex from "rehype-katex";
 
 import type { ChatHistoryRow, ChatMessage } from "@/lib/chat/chatApi";
 import { fetchChatHistory, streamChat } from "@/lib/chat/chatApi";
+import { buildChatbiBearerHeaders } from "@/lib/chat/buildChatAuthHeaders";
 import { useSessionId } from "@/lib/hooks/useSessionId";
 import { SourceCitations } from "@/components/SourceCitations";
 
@@ -113,12 +114,10 @@ export default function ChatPanel(props: ChatPanelProps) {
   const [historyReady, setHistoryReady] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
 
-  const headers: Record<string, string> = useMemo(() => {
-    const t = token.trim();
-    return t
-      ? { Authorization: `Bearer ${t}` }
-      : ({} as Record<string, string>);
-  }, [token]);
+  const headers: Record<string, string> = useMemo(
+    () => buildChatbiBearerHeaders(token),
+    [token],
+  );
 
   const [draft, setDraft] = useState("");
   const [messages, setMessages] = useState<ChatRow[]>([]);

@@ -2,70 +2,41 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import type { ChatHistoryRow } from "@/lib/chat/chatApi";
-import { fetchChatHistory } from "@/lib/chat/chatApi";
-import {
-  readChatbiToken,
-  requestChatbiAccessVerify,
-  writeChatbiToken,
-} from "@/lib/chatbi-client";
-import { useSessionId } from "@/lib/hooks/useSessionId";
 import type { ChainEvent } from "@/components/chain-chat/types";
 import { UnifiedChatExecutionTracePanel } from "@/components/unified-chat/UnifiedChatExecutionTracePanel";
 import { UnifiedChatRouterDebugPanel } from "@/components/unified-chat/UnifiedChatRouterDebugPanel";
 import { UnifiedChatTimelinePanel } from "@/components/unified-chat/UnifiedChatTimelinePanel";
+import { UnifiedChatUnlockPanel } from "@/components/unified-chat/UnifiedChatUnlockPanel";
+import { useSessionId } from "@/lib/hooks/useSessionId";
+import { copyPlainToClipboard } from "@/lib/unified-chat/clipboard";
+import { extractFinalAnswer, extractUserQueryText } from "@/lib/unified-chat/chainEventSelectors";
+import { buildExecutionTraceCopyText } from "@/lib/unified-chat/executionTrace";
+import { useUnifiedChatCredential } from "@/lib/unified-chat/hooks/useUnifiedChatCredential";
+import { useUnifiedChatTranscript } from "@/lib/unified-chat/hooks/useUnifiedChatTranscript";
+import { useTypewriterReveal } from "@/lib/unified-chat/hooks/useTypewriterReveal";
+import { useUnifiedChatStream } from "@/lib/unified-chat/hooks/useUnifiedChatStream";
 import {
   AGENT_PLAN_PREVIEW_TOOL_RAG,
   isValidAgentPlanPreviewPayload,
 } from "@/lib/unified-chat/sse";
-import { copyPlainToClipboard } from "@/lib/unified-chat/clipboard";
-import { extractFinalAnswer, extractUserQueryText } from "@/lib/unified-chat/chainEventSelectors";
-import { buildExecutionTraceCopyText } from "@/lib/unified-chat/executionTrace";
-import { useTypewriterReveal } from "@/lib/unified-chat/hooks/useTypewriterReveal";
-import { useUnifiedChatStream } from "@/lib/unified-chat/hooks/useUnifiedChatStream";
 import { safeStringify } from "@/lib/unified-chat/stringify";
 
 type PreferMode = "auto" | "rag" | "text2sql";
 
-/** 跨轮会话摘要（进入页面时从 GET /api/py/chat/history 恢复，与 session_id 对齐） */
-type TranscriptTurn = { id: string; user: string; assistant: string };
-
-/** 将历史接口的扁平 messages（user/assistant 交替）转为 transcript 轮次 */
-function mapHistoryRowsToTranscript(messages: ChatHistoryRow[] | undefined): TranscriptTurn[] {
-  if (!messages?.length) return [];
-  const out: TranscriptTurn[] = [];
-  let pendingUser = "";
-  for (const m of messages) {
-    if (m.role === "user") {
-      pendingUser = typeof m.content === "string" ? m.content.trim() : "";
-    } else if (m.role === "assistant") {
-      const a = typeof m.content === "string" ? m.content.trim() : "";
-      out.push({
-        id: `hist-${out.length}`,
-        user: pendingUser,
-        assistant: a,
-      });
-      pendingUser = "";
-    }
-  }
-  if (pendingUser) {
-    out.push({
-      id: `hist-pending-${out.length}`,
-      user: pendingUser,
-      assistant: "",
-    });
-  }
-  return out;
-}
-
 export function UnifiedChatPageClient() {
-  const [mounted, setMounted] = useState(false);
-  /** 假登录：仅 ChatBI DB 明文；校验在「解锁」按钮触发 */
-  const [credentialInput, setCredentialInput] = useState("");
-  const [chatbiToken, setChatbiToken] = useState("");
-  const [unlockBusy, setUnlockBusy] = useState(false);
-  const [unlockError, setUnlockError] = useState<string | null>(null);
-  const tokenInputRef = useRef<HTMLInputElement | null>(null);
+  const {
+    mounted,
+    locked,
+    credentialInput,
+    setCredentialInput,
+    setUnlockError,
+    unlockBusy,
+    unlockError,
+    tokenInputRef,
+    headers,
+    handleUnlock,
+  } = useUnifiedChatCredential();
+
   const lastQueryRef = useRef<string>("");
 
   const [prefer, setPrefer] = useState<PreferMode>("auto");
@@ -100,32 +71,19 @@ export function UnifiedChatPageClient() {
 
   const [errorText, setErrorText] = useState<string | null>(null);
   const [finalAnswer, setFinalAnswer] = useState<string>("");
-  const [transcript, setTranscript] = useState<TranscriptTurn[]>([]);
-
-  const locked = !chatbiToken.trim();
-
-  useEffect(() => {
-    setMounted(true);
-    setChatbiToken(readChatbiToken());
-  }, []);
-
-  useEffect(() => {
-    if (mounted && locked) tokenInputRef.current?.focus();
-  }, [mounted, locked]);
-
-  const headers: Record<string, string> = useMemo(() => {
-    const c = chatbiToken.replace(/^bearer\s+/i, "").trim();
-    if (!c) return {} as Record<string, string>;
-    // 与 Python GET verify / Unified 一致：Bearer 明文，经 BFF 原样转上游（或 rewrite 直连 Python）
-    return { Authorization: `Bearer ${c}` };
-  }, [chatbiToken]);
 
   const { sessionId, resetSession } = useSessionId("unified-chat");
   const sessionIdRef = useRef(sessionId);
-  sessionIdRef.current = sessionId;
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+  }, [sessionId]);
 
-  const [historyReady, setHistoryReady] = useState(false);
-  const [historyError, setHistoryError] = useState<string | null>(null);
+  const { transcript, setTranscript, historyReady, historyError } = useUnifiedChatTranscript({
+    mounted,
+    locked,
+    sessionId,
+    headers,
+  });
 
   /** Timeline 卡片：标题栏「全部展开/收起」受控 */
   const [timelineBatchNonce, setTimelineBatchNonce] = useState(0);
@@ -154,6 +112,7 @@ export function UnifiedChatPageClient() {
       sp.set("debug", "1");
     } else {
       sp.delete("debug");
+      setDebugLlmPrompts(false);
     }
     const qs = sp.toString();
     const next = `${window.location.pathname}${qs ? `?${qs}` : ""}${window.location.hash}`;
@@ -178,6 +137,7 @@ export function UnifiedChatPageClient() {
       const ex = rec.expires_in_sec;
       const plannedTopKRaw = rec.planned_top_k;
       const headlinesRaw = rec.preview_headlines;
+      setTtlTick(0);
       setPendingPlanConfirm({
         token,
         boundQuery: boundQuery.trim(),
@@ -206,7 +166,7 @@ export function UnifiedChatPageClient() {
     sessionId,
     prefer,
     debugRouter,
-    debugLlmPrompts,
+    debugLlmPrompts: debugEnabled && debugLlmPrompts,
     headers,
     onError: (error) => {
       if (error.name === "AbortError") return;
@@ -246,52 +206,10 @@ export function UnifiedChatPageClient() {
   const { timelineEvents, messages, queryTextTrace, execSections, activeRequestId, lastDone, events } =
     stream;
 
-  useEffect(() => {
-    if (debugEnabled) return;
-    setDebugLlmPrompts(false);
-  }, [debugEnabled]);
-
-  // 与 ChatPanel 一致：解锁后按 session_id 拉 rag_conversation_logs，刷新/重进页面可恢复摘要
-  useEffect(() => {
-    if (!mounted || locked) {
-      return;
-    }
-
-    const ac = new AbortController();
-    const sidAtStart = sessionId;
-    setHistoryReady(false);
-    setHistoryError(null);
-
-    void (async () => {
-      try {
-        const data = await fetchChatHistory({
-          sessionId: sidAtStart,
-          headers,
-          limit: 100,
-          signal: ac.signal,
-        });
-        if (ac.signal.aborted || sessionIdRef.current !== sidAtStart) return;
-        setTranscript(mapHistoryRowsToTranscript(data.messages));
-      } catch (e) {
-        if (ac.signal.aborted) return;
-        if (e instanceof DOMException && e.name === "AbortError") return;
-        if (sessionIdRef.current !== sidAtStart) return;
-        setHistoryError(e instanceof Error ? e.message : String(e));
-      } finally {
-        if (!ac.signal.aborted && sessionIdRef.current === sidAtStart) {
-          setHistoryReady(true);
-        }
-      }
-    })();
-
-    return () => ac.abort();
-  }, [mounted, locked, sessionId, headers]);
-
   const planPreviewTtlRemainingSec = useMemo(() => {
     if (!pendingPlanConfirm) return null;
     void ttlTick;
-    const elapsed = (Date.now() - pendingPlanConfirm.receivedAtMs) / 1000;
-    return Math.max(0, Math.floor(pendingPlanConfirm.expiresInSec - elapsed));
+    return Math.max(0, Math.floor(pendingPlanConfirm.expiresInSec - ttlTick));
   }, [pendingPlanConfirm, ttlTick]);
 
   /** 浏览器下 setTimeout 返回 number，与 NodeJS.Timeout 区分 */
@@ -402,7 +320,9 @@ export function UnifiedChatPageClient() {
   };
 
   const sendRef = useRef(send);
-  sendRef.current = send;
+  useEffect(() => {
+    sendRef.current = send;
+  });
 
   /** TTL 倒计时 + 过期后自动以同问句无令牌重拉 SSE，刷新 Timeline / 最终输出 */
   useEffect(() => {
@@ -461,71 +381,19 @@ export function UnifiedChatPageClient() {
   return (
     <div className="space-y-4">
       {locked ? (
-        <section className="mx-auto max-w-lg rounded-2xl border border-[color:var(--color-border)] bg-white/40 p-4">
-          <div className="space-y-2">
-            <p className="text-sm leading-relaxed text-slate-700">
-              请输入 <strong>ChatBI DB 明文访问令牌</strong>（
-              <span className="font-mono">chatbi_access_tokens</span>
-              ），点击<strong>解锁</strong>：由 Next BFF 转发 <span className="font-mono">GET /api/py/chatbi/access/verify</span>{" "}
-              到 Python 校验；**不**使用 <span className="font-mono">NEXT_PUBLIC_ADMIN_SECRET</span>
-              。通过后令牌写入 <span className="font-mono">localStorage</span>，后续 Unified / 历史请求均带{" "}
-              <span className="font-mono">Authorization: Bearer &lt;明文&gt;</span>（与 Python 约定一致）。
-            </p>
-            <label className="block text-[11px] text-slate-500">
-              访问令牌（明文）
-              <input
-                ref={tokenInputRef}
-                type="password"
-                value={credentialInput}
-                onChange={(e) => {
-                  setCredentialInput(e.target.value);
-                  setUnlockError(null);
-                }}
-                className="mt-1 w-full rounded-xl border border-[color:var(--color-border)] bg-white/70 px-3 py-2 text-sm text-[#2c2c2c] outline-none focus:border-slate-400"
-                placeholder="解锁后请求带 Authorization: Bearer <明文>"
-                autoComplete="off"
-              />
-            </label>
-            {unlockError ? (
-              <p className="text-[12px] leading-relaxed text-rose-600/90">{unlockError}</p>
-            ) : null}
-            <button
-              type="button"
-              disabled={unlockBusy}
-              onClick={() => {
-                void (async () => {
-                  setUnlockError(null);
-                  const v = credentialInput.trim();
-                  if (!v) {
-                    setUnlockError("请输入 ChatBI 明文 token");
-                    return;
-                  }
-                  const plain = v.replace(/^bearer\s+/i, "").trim();
-                  if (!plain) {
-                    setUnlockError("请输入有效的 ChatBI 明文 token");
-                    return;
-                  }
-                  setUnlockBusy(true);
-                  try {
-                    const gate = await requestChatbiAccessVerify({ plain });
-                    if (!gate.ok) {
-                      setUnlockError(gate.message);
-                      return;
-                    }
-                    writeChatbiToken(plain);
-                    setChatbiToken(plain);
-                    setCredentialInput("");
-                  } finally {
-                    setUnlockBusy(false);
-                  }
-                })();
-              }}
-              className="w-full rounded-xl bg-[#2c2c2c] px-3 py-2 text-sm text-[#f9f9f7] hover:opacity-90 disabled:opacity-50"
-            >
-              {unlockBusy ? "校验中…" : "解锁"}
-            </button>
-          </div>
-        </section>
+        <UnifiedChatUnlockPanel
+          credentialInput={credentialInput}
+          unlockBusy={unlockBusy}
+          unlockError={unlockError}
+          tokenInputRef={tokenInputRef}
+          onCredentialChange={(value) => {
+            setCredentialInput(value);
+            setUnlockError(null);
+          }}
+          onUnlock={() => {
+            void handleUnlock();
+          }}
+        />
       ) : (
         <>
           <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40 px-4 py-3">
