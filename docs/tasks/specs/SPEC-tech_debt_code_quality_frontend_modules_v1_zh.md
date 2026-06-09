@@ -2,7 +2,7 @@
 
 | 项 | 内容 |
 | --- | --- |
-| **状态** | `active` — **00 编排帽 2026-06-09 确认** |
+| **状态** | `active` — **00 编排帽 2026-06-09 确认** · **M1 试点**：M01～M03 签收子集 |
 | **版本** | v1.0 |
 | **日期** | 2026-06-09 |
 | **Epic** | [`task_tech_debt_code_quality_frontend_epic_v1.md`](../active/task_tech_debt_code_quality_frontend_epic_v1.md) |
