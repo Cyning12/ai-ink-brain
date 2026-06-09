@@ -1,7 +1,8 @@
 # Epic · 前端编码规范 tech-debt（L2 对齐 · 分模块链式执行）
 
-> **状态**：draft  
+> **状态**：`in_progress`（**M1 试点** · M01～M03 签收子集）  
 > **epic**：`tech-debt-code-quality-frontend`  
+> **M1 跟踪**：工作区 [`task_harness_m1_epic_orchestration_frontend_pilot_v1.md`](../../../docs/harness/tasks/active/task_harness_m1_epic_orchestration_frontend_pilot_v1.md) · `freeze_epic_orchestration_pilot_v1`  
 > **关联 SPEC**：[`specs/SPEC-tech_debt_code_quality_frontend_modules_v1_zh.md`](specs/SPEC-tech_debt_code_quality_frontend_modules_v1_zh.md)（**00 帽修订真值**）  
 > **关联图谱**：`docs/_tech_graph/11_flow_api.md` · `13_flow_components.md`（按需增量）  
 > **后端依赖**：无  
@@ -16,7 +17,9 @@
 | **task_slug** | `tech-debt-code-quality-frontend` |
 | **test_strategy** | `required` |
 | **code_quality_bar** | `strict` |
-| **freeze_id** | `CODING_FRONTEND_L2@2026-06-09` |
+| **freeze_id** | `CODING_FRONTEND_L2@2026-06-09` · M1：`freeze_epic_orchestration_pilot_v1` |
+| **m1_pilot_scope** | **M01～M03** 串行签收 M1；M04～M06 Epic 延续 |
+| **worktree** | **未使用** — 单分支 `task/tech-debt-code-quality-frontend` 串行；与后端 **不同仓** 可并行 |
 | **orchestration** | `Cursor Task 链` |
 | **chain_prompt** | 工作区 [`PROMPT_cursor_task_chain_serial_v1.md`](../../../docs/harness/prompts/PROMPT_cursor_task_chain_serial_v1.md) |
 | **semi_auto** | `false` |
@@ -34,7 +37,8 @@
 | human_gate_id | status | blocks_hats | 说明 |
 |---------------|--------|-------------|------|
 | HG-EPIC-SPEC | pending | 30-M01 | **00 帽**确认/修订 SPEC 模块表后改 `approved` |
-| HG-PRODUCTION-MERGE | pending | done | Epic 关账 PR merge **production** 前人签 |
+| HG-M1-SIGNOFF | pending | — | M01～M03 + invoke 链完成（见工作区 M1 task） |
+| HG-PRODUCTION-MERGE | pending | done | **全 Epic** M06 后 PR merge **production** 前人签 |
 
 ---
 
@@ -69,7 +73,8 @@
 ## 范围
 
 - [ ] 00 确认/修订 SPEC 模块表并 commit
-- [ ] 串行完成 M01～M06（或 SPEC 修订后的模块列表）
+- [ ] **M1**：M01～M03 串行 + invoke 链（见工作区 M1 task）
+- [ ] **Epic 全量**：M04～M06（可在 M1 签收后继续）
 - [ ] 每模块：L2 对齐 + 自检 + CI 三门禁
 - [ ] Epic 关账 PR → `production` + Required checks 绿
 

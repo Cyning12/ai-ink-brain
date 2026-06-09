@@ -31,6 +31,7 @@
 - **prompts**：`@` 工作区 `Projects/docs/harness/prompts/`（**勿**复制到本仓）  
 - **关账前**：正文须有 **`### KPI（00）`**（节名保留；由 `kpi_aggregator` 填写）  
 - **前端迁移说明**：[`PLAN_frontend_harness_kpi_migration_v1_zh.md`](../../../docs/harness/guides/PLAN_frontend_harness_kpi_migration_v1_zh.md)
+- **编码规范 L2（改代码 task 必填）**：[`../standards/CODING_FRONTEND_L2_v1_zh.md`](../standards/CODING_FRONTEND_L2_v1_zh.md) · L1 工作区 [`CODING_BASELINE_L1`](../../../docs/standards/CODING_BASELINE_L1_v1_zh.md) · **写 task 读序** 通用 [`GUIDANCE_task_coding_standards_v1_zh.md`](../../../docs/harness/guides/GUIDANCE_task_coding_standards_v1_zh.md) · 前端 [`GUIDANCE_frontend_task_coding_l2_v1_zh.md`](../../../docs/harness/guides/GUIDANCE_frontend_task_coding_l2_v1_zh.md)
 
 ### 人工闸 `human_gate`（涉契约 / 跨仓时建议）
 
@@ -63,10 +64,22 @@
 
 | 依赖项 | 路径/说明 |
 |--------|-----------|
+| **编码规范 L2** | `docs/standards/CODING_FRONTEND_L2_v1_zh.md`（F-01～F-14；AF-01～AF-06） |
+| **编码规范 L1** | 工作区 `docs/standards/CODING_BASELINE_L1_v1_zh.md` |
 | PROJECT_CONFIG | `docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md` |
-| BFF API | `app/api/py/xxx/route.ts` |
+| BFF API | `app/api/py/xxx/route.ts`（**F-03/F-05**：经 `lib/py-service-proxy`） |
 | Python API | `POST /api/py/xxx`（后端提供）|
 | 图谱文件 | `docs/_tech_graph/xx_xxx.md` |
+
+---
+
+## 给执行帽的必读列表
+
+- `AGENTS.md`
+- `docs/standards/CODING_FRONTEND_L2_v1_zh.md`（按本 task 范围勾选 F-xx，见 L2 §4 PR 自检）
+- `docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md`
+- `docs/_tech_graph/11_flow_api.ai.md`（若改 BFF / 代理）
+- 实现样例：`lib/py-service-proxy.ts`（新/改 `app/api/py/*` 时）
 
 ---
 
@@ -75,6 +88,8 @@
 - [ ] <验收项 1>
 - [ ] <验收项 2>
 - [ ] <验收项 3>
+- [ ] **L2**：合并前 `pnpm lint` → `pnpm test` → `pnpm build` 全绿（F-14）
+- [ ] **L2**：无新增 `any`；新/改 BFF 经 `lib/py-service-proxy`（F-03, F-05, AF-01）
 
 ---
 
