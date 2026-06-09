@@ -164,7 +164,7 @@
 
 执行 Harness、`docs/tasks/active/*.md` 或用户 `@task` 时：
 
-1. **入口**：[`docs/harness/README.md`](docs/harness/README.md) · [`docs/tasks/README.md`](docs/tasks/README.md)
+1. **入口**：[`docs/harness/README.md`](docs/harness/README.md) · [`docs/tasks/README.md`](docs/tasks/README.md) · [`docs/standards/README.md`](docs/standards/README.md)（L2 编码规范）
 2. **prompts**：工作区 `Projects/docs/harness/prompts/`（`templates/` · `hats/` · `handoff/`）— **禁止**复制到本仓
 3. **落盘**：invoke → `docs/harness/invokes/by-task/<task_slug>/`；22 → `docs/harness/reviews/`；50 → `docs/tasks/reinspect_results/`
 4. **新建 task**：必填 `test_strategy`、`kpi_rubric: KPI_RUBRIC_v1_2`、`kpi_aggregator`（默认 **CLOSE**）、关账前 **`### KPI（00）`** — 见 [`docs/tasks/templates/TASK_TEMPLATE.md`](docs/tasks/templates/TASK_TEMPLATE.md)
@@ -172,6 +172,28 @@
 6. **跨子仓 Harness task**：Open **`Projects/`**，读 `docs/harness/tasks/`；遵守工作区 `05-harness-workspace.mdc`
 
 链式常模见工作区 [`GUIDANCE_epic_orchestration_task_chain_v1_zh.md`](../docs/harness/guides/GUIDANCE_epic_orchestration_task_chain_v1_zh.md)；后端 SPEC [`SPEC-Governance-Harness-Chain-Orchestration-v1.md`](../ai-ink-brain-api-python/docs/spec/governance/SPEC-Governance-Harness-Chain-Orchestration-v1.md)。
+
+---
+
+## Coding Standards L2
+
+> 编码规范 L2 — TypeScript/Next/BFF；链工作区 L1 与仓内 F-01～F-14
+
+# 编码规范 L2（Ink 前端）
+
+> 真值：[`docs/standards/CODING_FRONTEND_L2_v1_zh.md`](docs/standards/CODING_FRONTEND_L2_v1_zh.md) · L1 工作区 [`docs/standards/CODING_BASELINE_L1_v1_zh.md`](../../../docs/standards/CODING_BASELINE_L1_v1_zh.md)
+
+改 `app/`、`components/`、`lib/` 时遵守：
+
+1. **类型**：`strict`；**禁止** 新增 `any`（ESLint `@typescript-eslint/no-explicit-any` · F-08）。
+2. **配置**：`PY_API_URL` / 密钥 **仅** 经 `PROJECT_CONFIG` + `lib/py-service-proxy`（F-03）；禁止硬编码 API 基址。
+3. **边界**：Route Handler **薄**；默认 Server Component；`'use client'` 仅交互叶子（F-09）。
+4. **结构**：早 return 压嵌套；≥3 处重复抽 `lib/`（F-02、F-11）。
+5. **合并前**：`pnpm lint` → `pnpm test` → `pnpm build`（F-14）；对照 L1 §4 + L2 §4 PR 自检。
+
+冲突时：**task + 图谱 + PROJECT_CONFIG** > L2 > L1。
+
+规则文件：[`07-coding-standards-l2.mdc`](.cursor/rules/07-coding-standards-l2.mdc)。
 
 ---
 

@@ -1,0 +1,19 @@
+---
+description: 编码规范 L2 — TypeScript/Next/BFF；链工作区 L1 与仓内 F-01～F-14
+globs: **/*.{ts,tsx}
+alwaysApply: false
+---
+
+# 编码规范 L2（Ink 前端）
+
+> 真值：[`docs/standards/CODING_FRONTEND_L2_v1_zh.md`](docs/standards/CODING_FRONTEND_L2_v1_zh.md) · L1 工作区 [`docs/standards/CODING_BASELINE_L1_v1_zh.md`](../../../docs/standards/CODING_BASELINE_L1_v1_zh.md)
+
+改 `app/`、`components/`、`lib/` 时遵守：
+
+1. **类型**：`strict`；**禁止** 新增 `any`（ESLint `@typescript-eslint/no-explicit-any` · F-08）。
+2. **配置**：`PY_API_URL` / 密钥 **仅** 经 `PROJECT_CONFIG` + `lib/py-service-proxy`（F-03）；禁止硬编码 API 基址。
+3. **边界**：Route Handler **薄**；默认 Server Component；`'use client'` 仅交互叶子（F-09）。
+4. **结构**：早 return 压嵌套；≥3 处重复抽 `lib/`（F-02、F-11）。
+5. **合并前**：`pnpm lint` → `pnpm test` → `pnpm build`（F-14）；对照 L1 §4 + L2 §4 PR 自检。
+
+冲突时：**task + 图谱 + PROJECT_CONFIG** > L2 > L1。
