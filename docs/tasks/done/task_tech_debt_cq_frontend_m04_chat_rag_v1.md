@@ -1,6 +1,6 @@
 # Tech-debt M04 · Chat / RAG 页面栈
 
-> **状态**：draft  
+> **状态**：`done`  
 > **epic**：[`task_tech_debt_code_quality_frontend_epic_v1.md`](task_tech_debt_code_quality_frontend_epic_v1.md)  
 > **module_id**：M04  
 > **depends_on**：M03 `done`  
@@ -41,12 +41,12 @@
 
 ## 验收标准（10 帽细化）
 
-- [ ] **F-11**：ChatPanel 与 chatApi 间 auth header / fetch 逻辑无 ≥2 处重复（已抽 `lib/chat/`）
-- [ ] **F-09**：`app/chat/page.tsx`（若存在）为 Server Component 包裹 Client 叶子
-- [ ] **F-01**：`ChatPanel.tsx` 若仍 >500 行，task 内 **明示例外** + 偿还子项（ChainEventCard 留 M06）
-- [ ] **F-08**：无新增 `any`
-- [ ] `pnpm lint` → `pnpm test` → `pnpm build` 绿
-- [ ] commit + 链式 **M05**
+- [x] **F-11**：ChatPanel 与 chatApi 间 auth header / fetch 逻辑无 ≥2 处重复（已抽 `lib/chat/buildChatAuthHeaders.ts`）
+- [x] **F-09**：`app/chat/page.tsx` 为 Server Component 包裹 Client 叶子（无 `'use client'`）
+- [x] **F-01**：`ChatPanel.tsx` 555 行 — **明示例外**：Epic 阶段 1 保留单文件；ChainEventCard 偿还留 M06
+- [x] **F-08**：无新增 `any`
+- [x] `pnpm lint` → `pnpm test` → `pnpm build` 绿
+- [x] commit + 链式 **M05**
 
 ## 失败路径
 
@@ -58,8 +58,15 @@
 
 | 项 | 内容 |
 |----|------|
-| 涉及文件 | |
+| 涉及文件 | `lib/chat/buildChatAuthHeaders.ts`、`components/ChatPanel.tsx`、`app/chat/page.tsx` |
 
 ## ### 自检结论（执行者）
 
-（40 帽回填）
+| 命令 | cwd | 退出码 | 摘要 |
+|------|-----|--------|------|
+| `rg buildChatbiBearerHeaders components/ChatPanel.tsx` | `ai-ink-brain` | 0 | 经 `lib/chat/buildChatAuthHeaders` |
+| `head app/chat/page.tsx` | — | — | 无 `'use client'` |
+| `wc -l ChatPanel.tsx` | — | — | 555（例外已记） |
+| 三门禁 | `ai-ink-brain` | 0 | lint/test/build 全绿 |
+
+**Judgment**：hat_self **pass**

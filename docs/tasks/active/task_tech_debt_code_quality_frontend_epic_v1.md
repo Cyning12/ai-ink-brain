@@ -1,6 +1,6 @@
 # Epic · 前端编码规范 tech-debt（L2 对齐 · 分模块链式执行）
 
-> **状态**：`in_progress`（**M1 试点** · M01～M03 签收子集）  
+> **状态**：`in_progress`（M01～M06 **done** · 待 PR + **HG-PRODUCTION-MERGE**）  
 > **epic**：`tech-debt-code-quality-frontend`  
 > **M1 跟踪**：工作区 [`task_harness_m1_epic_orchestration_frontend_pilot_v1.md`](../../../docs/harness/tasks/active/task_harness_m1_epic_orchestration_frontend_pilot_v1.md) · `freeze_epic_orchestration_pilot_v1`  
 > **关联 SPEC**：[`specs/SPEC-tech_debt_code_quality_frontend_modules_v1_zh.md`](specs/SPEC-tech_debt_code_quality_frontend_modules_v1_zh.md)（**00 帽修订真值**）  
@@ -73,8 +73,8 @@
 ## 范围
 
 - [ ] 00 确认/修订 SPEC 模块表并 commit
-- [x] **M1**：M01～M03 串行 + invoke 链（见工作区 M1 task）
-- [ ] **Epic 全量**：M04～M06（可在 M1 签收后继续）
+- [x] **M1**：M01～M03 串行 + invoke 链（见工作区 M1 task · **HG-M1-SIGNOFF** approved）
+- [x] **Epic 全量**：M04～M06（M06 40 pass · task 已归档）
 - [ ] 每模块：L2 对齐 + 自检 + CI 三门禁
 - [ ] Epic 关账 PR → `production` + Required checks 绿
 
@@ -102,7 +102,7 @@
 ## 验收标准（Epic）
 
 - [ ] SPEC 状态 `active` 或 Epic 关账时注明修订版本
-- [ ] M01～M06（或修订后全集）均为 `done` 且已 `git mv` 至 `docs/tasks/done/`
+- [x] M01～M06（或修订后全集）均为 `done` 且已 `git mv` 至 `docs/tasks/done/`
 - [ ] PR **`production` ← `task/tech-debt-code-quality-frontend`** 已开；`lint-and-build` 绿
 - [ ] **未** merge 至 `main`
 - [ ] `HG-PRODUCTION-MERGE` 人签

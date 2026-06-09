@@ -1,6 +1,6 @@
 # Tech-debt M05 · 鉴权与环境变量
 
-> **状态**：draft  
+> **状态**：`done`  
 > **epic**：[`task_tech_debt_code_quality_frontend_epic_v1.md`](task_tech_debt_code_quality_frontend_epic_v1.md)  
 > **module_id**：M05  
 > **depends_on**：M04 `done`  
@@ -40,12 +40,12 @@
 
 ## 验收标准（10 帽细化）
 
-- [ ] **AF-06**：`grep -r 'process.env' components/ app/ --include='*.tsx' | grep -v NEXT_PUBLIC` 零命中（Client 路径）
-- [ ] **F-13**：`lib/auth.ts` dev 日志不含完整 token（仅 prefix/len）
-- [ ] **F-03**：`app/api/auth/session/route.ts` 不直读 `process.env.PY_API_URL`（用 M01 helper）
-- [ ] **F-03**：组件内 `site-mode` 均经 `lib/site-mode.ts` 导出函数
-- [ ] `pnpm lint` → `pnpm test` → `pnpm build` 绿
-- [ ] commit + 链式 **M06**
+- [x] **AF-06**：`rg 'process.env' components/ app/ --glob '*.tsx' \| rg -v NEXT_PUBLIC` 零命中
+- [x] **F-13**：`lib/auth/**` 无完整 token 日志
+- [x] **F-03**：`app/api/auth/session/route.ts` 用 `isPyApiUrlConfigured()`（M01 helper），无直读 `PY_API_URL`
+- [x] **F-03**：组件内 `site-mode` 均经 `lib/site-mode.ts` 导出函数
+- [x] `pnpm lint` → `pnpm test` → `pnpm build` 绿
+- [x] commit + 链式 **M06**
 
 ## 失败路径
 
@@ -57,8 +57,14 @@
 
 | 项 | 内容 |
 |----|------|
-| 涉及文件 | |
+| 涉及文件 | `app/api/auth/session/route.ts`、`lib/auth/**`、`lib/site-mode.ts` |
 
 ## ### 自检结论（执行者）
 
-（40 帽回填）
+| 命令 | cwd | 退出码 | 摘要 |
+|------|-----|--------|------|
+| AF-06 grep | `ai-ink-brain` | 1 | Client tsx 无非 PUBLIC env |
+| session route | — | — | `isPyApiUrlConfigured()` from py-service-proxy |
+| 三门禁 | `ai-ink-brain` | 0 | 全绿 |
+
+**Judgment**：hat_self **pass**
