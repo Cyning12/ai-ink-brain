@@ -1,3 +1,5 @@
+> **状态**：done（P1 task 卫生归档 · 2026-06-09 · 功能已在 main；追溯见各 PR / Epic M01–M06）
+
 # 前端：Chain Chat UI（v1）— 时间线展示工具调用 + SQL/图表
 
 状态：pending  

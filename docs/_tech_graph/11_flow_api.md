@@ -27,6 +27,11 @@ flowchart LR
     BEARER["Ink admin（非 Unified）/ cookie\nUnified：仅 X-ChatBI-Access-Token → Python Bearer"]:::s
   end
 
+  subgraph PROXY["BFF Forward（py-service-proxy 单点）"]
+    PSP["lib/py-service-proxy.ts\nbuildPyApiUrl · forwardToPyApi* · buildChatbiAuthHeaders"]:::a
+    FRAG["lib/server/forward-py-rag-chat.ts\nRAG x-sources · UND_ERR_HEADERS_OVERFLOW"]:::a
+  end
+
   subgraph PY[Python FastAPI (PY_API_URL)]
     P_CHAT["/api/py/chat (stream text/plain)"]:::p
     P_HIS["/api/py/chat/history (json)"]:::p
@@ -43,16 +48,16 @@ flowchart LR
   UNIFIED --> AUTH_UNLOCK --> COOKIE
 
   %% RAG chat (stream) + history
-  CP -->|fetchChatHistory| PY_CHAT_HIS --> REQ --> P_HIS
-  CP -->|streamChat| PY_CHAT --> REQ --> P_CHAT
+  CP -->|fetchChatHistory| PY_CHAT_HIS --> PSP --> P_HIS
+  CP -->|streamChat| PY_CHAT --> REQ --> FRAG --> PSP --> P_CHAT
 
   %% Text2SQL / Chain / Unified JSON
-  T2S --> PY_T2S --> REQ --> P_T2S
-  CHAIN --> PY_CHAIN --> REQ --> P_CHAIN
-  UNIFIED --> PY_UNIFIED --> REQ --> P_UNI
+  T2S --> PY_T2S --> PSP --> P_T2S
+  CHAIN --> PY_CHAIN --> PSP --> P_CHAIN
+  UNIFIED --> PY_UNIFIED --> PSP --> P_UNI
 
   %% Unified SSE (preferred)
-  UNIFIED -->|fetch POST + ReadableStream| PY_UNIFIED_SSE --> REQ --> P_UNI_SSE
+  UNIFIED -->|fetch POST + ReadableStream| PY_UNIFIED_SSE --> PSP --> P_UNI_SSE
   %% SSE done.data stable keys（cross-repo contract）：ok, mode, run_id, session_id, request_id（v1：request_id == run_id）
 
   %% sources transport（RAG）

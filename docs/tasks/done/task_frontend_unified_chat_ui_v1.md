@@ -1,3 +1,5 @@
+> **状态**：done（P1 task 卫生归档 · 2026-06-09 · 功能已在 main；追溯见各 PR / Epic M01–M06）
+
 # 前端：Unified Chat UI（v1）— 融合 RAG + Text2SQL + Chain Timeline
 
 > **状态**：pending  

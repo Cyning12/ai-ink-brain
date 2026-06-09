@@ -1,3 +1,5 @@
+> **状态**：done（P1 task 卫生归档 · 2026-06-09 · 功能已在 main；追溯见各 PR / Epic M01–M06）
+
 # 前端：Intent Router 可视化（v1）— Unified Chat 展示 mode 与 why
 
 状态：pending  

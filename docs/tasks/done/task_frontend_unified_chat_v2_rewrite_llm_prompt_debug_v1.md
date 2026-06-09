@@ -1,3 +1,5 @@
+> **状态**：done（P1 task 卫生归档 · 2026-06-09 · 功能已在 main；追溯见各 PR / Epic M01–M06）
+
 # 前端任务：Unified Chat — V2 RAG 改写链路与 LLM Prompt 调试展示
 
 > **状态**：`implemented`（合并前人工勾选验收）  

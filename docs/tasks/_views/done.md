@@ -25,3 +25,14 @@
 - `../done/task_engineering_tech_graph_v2_ci_equivalence_v1.md` — 2026-05-21 验收通过
 - `../done/task_engineering_tech_graph_frontend_manifest_v1.md` — 2026-05-21 验收通过
 - `../done/task_frontend_vercel_ai_sdk_main_stream_v1.md` — 2026-05-21 验收通过（PR1+PR2+PR3 全合并）
+
+## P1 卫生归档（2026-06-09）
+
+> 自 `active/` 迁入；功能已在 main（PR #52–#56 · Epic #64/#65 等）。
+
+- `../done/task_frontend_intent_hints_step2_observability_v1.md` — PR #54
+- `../done/task_frontend_suggested_questions_api_v1.md` — PR #55
+- `../done/task_frontend_unified_chat_*` · `task_frontend_chain_chat_*` 等 — 见 `done/` 目录
+- `../legacy/task_03_hybrid_search_backend_frontend_contract.md` — 契约说明
+- `../legacy/task_04_source_citations_backend_frontend.md` — 契约说明
+- `../specs/RETRO-tech_debt_frontend_before_after_v1_zh.md` — tech-debt 规整复盘

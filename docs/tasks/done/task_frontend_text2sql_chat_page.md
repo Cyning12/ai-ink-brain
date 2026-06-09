@@ -1,3 +1,5 @@
+> **状态**：done（P1 task 卫生归档 · 2026-06-09 · 功能已在 main；追溯见各 PR / Epic M01–M06）
+
 # 前端：新增 Text2SQL 专用聊天页面（复用现有 Chat，仅替换接口）
 
 状态：pending  
