@@ -12,6 +12,8 @@
 
 **L3**：[`.cursor/rules/07-coding-standards-l2.mdc`](../../.cursor/rules/07-coding-standards-l2.mdc) · **P4**：`eslint.config.mjs` → `no-explicit-any: error`
 
+**写 task 读序**：通用 [`GUIDANCE_task_coding_standards_v1_zh.md`](../../../docs/harness/guides/GUIDANCE_task_coding_standards_v1_zh.md) · 本栈 [`GUIDANCE_frontend_task_coding_l2_v1_zh.md`](../../../docs/harness/guides/GUIDANCE_frontend_task_coding_l2_v1_zh.md)
+
 **入口**：[`AGENTS.md`](../../AGENTS.md) · [`docs/meta/PROJECT_CONFIG_AI_INK_BRAIN.md`](../meta/PROJECT_CONFIG_AI_INK_BRAIN.md)
 
 ---

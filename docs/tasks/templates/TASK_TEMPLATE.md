@@ -31,7 +31,7 @@
 - **prompts**：`@` 工作区 `Projects/docs/harness/prompts/`（**勿**复制到本仓）  
 - **关账前**：正文须有 **`### KPI（00）`**（节名保留；由 `kpi_aggregator` 填写）  
 - **前端迁移说明**：[`PLAN_frontend_harness_kpi_migration_v1_zh.md`](../../../docs/harness/guides/PLAN_frontend_harness_kpi_migration_v1_zh.md)
-- **编码规范 L2（改代码 task 必填）**：[`../standards/CODING_FRONTEND_L2_v1_zh.md`](../standards/CODING_FRONTEND_L2_v1_zh.md) · L1 工作区 [`CODING_BASELINE_L1`](../../../docs/standards/CODING_BASELINE_L1_v1_zh.md) · **写 task 读序** 工作区 [`GUIDANCE_frontend_task_coding_l2_v1_zh.md`](../../../docs/harness/guides/GUIDANCE_frontend_task_coding_l2_v1_zh.md)
+- **编码规范 L2（改代码 task 必填）**：[`../standards/CODING_FRONTEND_L2_v1_zh.md`](../standards/CODING_FRONTEND_L2_v1_zh.md) · L1 工作区 [`CODING_BASELINE_L1`](../../../docs/standards/CODING_BASELINE_L1_v1_zh.md) · **写 task 读序** 通用 [`GUIDANCE_task_coding_standards_v1_zh.md`](../../../docs/harness/guides/GUIDANCE_task_coding_standards_v1_zh.md) · 前端 [`GUIDANCE_frontend_task_coding_l2_v1_zh.md`](../../../docs/harness/guides/GUIDANCE_frontend_task_coding_l2_v1_zh.md)
 
 ### 人工闸 `human_gate`（涉契约 / 跨仓时建议）
 
