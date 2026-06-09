@@ -27,3 +27,12 @@
 
 - 历史 invoke `invoke_20260609_00_orchestrator.md` 记录全 Epic M01～M06；**M1 试点签收**以本表 M01～M03 为准。
 - Epic 关账 PR → `production` 与 `HG-PRODUCTION-MERGE` 不阻塞 M1 签收。
+
+| M04 | m04_chat_rag | pass | PR #64 | `invoke_20260609_40_m04_chat_rag.md` |
+| M05 | m05_auth_env | pass | PR #64 | `invoke_20260609_40_m05_auth_env.md` |
+| M06 | m06_components_misc | pass | PR #64/#65 | `invoke_20260609_40_m06_components_misc.md` |
+
+## Epic 关账
+
+- PR #64 → production · #65 → main
+- Epic task → `docs/tasks/done/task_tech_debt_code_quality_frontend_epic_v1.md`

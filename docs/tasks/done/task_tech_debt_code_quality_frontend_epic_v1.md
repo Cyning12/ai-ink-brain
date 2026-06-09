@@ -1,6 +1,6 @@
 # Epic · 前端编码规范 tech-debt（L2 对齐 · 分模块链式执行）
 
-> **状态**：`in_progress`（M01～M06 **done** · 待 PR + **HG-PRODUCTION-MERGE**）  
+> **状态**：`done`（M01～M06 · PR #64→production · #65→main · 2026-06-09）  
 > **epic**：`tech-debt-code-quality-frontend`  
 > **M1 跟踪**：工作区 [`task_harness_m1_epic_orchestration_frontend_pilot_v1.md`](../../../docs/harness/tasks/active/task_harness_m1_epic_orchestration_frontend_pilot_v1.md) · `freeze_epic_orchestration_pilot_v1`  
 > **关联 SPEC**：[`specs/SPEC-tech_debt_code_quality_frontend_modules_v1_zh.md`](specs/SPEC-tech_debt_code_quality_frontend_modules_v1_zh.md)（**00 帽修订真值**）  
@@ -38,7 +38,7 @@
 |---------------|--------|-------------|------|
 | HG-EPIC-SPEC | approved | 30-M01 | **00 帽** SPEC 已确认（2026-06-09 **人签开工**） |
 | HG-M1-SIGNOFF | approved | — | M01～M03 + invoke 链完成（2026-06-09 **人签**） |
-| HG-PRODUCTION-MERGE | pending | done | **全 Epic** M06 后 PR merge **production** 前人签 |
+| HG-PRODUCTION-MERGE | approved | — | PR #64→production · #65→main（2026-06-09 **人签 merge**） |
 
 ---
 
@@ -54,12 +54,12 @@
 
 | slug | module | depends_on | 开工闸门 | task 路径 |
 |------|--------|------------|----------|-----------|
-| M01 | py-proxy | Epic SPEC ✅ | HG-EPIC-SPEC | [`task_tech_debt_cq_frontend_m01_py_proxy_v1.md`](task_tech_debt_cq_frontend_m01_py_proxy_v1.md) |
-| M02 | bff-routes | M01 | 上一模块 40 pass | [`task_tech_debt_cq_frontend_m02_bff_routes_v1.md`](task_tech_debt_cq_frontend_m02_bff_routes_v1.md) |
-| M03 | unified-chat | M02 | 上一模块 40 pass | [`task_tech_debt_cq_frontend_m03_unified_chat_v1.md`](task_tech_debt_cq_frontend_m03_unified_chat_v1.md) |
-| M04 | chat-rag | M03 | 上一模块 40 pass | [`task_tech_debt_cq_frontend_m04_chat_rag_v1.md`](task_tech_debt_cq_frontend_m04_chat_rag_v1.md) |
-| M05 | auth-env | M04 | 上一模块 40 pass | [`task_tech_debt_cq_frontend_m05_auth_env_v1.md`](task_tech_debt_cq_frontend_m05_auth_env_v1.md) |
-| M06 | components-misc | M05 | 上一模块 40 pass | [`task_tech_debt_cq_frontend_m06_components_misc_v1.md`](task_tech_debt_cq_frontend_m06_components_misc_v1.md) |
+| M01 | py-proxy | Epic SPEC ✅ | HG-EPIC-SPEC | [`../done/task_tech_debt_cq_frontend_m01_py_proxy_v1.md`](../done/task_tech_debt_cq_frontend_m01_py_proxy_v1.md) |
+| M02 | bff-routes | M01 | 上一模块 40 pass | [`../done/task_tech_debt_cq_frontend_m02_bff_routes_v1.md`](../done/task_tech_debt_cq_frontend_m02_bff_routes_v1.md) |
+| M03 | unified-chat | M02 | 上一模块 40 pass | [`../done/task_tech_debt_cq_frontend_m03_unified_chat_v1.md`](../done/task_tech_debt_cq_frontend_m03_unified_chat_v1.md) |
+| M04 | chat-rag | M03 | 上一模块 40 pass | [`../done/task_tech_debt_cq_frontend_m04_chat_rag_v1.md`](../done/task_tech_debt_cq_frontend_m04_chat_rag_v1.md) |
+| M05 | auth-env | M04 | 上一模块 40 pass | [`../done/task_tech_debt_cq_frontend_m05_auth_env_v1.md`](../done/task_tech_debt_cq_frontend_m05_auth_env_v1.md) |
+| M06 | components-misc | M05 | 上一模块 40 pass | [`../done/task_tech_debt_cq_frontend_m06_components_misc_v1.md`](../done/task_tech_debt_cq_frontend_m06_components_misc_v1.md) |
 
 ### 编排入口（00）
 
@@ -72,11 +72,11 @@
 
 ## 范围
 
-- [ ] 00 确认/修订 SPEC 模块表并 commit
+- [x] 00 确认/修订 SPEC 模块表并 commit
 - [x] **M1**：M01～M03 串行 + invoke 链（见工作区 M1 task · **HG-M1-SIGNOFF** approved）
-- [x] **Epic 全量**：M04～M06（M06 40 pass · task 已归档）
-- [ ] 每模块：L2 对齐 + 自检 + CI 三门禁
-- [ ] Epic 关账 PR → `production` + Required checks 绿
+- [x] **Epic 全量**：M04～M06（40 pass · invoke · 已归档 `docs/tasks/done/`）
+- [x] 每模块：L2 对齐 + 自检 + CI 三门禁
+- [x] Epic 关账 PR → `production` + Required checks 绿（PR #64）
 
 ## 非范围
 
@@ -101,11 +101,11 @@
 
 ## 验收标准（Epic）
 
-- [ ] SPEC 状态 `active` 或 Epic 关账时注明修订版本
+- [x] SPEC 状态 `active` 或 Epic 关账时注明修订版本
 - [x] M01～M06（或修订后全集）均为 `done` 且已 `git mv` 至 `docs/tasks/done/`
-- [x] PR **`production` ← `task/tech-debt-code-quality-frontend`** 已开；`lint-and-build` 绿 — https://github.com/Cyning12/ai-ink-brain/pull/64
-- [ ] **未** merge 至 `main`
-- [ ] `HG-PRODUCTION-MERGE` 人签
+- [x] PR **`production` ← `task/tech-debt-code-quality-frontend`** — https://github.com/Cyning12/ai-ink-brain/pull/64（merged）
+- [x] **`main` ← `production`** — https://github.com/Cyning12/ai-ink-brain/pull/65（merged · 2026-06-09）
+- [x] `HG-PRODUCTION-MERGE` 人签
 
 ---
 
@@ -147,3 +147,4 @@
 | 日期 | 说明 |
 |------|------|
 | 2026-06-09 | M1 试点 scope；`HG-EPIC-SPEC` 人签开工；任务分支就绪 |
+| 2026-06-09 | M04～M06 续跑 40 pass；PR #64/#65 merge；Epic **done** |

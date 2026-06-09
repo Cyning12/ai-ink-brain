@@ -1,7 +1,7 @@
 # Tech-debt M04 · Chat / RAG 页面栈
 
 > **状态**：`done`  
-> **epic**：[`task_tech_debt_code_quality_frontend_epic_v1.md`](task_tech_debt_code_quality_frontend_epic_v1.md)  
+> **epic**：[`task_tech_debt_code_quality_frontend_epic_v1.md`](../done/task_tech_debt_code_quality_frontend_epic_v1.md)  
 > **module_id**：M04  
 > **depends_on**：M03 `done`  
 > **SPEC**：[`specs/SPEC-tech_debt_code_quality_frontend_modules_v1_zh.md`](specs/SPEC-tech_debt_code_quality_frontend_modules_v1_zh.md)

@@ -1,7 +1,7 @@
 # Tech-debt M06 · 其余组件与工具（Epic 末棒）
 
 > **状态**：`done`  
-> **epic**：[`task_tech_debt_code_quality_frontend_epic_v1.md`](task_tech_debt_code_quality_frontend_epic_v1.md)  
+> **epic**：[`task_tech_debt_code_quality_frontend_epic_v1.md`](../done/task_tech_debt_code_quality_frontend_epic_v1.md)  
 > **module_id**：M06  
 > **depends_on**：M05 `done`  
 > **SPEC**：[`specs/SPEC-tech_debt_code_quality_frontend_modules_v1_zh.md`](specs/SPEC-tech_debt_code_quality_frontend_modules_v1_zh.md)
@@ -51,7 +51,7 @@
 - [x] `pnpm lint` → `pnpm test` → `pnpm build` 绿
 - [x] M01～M06 task `git mv` 至 `docs/tasks/done/`
 - [x] 开 PR：`production` ← `task/tech-debt-code-quality-frontend`（**禁止** merge `main`）
-- [ ] 等人签 Epic `HG-PRODUCTION-MERGE` 后再 merge
+- [x] `HG-PRODUCTION-MERGE` approved · PR #64/#65 merged（2026-06-09）
 
 ## 失败路径
 
