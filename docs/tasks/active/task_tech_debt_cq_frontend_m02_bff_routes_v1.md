@@ -1,6 +1,6 @@
 # Tech-debt M02 · BFF Route Handlers（app/api/py）
 
-> **状态**：draft  
+> **状态**：`done`  
 > **epic**：[`task_tech_debt_code_quality_frontend_epic_v1.md`](task_tech_debt_code_quality_frontend_epic_v1.md)  
 > **module_id**：M02  
 > **depends_on**：M01 `done`  
@@ -47,13 +47,13 @@
 
 ## 验收标准（10 帽细化）
 
-- [ ] **AF-01**：`grep -r 'process.env.PY_API_URL\|127\.0\.0\.1:8000\|await fetch' app/api/py/` 零命中（route 内无直连 fetch / 无 env 读取）
-- [ ] **F-01**：各 `route.ts` ≤80 行；`chat/route.ts` 业务在 `lib/server/`
-- [ ] **F-02**：含 `requireAdminApiSecret` 的 route 鉴权置于函数顶部早 return
-- [ ] **F-05**：RAG chat 保留 `UND_ERR_HEADERS_OVERFLOW` 502 与 x-sources 透传语义
-- [ ] **F-08**：无新增 `any`
-- [ ] `pnpm lint` → `pnpm test` → `pnpm build` 绿
-- [ ] commit + 链式 **M03**
+- [x] **AF-01**：`grep -r 'process.env.PY_API_URL\|127\.0\.0\.1:8000\|await fetch' app/api/py/` 零命中（route 内无直连 fetch / 无 env 读取）
+- [x] **F-01**：各 `route.ts` ≤80 行；`chat/route.ts` 业务在 `lib/server/`
+- [x] **F-02**：含 `requireAdminApiSecret` 的 route 鉴权置于函数顶部早 return
+- [x] **F-05**：RAG chat 保留 `UND_ERR_HEADERS_OVERFLOW` 502 与 x-sources 透传语义
+- [x] **F-08**：无新增 `any`
+- [x] `pnpm lint` → `pnpm test` → `pnpm build` 绿
+- [x] commit + 链式 **M03**
 
 ## 失败路径
 
@@ -69,4 +69,10 @@
 
 ## ### 自检结论（执行者）
 
-（40 帽回填）
+| 命令 | cwd | 退出码 | 摘要 |
+|------|-----|--------|------|
+| `rg 'process.env.PY_API_URL\|127.0.0.1:8000\|await fetch' app/api/py/` | `ai-ink-brain` | 1 | 零命中（exit 1 = no match） |
+| route 行数 | — | — | 最大 33 行（chatbi/access/verify）；chat 14 行 |
+| `pnpm lint` / `test` / `build` | `ai-ink-brain` | 0 | 全绿 |
+
+**Judgment**：hat_self **pass**

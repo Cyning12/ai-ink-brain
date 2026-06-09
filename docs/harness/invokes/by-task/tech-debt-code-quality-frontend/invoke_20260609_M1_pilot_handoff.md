@@ -19,9 +19,9 @@
 
 | 棒 | task | 40 | commit | invoke |
 |----|------|-----|--------|--------|
-| M01 | m01_py_proxy | pending | — | — |
-| M02 | m02_bff_routes | pending | — | — |
-| M03 | m03_unified_chat | pending | — | — |
+| M01 | m01_py_proxy | pass | 见本 branch | `invoke_20260609_40_m01_py_proxy.md` |
+| M02 | m02_bff_routes | pass | 见本 branch | `invoke_20260609_40_m02_bff_routes.md` |
+| M03 | m03_unified_chat | pass | 见本 branch M03 commit | `invoke_20260609_40_m03_unified_chat.md` |
 
 ## 备注
 

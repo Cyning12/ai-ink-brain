@@ -73,7 +73,7 @@
 ## 范围
 
 - [ ] 00 确认/修订 SPEC 模块表并 commit
-- [ ] **M1**：M01～M03 串行 + invoke 链（见工作区 M1 task）
+- [x] **M1**：M01～M03 串行 + invoke 链（见工作区 M1 task）
 - [ ] **Epic 全量**：M04～M06（可在 M1 签收后继续）
 - [ ] 每模块：L2 对齐 + 自检 + CI 三门禁
 - [ ] Epic 关账 PR → `production` + Required checks 绿

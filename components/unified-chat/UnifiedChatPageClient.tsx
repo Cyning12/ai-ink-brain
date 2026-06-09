@@ -14,10 +14,14 @@ import { useSessionId } from "@/lib/hooks/useSessionId";
 import { isPortfolioMode } from "@/lib/site-mode";
 import type { ChainEvent } from "@/components/chain-chat/types";
 import { UnifiedChatExecutionTracePanel } from "@/components/unified-chat/UnifiedChatExecutionTracePanel";
+import {
+  UnifiedChatPlanPreviewPanel,
+  type PendingPlanConfirmState,
+} from "@/components/unified-chat/UnifiedChatPlanPreviewPanel";
 import { UnifiedChatRouterDebugPanel } from "@/components/unified-chat/UnifiedChatRouterDebugPanel";
 import { UnifiedChatTimelinePanel } from "@/components/unified-chat/UnifiedChatTimelinePanel";
+import { UnifiedChatUnlockSection } from "@/components/unified-chat/UnifiedChatUnlockSection";
 import {
-  AGENT_PLAN_PREVIEW_TOOL_RAG,
   isValidAgentPlanPreviewPayload,
 } from "@/lib/unified-chat/sse";
 import { copyPlainToClipboard } from "@/lib/unified-chat/clipboard";
@@ -32,7 +36,6 @@ import { useUnifiedChatTranscript } from "@/lib/unified-chat/hooks/useUnifiedCha
 import { safeStringify } from "@/lib/unified-chat/stringify";
 import { useSuggestedQuestions } from "@/lib/unified-chat/hooks/useSuggestedQuestions";
 import { Text2SqlDemoGuidePanel } from "@/components/unified-chat/Text2SqlDemoGuidePanel";
-import { PORTFOLIO_ALL_DEMO_CHIPS } from "@/lib/unified-chat/portfolio-demo-chips";
 import {
   portfolioDebugUrlAllowed,
   portfolioRouterDebugVisible,
@@ -44,11 +47,9 @@ type PreferMode = "auto" | "rag" | "text2sql";
 
 export function UnifiedChatPageClient() {
   const [mounted, setMounted] = useState(false);
-  /** 假登录：仅 ChatBI DB 明文；校验在「解锁」按钮触发 */
   const [credentialInput, setCredentialInput] = useState("");
   const [chatbiToken, setChatbiToken] = useState("");
   const [accessLevel, setAccessLevel] = useState<number | null>(null);
-  /** re-verify 失败时 portfolio 保守 visitor，可选提示（F5） */
   const [tierUnknownHint, setTierUnknownHint] = useState(false);
   const [unlockBusy, setUnlockBusy] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
@@ -60,21 +61,6 @@ export function UnifiedChatPageClient() {
   /** 与后端 `debug_llm_prompts` / `CHATBI_V2_DEBUG_LLM_PROMPTS` 对齐；仅建议在 ?debug=1 下开启 */
   const [debugLlmPrompts, setDebugLlmPrompts] = useState(false);
   const [draft, setDraft] = useState("");
-  /** 低置信预览：与首轮 user 问句、session 绑定的放行令牌（见 manifest `agent.plan.preview`） */
-  type PendingPlanConfirmState = {
-    token: string;
-    boundQuery: string;
-    sessionId: string;
-    expiresInSec: number;
-    receivedAtMs: number;
-    sqlDraft: string;
-    rewriteQuery: string;
-    plannedTopK: number | null;
-    previewHeadlines: string[];
-    warnings: unknown[];
-    planId: string;
-    tool: string;
-  };
   const [pendingPlanConfirm, setPendingPlanConfirm] = useState<PendingPlanConfirmState | null>(null);
   /** TTL 倒计时：每秒 tick，以后端校验为准 */
   const [ttlTick, setTtlTick] = useState(0);
@@ -98,7 +84,6 @@ export function UnifiedChatPageClient() {
 
   const portfolio = isPortfolioMode();
 
-  /** portfolio / development 均以 ChatBI 明文 token + Python verify 解锁（对话/历史/SSE 同源） */
   const locked = !chatbiToken.trim();
 
   useEffect(() => {
@@ -107,7 +92,6 @@ export function UnifiedChatPageClient() {
     setAccessLevel(readChatbiAccessLevel());
   }, []);
 
-  /** token 在 LS 但 level 缺失时静默 re-verify（10 帽定稿） */
   useEffect(() => {
     if (!mounted) return;
     const token = readChatbiToken().trim();
@@ -527,97 +511,23 @@ export function UnifiedChatPageClient() {
       ) : null}
 
       {pendingPlanConfirm ? (
-        <div className="space-y-2 rounded-xl border border-indigo-300/70 bg-indigo-50/50 px-3 py-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="text-[12px] font-semibold text-indigo-950">
-              {pendingPlanConfirm.tool === AGENT_PLAN_PREVIEW_TOOL_RAG
-                ? "低置信 · 预览 RAG 方案已就绪"
-                : "低置信 · 预览 SQL 已就绪"}
-            </div>
-            {planPreviewTtlRemainingSec != null ? (
-              <span className="rounded-full border border-indigo-400/40 bg-white/80 px-2 py-0.5 font-mono text-[10px] text-indigo-900">
-                约 {planPreviewTtlRemainingSec}s 后过期
-              </span>
-            ) : null}
-          </div>
-          <p className="text-[11px] leading-relaxed text-slate-700">
-            须使用与预览时相同的 <span className="font-mono">query</span> 与{" "}
-            <span className="font-mono">session_id</span>。若修改输入框中的问题并点击「发送」，将丢弃本令牌。令牌过期后将自动以同问句重新请求（不带令牌）。
-          </p>
-          {planPreviewTtlRemainingSec === 0 && !loading ? (
-            <p className="text-[11px] font-medium text-amber-900/90">令牌已过期，正在自动重新请求…</p>
-          ) : null}
-          {pendingPlanConfirm.tool === AGENT_PLAN_PREVIEW_TOOL_RAG ? (
-            <div className="space-y-2 text-[11px] text-slate-800">
-              <div>
-                <div className="text-[10px] font-medium text-indigo-900/90">改写检索 query</div>
-                <div className="mt-1 max-h-[20vh] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-indigo-200/80 bg-white/70 px-2 py-2 font-mono text-[11px] leading-relaxed text-slate-900">
-                  {pendingPlanConfirm.rewriteQuery.trim()
-                    ? pendingPlanConfirm.rewriteQuery
-                    : "（预览不可用：缺少 rewrite_query）"}
-                </div>
-              </div>
-              {pendingPlanConfirm.plannedTopK != null ? (
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[10px] text-slate-500">计划条数 top_k</span>
-                  <span className="font-mono text-slate-900">{pendingPlanConfirm.plannedTopK}</span>
-                </div>
-              ) : null}
-              {pendingPlanConfirm.previewHeadlines.length > 0 ? (
-                <div>
-                  <div className="text-[10px] font-medium text-slate-600">标题级摘要</div>
-                  <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[12px] leading-relaxed text-slate-900">
-                    {pendingPlanConfirm.previewHeadlines.map((h, hi) => (
-                      <li key={hi}>{h}</li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-            </div>
-          ) : (
-            <div className="max-h-[28vh] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-indigo-200/80 bg-white/70 px-2 py-2 font-mono text-[11px] text-slate-900">
-              {pendingPlanConfirm.sqlDraft.trim() ? pendingPlanConfirm.sqlDraft : "（无 sql_draft）"}
-            </div>
-          )}
-          {pendingPlanConfirm.warnings.length > 0 ? (
-            <ul className="list-disc space-y-1 pl-4 text-[11px] text-slate-800">
-              {pendingPlanConfirm.warnings.map((w, wi) => (
-                <li key={wi}>{typeof w === "string" ? w : safeStringify(w)}</li>
-              ))}
-            </ul>
-          ) : null}
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              disabled={
-                loading ||
-                sessionId !== pendingPlanConfirm.sessionId ||
-                planPreviewTtlRemainingSec === 0
-              }
-              onClick={() => {
-                setDraft(pendingPlanConfirm.boundQuery);
-                void send(pendingPlanConfirm.boundQuery, {
-                  planExecutionToken: pendingPlanConfirm.token,
-                });
-              }}
-              className="rounded-xl bg-indigo-700 px-4 py-2 text-sm text-white hover:bg-indigo-800 disabled:opacity-40"
-            >
-              按预览执行
-            </button>
-            <button
-              type="button"
-              disabled={loading}
-              onClick={() => {
-                const q = pendingPlanConfirm.boundQuery.trim();
-                setPendingPlanConfirm(null);
-                if (q) void send(q);
-              }}
-              className="rounded-xl border border-[color:var(--color-border)] bg-white/70 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-40"
-            >
-              取消（丢弃令牌）
-            </button>
-          </div>
-        </div>
+        <UnifiedChatPlanPreviewPanel
+          pending={pendingPlanConfirm}
+          planPreviewTtlRemainingSec={planPreviewTtlRemainingSec}
+          loading={loading}
+          sessionId={sessionId}
+          onExecuteWithToken={() => {
+            setDraft(pendingPlanConfirm.boundQuery);
+            void send(pendingPlanConfirm.boundQuery, {
+              planExecutionToken: pendingPlanConfirm.token,
+            });
+          }}
+          onCancelAndResend={() => {
+            const q = pendingPlanConfirm.boundQuery.trim();
+            setPendingPlanConfirm(null);
+            if (q) void send(q);
+          }}
+        />
       ) : null}
 
       <textarea
@@ -706,123 +616,48 @@ export function UnifiedChatPageClient() {
     <div className="space-y-4">
       <Text2SqlDemoGuidePanel />
       {locked ? (
-        <section className="mx-auto max-w-lg rounded-2xl border border-[color:var(--color-border)] bg-white/40 p-4">
-          <div className="space-y-2">
-            <p className="text-sm leading-relaxed text-slate-700">
-              {portfolio ? (
-                <>
-                  RAG 对话需 <strong>邮件申请临时访问令牌</strong>（
-                  <a
-                    href="mailto:231127227@qq.com"
-                    className="underline underline-offset-2"
-                  >
-                    231127227@qq.com
-                  </a>
-                  ）。邮件将返回带有效期的 ChatBI 明文 token；在此输入并解锁后，对话与历史请求均走
-                  Python 校验。
-                </>
-              ) : (
-                <>
-                  请输入 <strong>ChatBI DB 明文访问令牌</strong>（
-                  <span className="font-mono">chatbi_access_tokens</span>
-                  ），点击<strong>解锁</strong>：由 Next BFF 转发{" "}
-                  <span className="font-mono">GET /api/py/chatbi/access/verify</span>{" "}
-                  到 Python 校验；**不**使用{" "}
-                  <span className="font-mono">NEXT_PUBLIC_ADMIN_SECRET</span>
-                  。
-                </>
-              )}
-              通过后令牌写入 <span className="font-mono">localStorage</span>，后续对话与历史请求均带{" "}
-              <span className="font-mono">Authorization: Bearer &lt;明文&gt;</span>。
-            </p>
-            <label className="block text-[11px] text-slate-500">
-              {portfolio ? "演示访问令牌（明文）" : "访问令牌（明文）"}
-              <input
-                ref={tokenInputRef}
-                type="password"
-                value={credentialInput}
-                onChange={(e) => {
-                  setCredentialInput(e.target.value);
-                  setUnlockError(null);
-                }}
-                className="mt-1 w-full rounded-xl border border-[color:var(--color-border)] bg-white/70 px-3 py-2 text-sm text-[#2c2c2c] outline-none focus:border-slate-400"
-                placeholder={
-                  portfolio
-                    ? "邮件收到的 ChatBI 明文 token"
-                    : "解锁后请求带 Authorization: Bearer <明文>"
+        <UnifiedChatUnlockSection
+          portfolio={portfolio}
+          credentialInput={credentialInput}
+          onCredentialChange={setCredentialInput}
+          unlockError={unlockError}
+          onClearUnlockError={() => setUnlockError(null)}
+          unlockBusy={unlockBusy}
+          onUnlock={() => {
+            void (async () => {
+              setUnlockError(null);
+              const v = credentialInput.trim();
+              if (!v) {
+                setUnlockError("请输入 ChatBI 明文 token");
+                return;
+              }
+              setUnlockBusy(true);
+              try {
+                const plain = v.replace(/^bearer\s+/i, "").trim();
+                if (!plain) {
+                  setUnlockError("请输入有效的 ChatBI 明文 token");
+                  return;
                 }
-                autoComplete="off"
-              />
-            </label>
-            {unlockError ? (
-              <p className="text-[12px] leading-relaxed text-rose-600/90">{unlockError}</p>
-            ) : null}
-            <button
-              type="button"
-              disabled={unlockBusy}
-              onClick={() => {
-                void (async () => {
-                  setUnlockError(null);
-                  const v = credentialInput.trim();
-                  if (!v) {
-                    setUnlockError("请输入 ChatBI 明文 token");
-                    return;
-                  }
-                  setUnlockBusy(true);
-                  try {
-                    const plain = v.replace(/^bearer\s+/i, "").trim();
-                    if (!plain) {
-                      setUnlockError("请输入有效的 ChatBI 明文 token");
-                      return;
-                    }
-                    const gate = await requestChatbiAccessVerify({ plain });
-                    if (!gate.ok) {
-                      setUnlockError(gate.message);
-                      return;
-                    }
-                    writeChatbiToken(plain);
-                    writeChatbiAccessLevel(gate.access_level);
-                    setChatbiToken(plain);
-                    setAccessLevel(gate.access_level);
-                    setTierUnknownHint(false);
-                    setCredentialInput("");
-                  } finally {
-                    setUnlockBusy(false);
-                  }
-                })();
-              }}
-              className="w-full rounded-xl bg-[#2c2c2c] px-3 py-2 text-sm text-[#f9f9f7] hover:opacity-90 disabled:opacity-50"
-            >
-              {unlockBusy ? "校验中…" : "解锁"}
-            </button>
-            {portfolio ? (
-              <div className="space-y-2 border-t border-[color:var(--color-border)] pt-3">
-                <div className="text-[11px] text-slate-500">推荐问法（解锁后可发送）</div>
-                <div className="flex flex-wrap gap-2">
-                  {PORTFOLIO_ALL_DEMO_CHIPS.map((chip) => (
-                    <button
-                      key={chip.id}
-                      type="button"
-                      onClick={() => setDraft(chip.label)}
-                      className="rounded-full border border-[color:var(--color-border)] bg-[#f9f9f7] px-3 py-1.5 text-[11px] text-slate-700 hover:bg-white/70"
-                    >
-                      {chip.label}
-                    </button>
-                  ))}
-                </div>
-                {draft.trim() ? (
-                  <textarea
-                    readOnly
-                    value={draft}
-                    rows={2}
-                    className="w-full resize-none rounded-xl border border-dashed border-[color:var(--color-border)] bg-white/50 px-3 py-2 text-sm text-slate-600"
-                    placeholder="点击上方 chip 可预览问题…"
-                  />
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-        </section>
+                const gate = await requestChatbiAccessVerify({ plain });
+                if (!gate.ok) {
+                  setUnlockError(gate.message);
+                  return;
+                }
+                writeChatbiToken(plain);
+                writeChatbiAccessLevel(gate.access_level);
+                setChatbiToken(plain);
+                setAccessLevel(gate.access_level);
+                setTierUnknownHint(false);
+                setCredentialInput("");
+              } finally {
+                setUnlockBusy(false);
+              }
+            })();
+          }}
+          tokenInputRef={tokenInputRef}
+          draft={draft}
+          onDraftChange={setDraft}
+        />
       ) : (
         <>
           {portfolio && tierUnknownHint ? (
