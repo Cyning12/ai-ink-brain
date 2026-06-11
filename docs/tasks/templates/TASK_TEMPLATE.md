@@ -101,6 +101,46 @@
 
 ---
 
+## 思考轮次（高复杂度 / orchestration 含 rethink 时 · 10 帽预置）
+
+> **何时启用**：`audit_profile: full`、跨仓契约、或 10 帽判定需多轮方案对比时。简单 task **可删本节**。  
+> **真值**：工作区 [`docs/harness/prompts/10-requirements.md`](../../../docs/harness/prompts/10-requirements.md) §思考轮 · [`22-task-audit.md`](../../../docs/harness/prompts/22-task-audit.md)（22 可 **退回 10** 补思考）。
+
+### 思考轮控制（Agent 填 · 22 审）
+
+| 字段 | 值 |
+|------|-----|
+| **actual_last_round** | `R5` / `R3` / … |
+| **early_stop** | `no` / `yes` |
+| **early_stop_reason** | （`early_stop=yes` **必填**） |
+| **residual_risks** | `none` 或逐条（**必填**） |
+
+### R0 · 读 task / 图谱 / 非范围
+
+**回填区：** `（待填）`
+
+### R1 · 代码事实
+
+**回填区：** `（待填）`
+
+### R2 · 方案对比
+
+**回填区：** `（待填）`
+
+### R3 · 边界 / 测试 / 交互验收
+
+**回填区：** `（待填）`
+
+### R4 · 测试与 PR / Preview 策略
+
+**回填区：** `（待填）`
+
+### R5 · 图谱增量 + 关账判断
+
+**回填区：** `（待填）`
+
+---
+
 ## 实现备忘（由子 Agent 回填）
 
 | 项 | 内容 |

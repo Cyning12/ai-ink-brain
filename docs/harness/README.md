@@ -13,6 +13,7 @@
 | 本仓 Harness 索引 | 本文件 |
 | 写 / 审 task | `docs/tasks/templates/TASK_TEMPLATE.md` · `docs/tasks/README.md` |
 | 帽子 / 模板 / HANDOFF | 工作区 `Projects/docs/harness/prompts/`（`@` 或 Open `Projects/`） |
+| **10/22 · 思考轮 R0–R5** | 工作区 `10-requirements` v1.5 · `22-task-audit` v1.8；高复杂度 task 见 [`docs/tasks/templates/TASK_TEMPLATE.md`](../tasks/templates/TASK_TEMPLATE.md) §思考轮次 |
 | KPI 评分 | 工作区 [`docs/harness/guides/KPI_RUBRIC_v1_2.md`](../../../docs/harness/guides/KPI_RUBRIC_v1_2.md) |
 | 字段细则 | 工作区 [`docs/harness/HARNESS_V2_PLAN.md`](../../../docs/harness/HARNESS_V2_PLAN.md) §5.7–§5.8 |
 | 帽序 | 工作区 [`docs/harness/SDD_HAT_FLOW.md`](../../../docs/harness/SDD_HAT_FLOW.md) |
