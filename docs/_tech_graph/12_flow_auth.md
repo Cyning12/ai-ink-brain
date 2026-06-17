@@ -1,63 +1,127 @@
+---
+graph_id: 12_flow_auth
+version: 
+generated_at: 2026-06-17T11:36:25Z
+source: docs/_tech_graph/12_flow_auth.graph.yaml
+---
+
+# 12_flow_auth
+
+## Mermaid
+
 ```mermaid
 flowchart TD
-  %% 12_flow_auth: 登录、权限、Session、Bearer（以真实代码为准）
+    API_PY[API_PY]
+    API_SESSION[API_SESSION]
+    API_UNLOCK[API_UNLOCK]
+    DENY[Unauthorized]
+    ENV[ENV]
+    LS[LS]
+    PARSE[PARSE]
+    PFENV[PFENV]
+    PFSESS[PFSESS]
+    SESSION_UI[SESSION_UI]
+    TOKEN[TOKEN]
+    TSE[TSE]
+    UNLOCK_UI[UNLOCK_UI]
+    UPSTREAM[(Python FastAPI)]
+    VALIDATE[VALIDATE]
 
-  subgraph UI[Client/UI]
-    LS["localStorage: blog_admin_token\n(components/ChatPanel.tsx,\ncomponents/unified-chat/UnifiedChatPageClient.tsx)"]:::c
-    TOKEN["Authorization: Bearer <token>"]:::c
-    UNLOCK_UI["输入 secret -> POST /api/auth/unlock"]:::c
-    SESSION_UI["useAdminSession() -> GET /api/auth/session"]:::c
-  end
+    API_PY --> REQ
+    API_SESSION --> COOKIE
+    // → lib/auth/admin-cookie.ts
+    API_SESSION --> ENV
+    API_SESSION --> PFSESS
+    // → lib/auth/portfolio-session.ts
+    API_UNLOCK --> ENV
+    API_UNLOCK --"[secret]"--> PFENV
+    // → lib/auth/portfolio-env.ts
+    COOKIE --"Set-Cookie HttpOnly"--> SESSION_UI
+    ENV --"[Ink secret configured]"--> TSE
+    LS --> TOKEN
+    PARSE --> TSE
+    PFENV --"[visitor|visitor-admin]"--> PFSESS
+    // → lib/auth/portfolio-session.ts
+    PFSESS --"Set-Cookie HttpOnly"--> SESSION_UI
+    // → lib/hooks/useAdminSession.ts
+    REQ --"[401]"--> DENY
+    // → lib/auth.ts
+    REQ --"[pass]"--> UPSTREAM
+    // → PY_API_URL
+    REQ --> VALIDATE
+    SESSION_UI --"~>"--> API_SESSION
+    TOKEN --> API_PY
+    // → app/api/py/**/route.ts
+    TSE --"[ok]"--> COOKIE
+    TSE --"[match]"--> ENV
+    // → lib/auth/parse-admin-token.ts
+    UNLOCK_UI --"~>"--> API_UNLOCK
+    // → components/ChatPanel.tsx
+    // → app/api/auth/unlock/route.ts
+    // → app/api/auth/session/route.ts
+    // → app/api/py/**/route.ts
+    // → lib/auth/admin-env.ts
+    // → lib/auth/portfolio-env.ts
+    // → lib/auth/portfolio-session.ts
+    // → lib/auth/parse-admin-token.ts
+    // → lib/auth/admin-cookie.ts
+    // → lib/auth.ts
+    // → lib/auth.ts
+    // → node:crypto
+    VALIDATE --"[cookie ok]"--> COOKIE
+    // → lib/auth/admin-cookie.ts
+    VALIDATE --"[else]"--> PARSE
 
-  subgraph NEXT[Next Route Handlers]
-    API_UNLOCK["POST /api/auth/unlock\napp/api/auth/unlock/route.ts"]:::a
-    API_SESSION["GET /api/auth/session\napp/api/auth/session/route.ts"]:::a
-    API_PY["/api/py/*\n(app/api/py/**/route.ts)"]:::a
-  end
-
-  subgraph AUTH[Auth Core]
-    ENV["getAdminApiSecret()\nlib/auth/admin-env.ts"]:::s
-    PFENV["matchPortfolioSecret()\nlib/auth/portfolio-env.ts"]:::s
-    PFSESS["portfolio_visitor_session\nlib/auth/portfolio-session.ts"]:::s
-    PARSE["getAdminTokenFromRequest()\nlib/auth/parse-admin-token.ts"]:::s
-    COOKIE["ADMIN_SESSION_COOKIE\nlib/auth/admin-cookie.ts"]:::s
-    VALIDATE["validateAdmin(request)\nlib/auth.ts"]:::s
-    REQ["requireAdminApiSecret(request)\nlib/auth.ts"]:::s
-    TSE["timingSafeEqual()\nnode:crypto"]:::s
-  end
-
-  %% unlock cookie mint（portfolio 优先 · W3）
-  UNLOCK_UI --> API_UNLOCK
-  API_UNLOCK -->|secret| PFENV
-  PFENV -->|visitor / visitor-admin| PFSESS
-  PFSESS -->|Set-Cookie HttpOnly| SESSION_UI
-  API_UNLOCK --> ENV
-  ENV -->|Ink secret| TSE
-  TSE -->|ok| COOKIE
-  COOKIE -->|Set-Cookie HttpOnly| SESSION_UI
-
-  %% session check
-  SESSION_UI --> API_SESSION
-  API_SESSION --> PFSESS
-  API_SESSION --> ENV
-  API_SESSION --> COOKIE
-
-  %% bearer path (token in header)
-  LS --> TOKEN --> API_PY
-
-  %% request gate
-  API_PY --> REQ --> VALIDATE
-  VALIDATE -->|cookie ok| COOKIE
-  VALIDATE -->|else| PARSE --> TSE -->|match| ENV
-
-  %% outcome
-  REQ -->|401| DENY[Unauthorized]:::e
-  REQ -->|pass| UPSTREAM[(Python FastAPI: PY_API_URL)]:::p
-
-  classDef c fill:#f9f9f7,stroke:#999,color:#222;
-  classDef a fill:#eef6ff,stroke:#4a90e2,color:#123;
-  classDef s fill:#fff7e6,stroke:#d89b00,color:#553;
-  classDef p fill:#f3f0ff,stroke:#7b61ff,color:#221;
-  classDef e fill:#ffecec,stroke:#d33,color:#611;
+    classDef phase fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef doc fill:#fff8e1,stroke:#ff6f00,stroke-width:1px
+    classDef infra fill:#e8f5e9,stroke:#2e7d32,stroke-width:1px
 ```
 
+## Structured Data
+
+### Nodes
+
+| ID | Label | Kind |
+|----|-------|------|
+| API_PY | API_PY |  |
+| API_SESSION | API_SESSION |  |
+| API_UNLOCK | API_UNLOCK |  |
+| DENY | Unauthorized |  |
+| ENV | ENV |  |
+| LS | LS |  |
+| PARSE | PARSE |  |
+| PFENV | PFENV |  |
+| PFSESS | PFSESS |  |
+| SESSION_UI | SESSION_UI |  |
+| TOKEN | TOKEN |  |
+| TSE | TSE |  |
+| UNLOCK_UI | UNLOCK_UI |  |
+| UPSTREAM | (Python FastAPI) |  |
+| VALIDATE | VALIDATE |  |
+
+### Edges
+
+| From | To | Mark | Type | Label | Anchors |
+|------|----|------|------|-------|---------|
+| API_PY | REQ | -> | depends_on |  |  |
+| API_SESSION | COOKIE | -> | depends_on |  | 1 anchor(s) |
+| API_SESSION | ENV | -> | depends_on |  |  |
+| API_SESSION | PFSESS | -> | depends_on |  | 1 anchor(s) |
+| API_UNLOCK | ENV | -> | depends_on |  |  |
+| API_UNLOCK | PFENV | [secret] | depends_on |  | 1 anchor(s) |
+| COOKIE | SESSION_UI | -> | depends_on | Set-Cookie HttpOnly |  |
+| ENV | TSE | [Ink secret configured] | depends_on |  |  |
+| LS | TOKEN | -> | depends_on |  |  |
+| PARSE | TSE | -> | depends_on |  |  |
+| PFENV | PFSESS | [visitor|visitor-admin] | depends_on |  | 1 anchor(s) |
+| PFSESS | SESSION_UI | -> | depends_on | Set-Cookie HttpOnly | 1 anchor(s) |
+| REQ | DENY | [401] | depends_on |  | 1 anchor(s) |
+| REQ | UPSTREAM | [pass] | depends_on |  | 1 anchor(s) |
+| REQ | VALIDATE | -> | depends_on |  |  |
+| SESSION_UI | API_SESSION | ~> | async_calls |  |  |
+| TOKEN | API_PY | -> | depends_on |  | 1 anchor(s) |
+| TSE | COOKIE | [ok] | depends_on |  |  |
+| TSE | ENV | [match] | depends_on |  | 1 anchor(s) |
+| UNLOCK_UI | API_UNLOCK | ~> | async_calls |  | 12 anchor(s) |
+| VALIDATE | COOKIE | [cookie ok] | depends_on |  | 1 anchor(s) |
+| VALIDATE | PARSE | [else] | depends_on |  |  |

@@ -1,0 +1,214 @@
+graph_id: 12_flow_auth
+title: 12_flow_auth
+description: ''
+direction: TD
+nodes:
+- id: API_PY
+  label: API_PY
+- id: API_SESSION
+  label: API_SESSION
+- id: API_UNLOCK
+  label: API_UNLOCK
+- id: DENY
+  label: Unauthorized
+- id: ENV
+  label: ENV
+- id: LS
+  label: LS
+- id: PARSE
+  label: PARSE
+- id: PFENV
+  label: PFENV
+- id: PFSESS
+  label: PFSESS
+- id: SESSION_UI
+  label: SESSION_UI
+- id: TOKEN
+  label: TOKEN
+- id: TSE
+  label: TSE
+- id: UNLOCK_UI
+  label: UNLOCK_UI
+- id: UPSTREAM
+  label: (Python FastAPI)
+- id: VALIDATE
+  label: VALIDATE
+edges:
+- anchors: []
+  from: API_PY
+  label: ''
+  mark: ->
+  to: REQ
+  type: depends_on
+- anchors:
+  - path: lib/auth/admin-cookie.ts
+    symbol: ''
+  from: API_SESSION
+  label: ''
+  mark: ->
+  to: COOKIE
+  type: depends_on
+- anchors: []
+  from: API_SESSION
+  label: ''
+  mark: ->
+  to: ENV
+  type: depends_on
+- anchors:
+  - path: lib/auth/portfolio-session.ts
+    symbol: ''
+  from: API_SESSION
+  label: ''
+  mark: ->
+  to: PFSESS
+  type: depends_on
+- anchors: []
+  from: API_UNLOCK
+  label: ''
+  mark: ->
+  to: ENV
+  type: depends_on
+- anchors:
+  - path: lib/auth/portfolio-env.ts
+    symbol: ''
+  from: API_UNLOCK
+  label: ''
+  mark: '[secret]'
+  to: PFENV
+  type: depends_on
+- anchors: []
+  from: COOKIE
+  label: Set-Cookie HttpOnly
+  mark: ->
+  to: SESSION_UI
+  type: depends_on
+- anchors: []
+  from: ENV
+  label: ''
+  mark: '[Ink secret configured]'
+  to: TSE
+  type: depends_on
+- anchors: []
+  from: LS
+  label: ''
+  mark: ->
+  to: TOKEN
+  type: depends_on
+- anchors: []
+  from: PARSE
+  label: ''
+  mark: ->
+  to: TSE
+  type: depends_on
+- anchors:
+  - path: lib/auth/portfolio-session.ts
+    symbol: ''
+  from: PFENV
+  label: ''
+  mark: '[visitor|visitor-admin]'
+  to: PFSESS
+  type: depends_on
+- anchors:
+  - path: lib/hooks/useAdminSession.ts
+    symbol: ''
+  from: PFSESS
+  label: Set-Cookie HttpOnly
+  mark: ->
+  to: SESSION_UI
+  type: depends_on
+- anchors:
+  - path: lib/auth.ts
+    symbol: ''
+  from: REQ
+  label: ''
+  mark: '[401]'
+  to: DENY
+  type: depends_on
+- anchors:
+  - path: PY_API_URL
+    symbol: ''
+  from: REQ
+  label: ''
+  mark: '[pass]'
+  to: UPSTREAM
+  type: depends_on
+- anchors: []
+  from: REQ
+  label: ''
+  mark: ->
+  to: VALIDATE
+  type: depends_on
+- anchors: []
+  from: SESSION_UI
+  label: ''
+  mark: ~>
+  sync: false
+  to: API_SESSION
+  type: async_calls
+- anchors:
+  - path: app/api/py/**/route.ts
+    symbol: ''
+  from: TOKEN
+  label: ''
+  mark: ->
+  to: API_PY
+  type: depends_on
+- anchors: []
+  from: TSE
+  label: ''
+  mark: '[ok]'
+  to: COOKIE
+  type: depends_on
+- anchors:
+  - path: lib/auth/parse-admin-token.ts
+    symbol: ''
+  from: TSE
+  label: ''
+  mark: '[match]'
+  to: ENV
+  type: depends_on
+- anchors:
+  - path: components/ChatPanel.tsx
+    symbol: ''
+  - path: app/api/auth/unlock/route.ts
+    symbol: ''
+  - path: app/api/auth/session/route.ts
+    symbol: ''
+  - path: app/api/py/**/route.ts
+    symbol: ''
+  - path: lib/auth/admin-env.ts
+    symbol: ''
+  - path: lib/auth/portfolio-env.ts
+    symbol: ''
+  - path: lib/auth/portfolio-session.ts
+    symbol: ''
+  - path: lib/auth/parse-admin-token.ts
+    symbol: ''
+  - path: lib/auth/admin-cookie.ts
+    symbol: ''
+  - path: lib/auth.ts
+    symbol: ''
+  - path: lib/auth.ts
+    symbol: ''
+  - path: node:crypto
+    symbol: ''
+  from: UNLOCK_UI
+  label: ''
+  mark: ~>
+  sync: false
+  to: API_UNLOCK
+  type: async_calls
+- anchors:
+  - path: lib/auth/admin-cookie.ts
+    symbol: ''
+  from: VALIDATE
+  label: ''
+  mark: '[cookie ok]'
+  to: COOKIE
+  type: depends_on
+- anchors: []
+  from: VALIDATE
+  label: ''
+  mark: '[else]'
+  to: PARSE
+  type: depends_on

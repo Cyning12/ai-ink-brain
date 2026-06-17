@@ -1,0 +1,245 @@
+graph_id: 11_flow_api
+title: 11_flow_api
+description: ''
+direction: TD
+nodes:
+- id: ADMINHOOK
+  label: ADMINHOOK
+- id: AUTH_SESSION
+  label: AUTH_SESSION
+- id: AUTH_UNLOCK
+  label: AUTH_UNLOCK
+- id: BEARER
+  label: BEARER
+- id: COOKIE
+  label: COOKIE
+- id: FRAG
+  label: FRAG
+- id: PSP
+  label: PSP
+- id: PY_CHAT_HIS
+  label: PY_CHAT_HIS
+- id: P_CHAIN
+  label: P_CHAIN
+- id: P_CHAT
+  label: P_CHAT
+- id: P_HIS
+  label: P_HIS
+- id: P_T2S
+  label: P_T2S
+- id: P_UNI_SSE
+  label: P_UNI_SSE
+- id: REQ
+  label: REQ
+- id: XS
+  label: x-sources header
+edges:
+- anchors:
+  - path: components/ChatPanel.tsx
+    symbol: ''
+  - path: components/Text2SqlChatPanel.tsx
+    symbol: ''
+  - path: components/chain-chat/ChainChatPageClient.tsx
+    symbol: ''
+  - path: components/unified-chat/UnifiedChatPageClient.tsx
+    symbol: ''
+  - path: lib/hooks/useAdminSession.ts
+    symbol: ''
+  - path: app/api/auth/session/route.ts
+    symbol: ''
+  - path: app/api/auth/unlock/route.ts
+    symbol: ''
+  - path: app/api/py/chat/route.ts
+    symbol: ''
+  - path: app/api/py/chat/history/route.ts
+    symbol: ''
+  - path: app/api/py/text2sql/chat/route.ts
+    symbol: ''
+  - path: app/api/py/chain/chat/route.ts
+    symbol: ''
+  - path: app/api/py/unified/chat/route.ts
+    symbol: ''
+  - path: app/api/py/unified/chat/stream/route.ts
+    symbol: ''
+  - path: lib/auth.ts
+    symbol: ''
+  - path: lib/auth/admin-cookie.ts
+    symbol: ''
+  - path: lib/py-service-proxy.ts
+    symbol: ''
+  - path: lib/server/forward-py-rag-chat.ts
+    symbol: ''
+  from: ADMINHOOK
+  label: ''
+  mark: ~>
+  sync: false
+  to: AUTH_SESSION
+  type: async_calls
+- anchors: []
+  from: AUTH_SESSION
+  label: ''
+  mark: ->
+  to: COOKIE
+  type: depends_on
+- anchors: []
+  from: AUTH_UNLOCK
+  label: ''
+  mark: ->
+  to: COOKIE
+  type: depends_on
+- anchors: []
+  from: BEARER
+  label: ''
+  mark: ->
+  to: REQ
+  type: depends_on
+- anchors: []
+  from: CHAIN
+  label: ''
+  mark: ~>
+  sync: false
+  to: PY_CHAIN
+  type: async_calls
+- anchors: []
+  from: COOKIE
+  label: ''
+  mark: ->
+  to: REQ
+  type: depends_on
+- anchors: []
+  from: CP
+  label: streamChat
+  mark: ->
+  to: PY_CHAT
+  type: depends_on
+- anchors: []
+  from: CP
+  label: fetchChatHistory
+  mark: ->
+  to: PY_CHAT_HIS
+  type: depends_on
+- anchors: []
+  from: FRAG
+  label: ''
+  mark: ->
+  to: PSP
+  type: depends_on
+- anchors: []
+  from: PSP
+  label: ''
+  mark: ~>
+  sync: false
+  to: P_CHAIN
+  type: async_calls
+- anchors: []
+  from: PSP
+  label: ''
+  mark: ~>
+  sync: false
+  to: P_CHAT
+  type: async_calls
+- anchors: []
+  from: PSP
+  label: ''
+  mark: ~>
+  sync: false
+  to: P_HIS
+  type: async_calls
+- anchors: []
+  from: PSP
+  label: ''
+  mark: ~>
+  sync: false
+  to: P_T2S
+  type: async_calls
+- anchors: []
+  from: PSP
+  label: ''
+  mark: ~>
+  sync: false
+  to: P_UNI
+  type: async_calls
+- anchors: []
+  from: PSP
+  label: ''
+  mark: ~>
+  sync: false
+  to: P_UNI_SSE
+  type: async_calls
+- anchors: []
+  from: PY_CHAIN
+  label: ''
+  mark: ->
+  to: PSP
+  type: depends_on
+- anchors: []
+  from: PY_CHAT
+  label: ''
+  mark: ->
+  to: REQ
+  type: depends_on
+- anchors: []
+  from: PY_CHAT_HIS
+  label: ''
+  mark: ->
+  to: PSP
+  type: depends_on
+- anchors: []
+  from: PY_T2S
+  label: ''
+  mark: ->
+  to: PSP
+  type: depends_on
+- anchors: []
+  from: PY_UNIFIED
+  label: ''
+  mark: ->
+  to: PSP
+  type: depends_on
+- anchors: []
+  from: PY_UNIFIED_SSE
+  label: ''
+  mark: ->
+  to: PSP
+  type: depends_on
+- anchors:
+  - path: lib/chat/chatApi.ts
+    symbol: ''
+  from: P_CHAT
+  label: ''
+  mark: ::yields
+  to: XS
+  type: yields
+- anchors: []
+  from: REQ
+  label: ''
+  mark: ->
+  to: FRAG
+  type: depends_on
+- anchors: []
+  from: T2S
+  label: ''
+  mark: ~>
+  sync: false
+  to: PY_T2S
+  type: async_calls
+- anchors: []
+  from: UNIFIED
+  label: ''
+  mark: ~>
+  sync: false
+  to: AUTH_UNLOCK
+  type: async_calls
+- anchors: []
+  from: UNIFIED
+  label: ''
+  mark: ~>
+  sync: false
+  to: PY_UNIFIED
+  type: async_calls
+- anchors: []
+  from: UNIFIED
+  label: fetch POST + ReadableStream
+  mark: ->
+  to: PY_UNIFIED_SSE
+  type: depends_on

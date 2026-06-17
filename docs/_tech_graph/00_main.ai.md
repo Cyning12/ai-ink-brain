@@ -1,3 +1,6 @@
+> **@deprecated · 源迁 YAML**  
+> 本文件已转为只读对照，编辑源为 [`00_main.graph.yaml`](00_main.graph.yaml)。人类可读版见 [`00_main.md`](00_main.md)。
+
 ```mermaid
 flowchart TD
     %% 00_main: Next.js 顶层总图（路由 + 入口 + 渲染）

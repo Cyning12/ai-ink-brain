@@ -1,3 +1,6 @@
+> **@deprecated · 源迁 YAML**  
+> 本文件已转为只读对照，编辑源为 [`11_flow_api.graph.yaml`](11_flow_api.graph.yaml)。人类可读版见 [`11_flow_api.md`](11_flow_api.md)。
+
 ```mermaid
 flowchart LR
     %% 11_flow_api: API 请求、转发、返回（含 SSE / sources header）
