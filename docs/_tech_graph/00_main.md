@@ -1,68 +1,213 @@
+---
+graph_id: 00_main
+version: 
+generated_at: 2026-06-17T11:36:25Z
+source: docs/_tech_graph/00_main.graph.yaml
+---
+
+# 00_main
+
+## Mermaid
+
 ```mermaid
 flowchart TD
-  %% 00_main: Next.js 顶层总图（路由 + 入口 + 渲染）
+    ABOUT[/about]
+    ADMINS[useAdminSession()]
+    APP[APP]
+    AUTH[requireAdminApiSecret()]
+    BLOG[/blog]
+    BLOGSLUG[/blog/[...slug]
+    CCP[ChainChatPageClient]
+    CHAIN[/chain-chat]
+    CHAT[/chat]
+    CP[ChatPanel]
+    DIARY[/diary]
+    G_API[>11_flow_api.md]
+    G_AUTH[>12_flow_auth.md]
+    G_COMP[>13_flow_components.md]
+    G_ROUTE[>10_flow_route.md]
+    G_SPEC[>99_spec.md]
+    G_STRUCT[>01_struct.md]
+    G_VER[>02_version.md]
+    HOME[/ Home]
+    L[app/layout.tsx]
+    LEARNING[/learning]
+    NAV[SiteNav]
+    NAVFILTER[过滤导航项]
+    PROJECTS[/projects]
+    PY[(Python FastAPI)]
+    PY_CHAIN[PY_CHAIN]
+    PY_CHAT[PY_CHAT]
+    PY_T2S[PY_T2S]
+    PY_UNIFIED[PY_UNIFIED]
+    PY_UNIFIED_SSE[PY_UNIFIED_SSE]
+    ROUTER[路由匹配]
+    T2P[Text2SqlChatPanel]
+    T2S[/text2sql]
+    UCP[UnifiedChatPageClient]
+    UNIFIED[/unified-chat]
 
-  subgraph APP[Next.js App Router: app/]
-    L[入口: app/layout.tsx] --> NAV[导航: app/_components/site-nav.tsx]
-    L --> ROUTER{路由匹配: app/**/page.tsx}
-  end
+    ADMINS --> NAVFILTER
+    APP --"加载"--> G_SPEC
+    APP --"加载"--> G_VER
+    AUTH --"加载"--> G_AUTH
+    AUTH --"~>"--> PY
+    // → PY_API_URL
+    CHAIN --> CCP
+    // → components/chain-chat/ChainChatPageClient.tsx
+    CHAT --> CP
+    // → components/ChatPanel.tsx
+    CP --"加载"--> G_API
+    HOME --"加载"--> G_ROUTE
+    L --> NAV
+    // → app/layout.tsx
+    L --> ROUTER
+    // → app/**/page.tsx
+    NAV --> ADMINS
+    // → lib/hooks/useAdminSession.ts
+    NAVFILTER --"[admin]"--> ROUTER
+    NAVFILTER --"[non-admin]"--> ROUTER
+    PY_CHAIN --> AUTH
+    PY_CHAT --> AUTH
+    // → lib/auth.ts
+    PY_T2S --> AUTH
+    PY_UNIFIED --> AUTH
+    PY_UNIFIED_SSE --> AUTH
+    ROUTER --> ABOUT
+    // → app/about/page.tsx
+    ROUTER --> BLOG
+    // → app/blog/page.tsx
+    ROUTER --> BLOGSLUG
+    // → app/blog/[...slug]/page.tsx
+    ROUTER --> CHAIN
+    // → app/chain-chat/page.tsx
+    ROUTER --> CHAT
+    // → app/chat/page.tsx
+    ROUTER --> DIARY
+    // → app/diary/page.tsx
+    ROUTER --"加载"--> G_STRUCT
+    ROUTER --> HOME
+    // → app/page.tsx
+    ROUTER --> LEARNING
+    // → app/learning/page.tsx
+    ROUTER --> PROJECTS
+    // → app/projects/page.tsx
+    ROUTER --> T2S
+    // → app/text2sql/page.tsx
+    ROUTER --> UNIFIED
+    // → app/unified-chat/page.tsx
+    T2S --> T2P
+    // → components/Text2SqlChatPanel.tsx
+    UCP --"加载"--> G_COMP
+    UNIFIED --> UCP
+    // → components/unified-chat/UnifiedChatPageClient.tsx
+    // → app/api/auth/session/route.ts
+    // → app/api/auth/unlock/route.ts
+    // → app/api/py/chat/route.ts
+    // → app/api/py/chat/history/route.ts
+    // → app/api/py/text2sql/chat/route.ts
+    // → app/api/py/chain/chat/route.ts
+    // → app/api/py/unified/chat/route.ts
+    // → app/api/py/unified/chat/stream/route.ts
+    // → app/api/system/status/route.ts
 
-  %% 权限/展示层（仅影响“入口可见性”，不等价于 API 权限）
-  NAV --> ADMINS[useAdminSession(): lib/hooks/useAdminSession.ts]
-  ADMINS --> NAVFILTER{过滤导航项: /chat /text2sql /chain-chat /unified-chat}
-  NAVFILTER -->|admin| ROUTER
-  NAVFILTER -->|non-admin| ROUTER
-
-  %% 页面路由（真实存在）
-  ROUTER --> HOME["/  (app/page.tsx)"]
-  ROUTER --> BLOG["/blog  (app/blog/page.tsx)"]
-  ROUTER --> BLOGSLUG["/blog/[...slug]  (app/blog/[...slug]/page.tsx)"]
-  ROUTER --> LEARNING["/learning  (app/learning/page.tsx)"]
-  ROUTER --> PROJECTS["/projects  (app/projects/page.tsx)"]
-  ROUTER --> DIARY["/diary  (app/diary/page.tsx)"]
-  ROUTER --> ABOUT["/about  (app/about/page.tsx)"]
-
-  ROUTER --> CHAT["/chat  (app/chat/page.tsx)"]
-  ROUTER --> T2S["/text2sql  (app/text2sql/page.tsx)"]
-  ROUTER --> CHAIN["/chain-chat  (app/chain-chat/page.tsx)"]
-  ROUTER --> UNIFIED["/unified-chat  (app/unified-chat/page.tsx)"]
-
-  %% 关键客户端页面组件（真实存在）
-  CHAT --> CP["ChatPanel (components/ChatPanel.tsx)"]
-  T2S --> T2P["Text2SqlChatPanel (components/Text2SqlChatPanel.tsx)"]
-  CHAIN --> CCP["ChainChatPageClient (components/chain-chat/ChainChatPageClient.tsx)"]
-  UNIFIED --> UCP["UnifiedChatPageClient (components/unified-chat/UnifiedChatPageClient.tsx)"]
-
-  %% BFF / API Route Handlers（真实存在）
-  subgraph API[Next Route Handlers: app/api/**/route.ts]
-    A_SESSION["GET /api/auth/session (app/api/auth/session/route.ts)"]
-    A_UNLOCK["POST /api/auth/unlock (app/api/auth/unlock/route.ts)"]
-    PY_CHAT["POST /api/py/chat (app/api/py/chat/route.ts)"]
-    PY_CHAT_HIS["GET /api/py/chat/history (app/api/py/chat/history/route.ts)"]
-    PY_T2S["POST /api/py/text2sql/chat (app/api/py/text2sql/chat/route.ts)"]
-    PY_CHAIN["POST /api/py/chain/chat (app/api/py/chain/chat/route.ts)"]
-    PY_UNIFIED["POST /api/py/unified/chat (app/api/py/unified/chat/route.ts)"]
-    PY_UNIFIED_SSE["POST /api/py/unified/chat/stream (app/api/py/unified/chat/stream/route.ts)"]
-    SYS["GET /api/system/status (app/api/system/status/route.ts)"]
-  end
-
-  %% 统一鉴权入口（真实存在）
-  PY_CHAT --> AUTH[requireAdminApiSecret(): lib/auth.ts]
-  PY_T2S --> AUTH
-  PY_CHAIN --> AUTH
-  PY_UNIFIED --> AUTH
-  PY_UNIFIED_SSE --> AUTH
-
-  %% 下游：Python API（外部服务，地址由 PY_API_URL）
-  AUTH --> PY[(Python FastAPI: PY_API_URL)]
-
-  %% 图谱按需加载（子流程）
-  HOME --> G_ROUTE["加载子图: 10_flow_route.md"]
-  CP --> G_API["加载子图: 11_flow_api.md"]
-  AUTH --> G_AUTH["加载子图: 12_flow_auth.md"]
-  UCP --> G_COMP["加载子图: 13_flow_components.md"]
-  ROUTER --> G_STRUCT["加载子图: 01_struct.md"]
-  APP --> G_VER["加载子图: 02_version.md"]
-  APP --> G_SPEC["加载子图: 99_spec.md"]
+    classDef phase fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef doc fill:#fff8e1,stroke:#ff6f00,stroke-width:1px
+    classDef infra fill:#e8f5e9,stroke:#2e7d32,stroke-width:1px
+    class AUTH infra
 ```
+
+## Structured Data
+
+### Nodes
+
+| ID | Label | Kind |
+|----|-------|------|
+| ABOUT | /about |  |
+| ADMINS | useAdminSession() |  |
+| APP | APP |  |
+| AUTH | requireAdminApiSecret() |  |
+| BLOG | /blog |  |
+| BLOGSLUG | /blog/[...slug |  |
+| CCP | ChainChatPageClient |  |
+| CHAIN | /chain-chat |  |
+| CHAT | /chat |  |
+| CP | ChatPanel |  |
+| DIARY | /diary |  |
+| G_API | >11_flow_api.md |  |
+| G_AUTH | >12_flow_auth.md |  |
+| G_COMP | >13_flow_components.md |  |
+| G_ROUTE | >10_flow_route.md |  |
+| G_SPEC | >99_spec.md |  |
+| G_STRUCT | >01_struct.md |  |
+| G_VER | >02_version.md |  |
+| HOME | / Home |  |
+| L | app/layout.tsx |  |
+| LEARNING | /learning |  |
+| NAV | SiteNav |  |
+| NAVFILTER | 过滤导航项 |  |
+| PROJECTS | /projects |  |
+| PY | (Python FastAPI) |  |
+| PY_CHAIN | PY_CHAIN |  |
+| PY_CHAT | PY_CHAT |  |
+| PY_T2S | PY_T2S |  |
+| PY_UNIFIED | PY_UNIFIED |  |
+| PY_UNIFIED_SSE | PY_UNIFIED_SSE |  |
+| ROUTER | 路由匹配 |  |
+| T2P | Text2SqlChatPanel |  |
+| T2S | /text2sql |  |
+| UCP | UnifiedChatPageClient |  |
+| UNIFIED | /unified-chat |  |
+
+### Edges
+
+| From | To | Mark | Type | Label | Anchors |
+|------|----|------|------|-------|---------|
+| ADMINS | NAVFILTER | -> | depends_on |  |  |
+| APP | G_SPEC | -> | depends_on | 加载 |  |
+| APP | G_VER | -> | depends_on | 加载 |  |
+| AUTH | G_AUTH | -> | depends_on | 加载 |  |
+| AUTH | PY | ~> | async_calls |  | 1 anchor(s) |
+| CHAIN | CCP | -> | depends_on |  | 1 anchor(s) |
+| CHAT | CP | -> | depends_on |  | 1 anchor(s) |
+| CP | G_API | -> | depends_on | 加载 |  |
+| HOME | G_ROUTE | -> | depends_on | 加载 |  |
+| L | NAV | -> | depends_on |  | 1 anchor(s) |
+| L | ROUTER | -> | depends_on |  | 1 anchor(s) |
+| NAV | ADMINS | -> | depends_on |  | 1 anchor(s) |
+| NAVFILTER | ROUTER | [admin] | depends_on |  |  |
+| NAVFILTER | ROUTER | [non-admin] | depends_on |  |  |
+| PY_CHAIN | AUTH | -> | depends_on |  |  |
+| PY_CHAT | AUTH | -> | depends_on |  | 1 anchor(s) |
+| PY_T2S | AUTH | -> | depends_on |  |  |
+| PY_UNIFIED | AUTH | -> | depends_on |  |  |
+| PY_UNIFIED_SSE | AUTH | -> | depends_on |  |  |
+| ROUTER | ABOUT | -> | depends_on |  | 1 anchor(s) |
+| ROUTER | BLOG | -> | depends_on |  | 1 anchor(s) |
+| ROUTER | BLOGSLUG | -> | depends_on |  | 1 anchor(s) |
+| ROUTER | CHAIN | -> | depends_on |  | 1 anchor(s) |
+| ROUTER | CHAT | -> | depends_on |  | 1 anchor(s) |
+| ROUTER | DIARY | -> | depends_on |  | 1 anchor(s) |
+| ROUTER | G_STRUCT | -> | depends_on | 加载 |  |
+| ROUTER | HOME | -> | depends_on |  | 1 anchor(s) |
+| ROUTER | LEARNING | -> | depends_on |  | 1 anchor(s) |
+| ROUTER | PROJECTS | -> | depends_on |  | 1 anchor(s) |
+| ROUTER | T2S | -> | depends_on |  | 1 anchor(s) |
+| ROUTER | UNIFIED | -> | depends_on |  | 1 anchor(s) |
+| T2S | T2P | -> | depends_on |  | 1 anchor(s) |
+| UCP | G_COMP | -> | depends_on | 加载 |  |
+| UNIFIED | UCP | -> | depends_on |  | 10 anchor(s) |
+
+## Sub-graph Links
+
+- `Struct`: [`01_struct.md`](01_struct.md)（手写 · 无 `.graph.yaml`）
+- `Version`: [`02_version.md`](02_version.md)（手写 · 无 `.graph.yaml`）
+- `Route Flow`: [`10_flow_route.md`](10_flow_route.md)（编辑源：[10_flow_route.graph.yaml](10_flow_route.graph.yaml)）
+- `API Flow`: [`11_flow_api.md`](11_flow_api.md)（编辑源：[11_flow_api.graph.yaml](11_flow_api.graph.yaml)）
+- `Auth Flow`: [`12_flow_auth.md`](12_flow_auth.md)（编辑源：[12_flow_auth.graph.yaml](12_flow_auth.graph.yaml)）
+- `Components Flow`: [`13_flow_components.md`](13_flow_components.md)（编辑源：[13_flow_components.graph.yaml](13_flow_components.graph.yaml)）
+- `Spec`: [`99_spec.md`](99_spec.md)
+- `Mermaid Protocol`: [`99_mermaid_protocol.md`](99_mermaid_protocol.md) — 拓扑图绘制规范
+
+> **F0 决策备忘**：`00_main.md` 不嵌入 `AUTO:ENDPOINTS_AND_ANCHORS` 块（保持人类友好）；`_manifest.json` 仍由现有工具维护。
 

@@ -2121,31 +2121,36 @@
     }
   ],
   "freeze_id": "TECH_GRAPH_S2_FREEZE_20260519_V2_3",
-  "generated_at": "2026-06-09T09:25:44Z",
+  "generated_at": "2026-06-17T11:29:59Z",
   "graphs": [
     {
       "id": "00_main",
       "source_ai_path": "docs/_tech_graph/00_main.ai.md",
+      "source_yaml_path": "docs/_tech_graph/00_main.graph.yaml",
       "title": "00_main"
     },
     {
       "id": "10_flow_route",
       "source_ai_path": "docs/_tech_graph/10_flow_route.ai.md",
+      "source_yaml_path": "docs/_tech_graph/10_flow_route.graph.yaml",
       "title": "10_flow_route"
     },
     {
       "id": "11_flow_api",
       "source_ai_path": "docs/_tech_graph/11_flow_api.ai.md",
+      "source_yaml_path": "docs/_tech_graph/11_flow_api.graph.yaml",
       "title": "11_flow_api"
     },
     {
       "id": "12_flow_auth",
       "source_ai_path": "docs/_tech_graph/12_flow_auth.ai.md",
+      "source_yaml_path": "docs/_tech_graph/12_flow_auth.graph.yaml",
       "title": "12_flow_auth"
     },
     {
       "id": "13_flow_components",
       "source_ai_path": "docs/_tech_graph/13_flow_components.ai.md",
+      "source_yaml_path": "docs/_tech_graph/13_flow_components.graph.yaml",
       "title": "13_flow_components"
     }
   ],

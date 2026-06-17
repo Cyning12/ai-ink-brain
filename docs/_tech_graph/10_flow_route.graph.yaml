@@ -1,0 +1,432 @@
+graph_id: 10_flow_route
+title: 10_flow_route
+description: ''
+direction: TD
+nodes:
+- id: BB
+  label: BackButton
+- id: CC
+  label: /chain-chat
+- id: CH
+  label: /chat
+- id: FILTER
+  label: isAdmin?
+- id: HIDE
+  label: 隐藏入口
+- id: HM
+  label: HomeModules
+- id: HM_DEV
+  label: modules[] development
+- id: HM_PF
+  label: modules[] portfolio
+- id: L_ABOUT
+  label: /about
+- id: L_ADMIN
+  label: /chat /text2sql /chain-chat /unified-chat
+- id: L_BLOG
+  label: /blog
+- id: L_DIARY
+  label: /diary
+- id: L_LEARNING
+  label: /learning
+- id: L_TASKS
+  label: /projects
+- id: META
+  label: generateMetadata
+- id: MODE
+  label: portfolio?
+- id: NAV_DEV
+  label: NAV[] development
+- id: NAV_PF
+  label: NAV[] portfolio
+- id: N_ABOUT
+  label: /about
+- id: N_BLOG
+  label: /blog
+- id: N_CHAIN
+  label: /chain-chat
+- id: N_CHAT
+  label: /chat
+- id: N_HOME
+  label: /
+- id: N_LEARNING
+  label: /learning
+- id: N_METH
+  label: /methodology
+- id: N_RESUME
+  label: /resume
+- id: N_T2S
+  label: /text2sql
+- id: N_TASKS
+  label: /projects
+- id: N_UNIFIED
+  label: /unified-chat
+- id: N_UNI_PF
+  label: /unified-chat
+- id: P_HOME
+  label: /
+- id: P_METH
+  label: /methodology
+- id: P_RESUME
+  label: /resume
+- id: P_UNI
+  label: /unified-chat
+- id: ROOT
+  label: app/layout.tsx
+- id: SM
+  label: getSiteMode()
+- id: T2
+  label: /text2sql
+- id: UC
+  label: /unified-chat
+edges:
+- anchors: []
+  from: ADMINS
+  label: ''
+  mark: ->
+  to: FILTER
+  type: depends_on
+- anchors:
+  - path: app/page.tsx
+    symbol: ''
+  from: BB
+  label: ''
+  mark: ->
+  to: HOME
+  type: depends_on
+- anchors:
+  - path: app/chain-chat/page.tsx
+    symbol: ''
+  from: CC
+  label: ''
+  mark: ->
+  to: BB
+  type: depends_on
+- anchors:
+  - path: app/chat/page.tsx
+    symbol: ''
+  from: CH
+  label: ''
+  mark: ->
+  to: BB
+  type: depends_on
+- anchors: []
+  from: FILTER
+  label: ''
+  mark: '[false]'
+  to: HIDE
+  type: depends_on
+- anchors:
+  - path: app/chain-chat/page.tsx
+    symbol: ''
+  from: FILTER
+  label: ''
+  mark: '[true]'
+  to: N_CHAIN
+  type: depends_on
+- anchors:
+  - path: app/chat/page.tsx（导航可见）
+    symbol: ''
+  from: FILTER
+  label: ''
+  mark: '[true]'
+  to: N_CHAT
+  type: depends_on
+- anchors:
+  - path: app/text2sql/page.tsx
+    symbol: ''
+  from: FILTER
+  label: ''
+  mark: '[true]'
+  to: N_T2S
+  type: depends_on
+- anchors:
+  - path: app/unified-chat/page.tsx
+    symbol: ''
+  from: FILTER
+  label: ''
+  mark: '[true]'
+  to: N_UNIFIED
+  type: depends_on
+- anchors:
+  - path: lib/site-mode.ts
+    symbol: ''
+  from: HM
+  label: ''
+  mark: ->
+  to: SM
+  type: depends_on
+- anchors:
+  - path: app/about/page.tsx
+    symbol: ''
+  from: HM_DEV
+  label: ''
+  mark: ->
+  to: L_ABOUT
+  type: depends_on
+- anchors: []
+  from: HM_DEV
+  label: ''
+  mark: ->
+  to: L_ADMIN
+  type: depends_on
+- anchors:
+  - path: app/blog/page.tsx
+    symbol: ''
+  from: HM_DEV
+  label: ''
+  mark: ->
+  to: L_BLOG
+  type: depends_on
+- anchors:
+  - path: app/diary/page.tsx
+    symbol: ''
+  from: HM_DEV
+  label: ''
+  mark: ->
+  to: L_DIARY
+  type: depends_on
+- anchors:
+  - path: app/learning/page.tsx
+    symbol: ''
+  from: HM_DEV
+  label: ''
+  mark: ->
+  to: L_LEARNING
+  type: depends_on
+- anchors:
+  - path: app/projects/page.tsx
+    symbol: ''
+  from: HM_DEV
+  label: ''
+  mark: ->
+  to: L_TASKS
+  type: depends_on
+- anchors:
+  - path: app/page.tsx
+    symbol: ''
+  from: HM_PF
+  label: ''
+  mark: ->
+  to: P_HOME
+  type: depends_on
+- anchors:
+  - path: app/methodology/page.tsx（W2）
+    symbol: ''
+  from: HM_PF
+  label: ''
+  mark: ->
+  to: P_METH
+  type: depends_on
+- anchors:
+  - path: app/resume/page.tsx（W2）
+    symbol: ''
+  from: HM_PF
+  label: ''
+  mark: ->
+  to: P_RESUME
+  type: depends_on
+- anchors:
+  - path: app/unified-chat/page.tsx
+    symbol: ''
+  from: HM_PF
+  label: ''
+  mark: ->
+  to: P_UNI
+  type: depends_on
+- anchors:
+  - path: app/_components/home-modules.tsx
+    symbol: ''
+  from: HOME
+  label: ''
+  mark: ->
+  to: HM
+  type: depends_on
+- anchors:
+  - path: app/layout.tsx
+    symbol: ''
+  from: META
+  label: ''
+  mark: ->
+  to: SM
+  type: depends_on
+- anchors: []
+  from: MODE
+  label: ''
+  mark: '[development]'
+  to: HM_DEV
+  type: depends_on
+- anchors: []
+  from: MODE
+  label: ''
+  mark: '[portfolio]'
+  to: HM_PF
+  type: depends_on
+- anchors: []
+  from: MODE
+  label: ''
+  mark: '[development]'
+  to: NAV_DEV
+  type: depends_on
+- anchors: []
+  from: MODE
+  label: ''
+  mark: '[portfolio]'
+  to: NAV_PF
+  type: depends_on
+- anchors:
+  - path: lib/site-mode.ts
+    symbol: ''
+  from: NAV
+  label: ''
+  mark: ->
+  to: SM
+  type: depends_on
+- anchors:
+  - path: lib/hooks/useAdminSession.ts
+    symbol: ''
+  from: NAV_DEV
+  label: ''
+  mark: ->
+  to: ADMINS
+  type: depends_on
+- anchors:
+  - path: app/about/page.tsx
+    symbol: ''
+  from: NAV_DEV
+  label: ''
+  mark: ->
+  to: N_ABOUT
+  type: depends_on
+- anchors:
+  - path: app/blog/page.tsx
+    symbol: ''
+  from: NAV_DEV
+  label: ''
+  mark: ->
+  to: N_BLOG
+  type: depends_on
+- anchors:
+  - path: app/chain-chat/page.tsx
+    symbol: ''
+  from: NAV_DEV
+  label: ''
+  mark: ->
+  to: N_CHAIN
+  type: depends_on
+- anchors:
+  - path: app/chat/page.tsx
+    symbol: ''
+  from: NAV_DEV
+  label: ''
+  mark: ->
+  to: N_CHAT
+  type: depends_on
+- anchors:
+  - path: app/learning/page.tsx
+    symbol: ''
+  from: NAV_DEV
+  label: ''
+  mark: ->
+  to: N_LEARNING
+  type: depends_on
+- anchors:
+  - path: app/text2sql/page.tsx
+    symbol: ''
+  from: NAV_DEV
+  label: ''
+  mark: ->
+  to: N_T2S
+  type: depends_on
+- anchors:
+  - path: app/projects/page.tsx
+    symbol: ''
+  from: NAV_DEV
+  label: ''
+  mark: ->
+  to: N_TASKS
+  type: depends_on
+- anchors:
+  - path: app/unified-chat/page.tsx
+    symbol: ''
+  from: NAV_DEV
+  label: ''
+  mark: ->
+  to: N_UNIFIED
+  type: depends_on
+- anchors:
+  - path: app/page.tsx
+    symbol: ''
+  from: NAV_PF
+  label: ''
+  mark: ->
+  to: N_HOME
+  type: depends_on
+- anchors:
+  - path: app/methodology/page.tsx（W2）
+    symbol: ''
+  from: NAV_PF
+  label: ''
+  mark: ->
+  to: N_METH
+  type: depends_on
+- anchors:
+  - path: app/resume/page.tsx（W2）
+    symbol: ''
+  from: NAV_PF
+  label: ''
+  mark: ->
+  to: N_RESUME
+  type: depends_on
+- anchors: []
+  from: NAV_PF
+  label: ''
+  mark: ->
+  to: N_UNI_PF
+  type: depends_on
+- anchors:
+  - path: app/page.tsx
+    symbol: ''
+  from: ROOT
+  label: ''
+  mark: ->
+  to: HOME
+  type: depends_on
+- anchors:
+  - path: app/layout.tsx
+    symbol: ''
+  from: ROOT
+  label: ''
+  mark: ->
+  to: META
+  type: depends_on
+- anchors:
+  - path: app/_components/site-nav.tsx
+    symbol: ''
+  from: ROOT
+  label: ''
+  mark: ->
+  to: NAV
+  type: depends_on
+- anchors: []
+  from: SM
+  label: ''
+  mark: ->
+  to: MODE
+  type: depends_on
+- anchors:
+  - path: app/text2sql/page.tsx
+    symbol: ''
+  from: T2
+  label: ''
+  mark: ->
+  to: BB
+  type: depends_on
+- anchors:
+  - path: app/_components/back-button.tsx
+    symbol: ''
+  from: UC
+  label: ''
+  mark: ->
+  to: BB
+  type: depends_on

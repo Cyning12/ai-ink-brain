@@ -1,0 +1,226 @@
+graph_id: 13_flow_components
+title: 13_flow_components
+description: ''
+direction: TD
+nodes:
+- id: EC
+  label: ChainEventCard
+- id: HISTORY
+  label: fetchChatHistory()
+- id: MD
+  label: ReactMarkdown + remark/rehype
+- id: SC
+  label: SourceCitations
+- id: SID
+  label: useSessionId()
+- id: SQLT
+  label: SqlResultTable
+- id: STREAM
+  label: streamChat()
+- id: TL
+  label: ChainTimeline
+- id: UC_DBG
+  label: Router Debug 与输入
+- id: UC_HIDE
+  label: 隐藏 Router Debug Timeline debug URL
+- id: UC_HIST
+  label: 历史 transcript 跨轮
+- id: UC_MID
+  label: 左 ChainTimeline 当前轮
+- id: UC_MSG
+  label: 底 消息区 当前轮
+- id: UC_PART
+  label: Timeline + debug URL 可见
+- id: UC_PORT
+  label: portfolio access_level 档位
+- id: UC_RIGHT
+  label: 右 执行链路 当前轮
+- id: UC_TOP
+  label: 顶栏 prefer + 多轮说明 + debug 短前缀
+edges:
+- anchors:
+  - path: lib/hooks/useSessionId.ts
+    symbol: ''
+  from: CCP
+  label: ''
+  mark: ->
+  to: SID
+  type: depends_on
+- anchors:
+  - path: components/chain-chat/ChainChatPageClient.tsx
+    symbol: ''
+  from: CHAIN
+  label: ''
+  mark: ->
+  to: CCP
+  type: depends_on
+- anchors:
+  - path: components/ChatPanel.tsx
+    symbol: ''
+  from: CHAT
+  label: ''
+  mark: ->
+  to: CP
+  type: depends_on
+- anchors:
+  - path: lib/chat/chatApi.ts
+    symbol: ''
+  from: CP
+  label: ''
+  mark: ~>
+  sync: false
+  to: HISTORY
+  type: async_calls
+- anchors:
+  - path: components/ChatPanel.tsx
+    symbol: ''
+  from: CP
+  label: ''
+  mark: ->
+  to: MD
+  type: depends_on
+- anchors:
+  - path: components/SourceCitations.tsx
+    symbol: ''
+  from: CP
+  label: sources
+  mark: ->
+  to: SC
+  type: depends_on
+- anchors:
+  - path: lib/hooks/useSessionId.ts
+    symbol: ''
+  from: CP
+  label: ''
+  mark: ->
+  to: SID
+  type: depends_on
+- anchors:
+  - path: lib/chat/chatApi.ts
+    symbol: ''
+  from: CP
+  label: ''
+  mark: ~>
+  sync: false
+  to: STREAM
+  type: async_calls
+- anchors:
+  - path: components/SourceCitations.tsx
+    symbol: ''
+  from: EC
+  label: type=rag.sources
+  mark: ->
+  to: SC
+  type: depends_on
+- anchors:
+  - path: components/chain-chat/SqlResultTable.tsx
+    symbol: ''
+  from: EC
+  label: type=sql.result
+  mark: ->
+  to: SQLT
+  type: depends_on
+- anchors:
+  - path: lib/hooks/useSessionId.ts
+    symbol: ''
+  from: T2P
+  label: ''
+  mark: ->
+  to: SID
+  type: depends_on
+- anchors:
+  - path: components/Text2SqlChatPanel.tsx
+    symbol: ''
+  from: T2S
+  label: ''
+  mark: ->
+  to: T2P
+  type: depends_on
+- anchors:
+  - path: components/chain-chat/ChainEventCard.tsx
+    symbol: ''
+  from: TL
+  label: ''
+  mark: ->
+  to: EC
+  type: depends_on
+- anchors:
+  - path: lib/hooks/useSessionId.ts
+    symbol: ''
+  from: UCP
+  label: ''
+  mark: ->
+  to: SID
+  type: depends_on
+- anchors: []
+  from: UCP
+  label: ''
+  mark: ->
+  to: UC_DBG
+  type: depends_on
+- anchors: []
+  from: UCP
+  label: ''
+  mark: ->
+  to: UC_HIST
+  type: depends_on
+- anchors: []
+  from: UCP
+  label: ''
+  mark: ->
+  to: UC_MID
+  type: depends_on
+- anchors: []
+  from: UCP
+  label: ''
+  mark: ->
+  to: UC_MSG
+  type: depends_on
+- anchors:
+  - path: lib/unified-chat/portfolio-chat-tier.ts
+    symbol: ''
+  from: UCP
+  label: ''
+  mark: ?>
+  to: UC_PORT
+  type: condition
+- anchors: []
+  from: UCP
+  label: ''
+  mark: ->
+  to: UC_RIGHT
+  type: depends_on
+- anchors: []
+  from: UCP
+  label: ''
+  mark: ->
+  to: UC_TOP
+  type: depends_on
+- anchors:
+  - path: components/chain-chat/ChainTimeline.tsx
+    symbol: ''
+  from: UC_MID
+  label: ''
+  mark: ->
+  to: TL
+  type: depends_on
+- anchors: []
+  from: UC_PORT
+  label: ''
+  mark: '[visitor]'
+  to: UC_HIDE
+  type: depends_on
+- anchors: []
+  from: UC_PORT
+  label: ''
+  mark: '[visitor-admin]'
+  to: UC_PART
+  type: depends_on
+- anchors:
+  - path: components/unified-chat/UnifiedChatPageClient.tsx
+    symbol: ''
+  from: UNIFIED
+  label: ''
+  mark: ->
+  to: UCP
+  type: depends_on

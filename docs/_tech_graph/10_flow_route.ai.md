@@ -1,3 +1,6 @@
+> **@deprecated · 源迁 YAML**  
+> 本文件已转为只读对照，编辑源为 [`10_flow_route.graph.yaml`](10_flow_route.graph.yaml)。人类可读版见 [`10_flow_route.md`](10_flow_route.md)。
+
 ```mermaid
 flowchart TD
     %% 10_flow_route: 路由/页面跳转流程
