@@ -43,6 +43,9 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install Python deps for tech graph
+        run: pip install pyyaml
+
       - name: Tech graph graph.json (--check)
         run: python3 ai-ink-brain-api-python/tools/tech_graph_graph_export.py --input "${GITHUB_WORKSPACE}/docs/_tech_graph" --output "${GITHUB_WORKSPACE}/docs/_tech_graph/graph.json" --check
 
