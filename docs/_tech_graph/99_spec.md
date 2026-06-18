@@ -39,13 +39,13 @@ flowchart TD
 | 项 | 约定 |
 | --- | --- |
 | 真值文件 | `graph.json`（`schema_version: graph_v2`）与 `graph_v2_schema.md` |
-| 导出 / 漂移 | `pnpm tech-graph:graph-export`；PR 必绿 `pnpm tech-graph:graph-check`（`quality` workflow） |
+| 导出 / 漂移 | `pnpm tech-graph:graph-export`（自 `*.graph.yaml`）；PR 必绿 `pnpm tech-graph:graph-check`（`quality` workflow） |
 | 路由 manifest | `pnpm tech-graph:manifest-check`（`docs/_tech_graph/_manifest.json` vs `app/**/page.tsx` + `app/api/**/route.ts` + 关键 env；脚本在后端仓 `tech_graph_manifest_check.py --repo frontend`） |
-| 等价 | `pnpm tech-graph:equivalence-check`（`.ai.md` 参考图 vs 已提交 JSON；锚点 ≥95%、label ≥90%） |
-| 结构 | `pnpm tech-graph:schema-check`（可选本地） |
-| **YAML 图源（迁移中）** | **F0** 起新增 `pnpm tech-graph:yaml-compile` / `pnpm tech-graph:yaml-check`；未来 flowchart 编辑源迁为 `*.graph.yaml`，由 `scripts/graph_yaml_compile.py` 生成 `*.md` |
+| 等价 | `pnpm tech-graph:equivalence-check`（`*.graph.yaml` 参考图 vs 已提交 JSON；锚点 ≥95%、label ≥90%） |
+| 结构 | `pnpm tech-graph:schema-check`（graph.json validate；CI 可选本地） |
+| **YAML 图源（已完成）** | 5× `*.graph.yaml` 为 flowchart **唯一编辑源**；`pnpm tech-graph:yaml-compile` 生成 `*.md`；`pnpm tech-graph:yaml-check` diff 校验 |
 | 查询 | `pnpm tech-graph:query <op> …`（方案2；默认 Agent 机器轨，见闸口 B 结论） |
-| 工具脚本 | 复用 `ai-ink-brain-api-python/tools/tech_graph_*.py`（勿在前端仓复制） |
+| 工具脚本 | 复用 `ai-ink-brain-api-python/tools/tech_graph_*.py`（勿在前端仓复制）；前端自有 `scripts/graph_yaml_compile.py` |
 | 迁移手册 | `docs/tasks/specs/MIGRATION-tech_graph_v2_frontend_playbook_v1_zh.md` |
 
 **CI 顺序（`quality` · `lint-and-build`）**：checkout 本仓 → checkout 后端工具仓 → `pnpm install` → Python 3.11 → graph `--check` → **equivalence** → **manifest-check** → `pnpm lint` → `pnpm test` → `pnpm build`。
