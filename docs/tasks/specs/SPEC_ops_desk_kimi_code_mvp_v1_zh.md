@@ -2,12 +2,12 @@
 
 | 项 | 内容 |
 | --- | --- |
-| **状态** | `draft`（R0–R8 规格已细化 · 待 HG-SPEC-SIGNOFF） |
+| **状态** | `draft`（R0–R9 规格已细化 · 含领域本体 · 待 HG-SPEC-SIGNOFF） |
 | **类型** | 规格真值（`docs/tasks/specs/`） |
 | **代号** | **Ops Desk** · `site_mode=ops` |
 | **监控仓** | **`MoonshotAI/kimi-code`**（MVP 唯一；未来 **一仓一页**） |
 | **test_strategy（建议）** | `required`（sync · metrics API · ops_run/events · 鉴权） |
-| **关联** | [`PLAN_kimi_code_meta_harness_2x_v1_zh.md`](../../../../docs/harness/guides/PLAN_kimi_code_meta_harness_2x_v1_zh.md) · [`ISSUE_SCAN_kimi_code_open_c2_v1_zh.md`](../../../../docs/harness/guides/ISSUE_SCAN_kimi_code_open_c2_v1_zh.md) · [`STRATEGY_agent_runtime_ce_v1_zh.md`](../../../../docs/harness/guides/STRATEGY_agent_runtime_ce_v1_zh.md) |
+| **关联** | [`PLAN_kimi_code_meta_harness_2x_v1_zh.md`](../../../../docs/harness/guides/PLAN_kimi_code_meta_harness_2x_v1_zh.md) · [`ISSUE_SCAN_kimi_code_open_c2_v1_zh.md`](../../../../docs/harness/guides/ISSUE_SCAN_kimi_code_open_c2_v1_zh.md) · [`STRATEGY_agent_runtime_ce_v1_zh.md`](../../../../docs/harness/guides/STRATEGY_agent_runtime_ce_v1_zh.md) · [**领域本体**](../../../../docs/harness/guides/ONTOLOGY_ops_desk_kimi_code_v1_zh.md) |
 | **10-spec invoke** | [`ops-desk-kimi-code-spec-refine`](../../../../docs/harness/invokes/by-task/ops-desk-kimi-code-spec-refine/README.md) · [`PROMPT_START_10_spec_rethink_v1.md`](../../../../docs/harness/invokes/by-task/ops-desk-kimi-code-spec-refine/PROMPT_START_10_spec_rethink_v1.md) |
 
 ---
@@ -208,6 +208,15 @@ cyning/meta 分支 graph.json（只读 raw/sync）
 ```
 
 **Neo4j 触发条件（仅记录 · 不实施）**：单仓节点 **>1000** 或 INK-P7 立项。
+
+### 4.7 领域本体（R9 · 持续维护项目关系）
+
+> **真值**：[`ONTOLOGY_ops_desk_kimi_code_v1_zh.md`](../../../../docs/harness/guides/ONTOLOGY_ops_desk_kimi_code_v1_zh.md)（类 · 关系 · 公理 · 双 Loop 图 · 维护协议）
+
+- **Ops Chat Loop** 与 **Hermes Loop** **并行不冲突**：共用 Inform（ISSUE_SCAN · ops 表 · graph 快照）；Chat 负责只读分析+可观测 Run；Hermes 负责 task 草稿 Orchestrate（P3）；签收仍 **HumanGate + gate-check**。
+- 核心类：`MonitoredRepo` · `Issue`/`PullRequest` · `SyncRun` · `OpsRun`/`RunEvent` · `HermesDraft` · `HarnessWorkItem`。
+- 公理摘要：**只读 A1** · **单仓 A2** · **Citation A3** · **Deep 必 Review A6** · **Hermes 不签收 A7**。
+- 改表/API/Agent/Hermes 试点前 **先更新本体** §9。
 
 ---
 
@@ -461,19 +470,25 @@ cyning/meta 分支 graph.json（只读 raw/sync）
 - **维护者拍板**：Chat = Orchestrator（00 帽）；建议题 **fast**；深析 **delegate 子 Agent → Review（20）→ 总结**；目标态 **LangGraph**；全流程 **`ops_run_events` 可观测** · 断联 `run_id` + `after_seq` 续看。
 - **不**走 Unified Chat chain；**借鉴** ChatBIAgent 多步结构与 event 命名。
 - 主实体 **`ops_runs` + `ops_run_events` + `ops_run_checkpoints`**；`/ops/analysis-jobs` deprecated alias。
-- P1 拆：**P1-a** FSM（orchestrator + issue_analyst + review）· **P1-b** LangGraph 迁移。
+- P1 拆：**P1-a** FSM（orchestrator + issue_analyst + review）· **P1-b** 迁 LangGraph。
 - §4.6 新增真值；§13 P1 task 链已按 R8 修订（废止 `ops-desk-p1-analysis-job`）。
+
+### R9 · 领域本体 · 双 Loop 关系
+
+- 落盘 [`ONTOLOGY_ops_desk_kimi_code_v1_zh.md`](../../../../docs/harness/guides/ONTOLOGY_ops_desk_kimi_code_v1_zh.md)：Mermaid 总图 · Hermes×Chat 对照 · YAML 关系 · 公理 A1–A9 · §9 维护协议。
+- 与 STRATEGY_ONTOLOGY / DESIGN_ONTOLOGY 分层；SPEC §4.7 摘要指针。
 
 ### 思考轮控制
 
 | 字段 | 值 |
 | --- | --- |
-| `actual_last_round` | `R8` |
+| `actual_last_round` | `R9` |
 | `early_stop` | `no` |
 | `early_stop_reason` | — |
-| `residual_risks` | GitHub API 限流；MVP 范围膨胀；LLM 断联；国内 Vercel 慢；Track C graph.json 不稳定；LangGraph 引入复杂度 |
-| `round_extension_note` | R8 扩展 · 维护者 Orchestrator/LangGraph 拍板 |
+| `residual_risks` | GitHub API 限流；MVP 范围膨胀；LLM 断联；国内 Vercel 慢；Track C graph.json 不稳定；LangGraph 引入复杂度；**本体与实现漂移**（靠 §9 维护） |
+| `round_extension_note` | R8 Orchestrator · R9 领域本体 |
 | `series_docs_path` | `docs/harness/invokes/by-task/ops-desk-kimi-code-spec-refine/rounds/` |
+| `ontology_path` | `docs/harness/guides/ONTOLOGY_ops_desk_kimi_code_v1_zh.md` |
 
 ---
 
@@ -481,6 +496,7 @@ cyning/meta 分支 graph.json（只读 raw/sync）
 
 | 版本 | 日期 | 说明 |
 | --- | --- | --- |
+| v1.3 | 2026-06-18 | R9 · §4.7 领域本体 · 链 ONTOLOGY_ops_desk |
 | v1.2 | 2026-06-18 | R8 · §4.6 Orchestrator/LangGraph · ops_runs/events · P1 task 链修订 |
 | v1.1 | 2026-06-18 | §15 思考轮空槽 · 链 10-spec invoke（与 Track C 并行细化） |
 | v1.0 | 2026-06-18 | 初稿 · 吸收三方深研 + 维护者拍板 · Job 全后端 · 24h sync · 无 Neo4j |
