@@ -28,7 +28,7 @@
 
 **原则**：改代码 → 先改 `*.graph.yaml` → `pnpm tech-graph:yaml-compile` 生成 `*.md` → `pnpm tech-graph:graph-export` 提交 `graph.json`。
 
-> 历史 `*.ai.md` 已标记 `@deprecated · 源迁 YAML`，仅作只读对照，不参与导出。
+> 历史 `*.ai.md` 已在 G0 删除；如需回溯见 Git 历史。`docs/_tech_graph/` 下 **0 个** `.ai.md`。
 
 ---
 
@@ -171,11 +171,11 @@ pnpm tech-graph:query describe-impact PY_UNIFIED_SSE 2
 ## 9. Quickstart 样板仓检查清单（复制用）
 
 - [ ] `docs/_tech_graph/` 为唯一图谱根（R1）  
-- [ ] `00_main` + 域子图 `10_flow_*` 双轨 `.md` / `.ai.md`  
+- [ ] `00_main` + 域子图 `10_flow_*` 以 `*.graph.yaml` 为唯一编辑源，`*.md` 由脚本生成  
 - [ ] `graph_v2_schema.md` + `99_mermaid_protocol.md`（完整或摘要+链接）  
 - [ ] `99_spec.md` 含 CI + 反幻觉 + 契约指针  
-- [ ] `package.json`：`tech-graph:graph-check`、`equivalence-check`（及可选 `schema-check`、`query`）  
-- [ ] CI：`export --check` + `equivalence`（Python 3.11 + 工具仓 checkout 或 monorepo path）  
+- [ ] `package.json`：`tech-graph:graph-check`、`equivalence-check`、`yaml-check`（及可选 `schema-check`、`query`）  
+- [ ] CI：`export --check` + `equivalence` + `yaml-check`（Python 3.11 + 工具仓 checkout 或 monorepo path）  
 - [ ] `AGENTS.md` 指向图谱目录与脚本矩阵  
 - [ ] 跨仓契约：单一 manifest 真值仓 + 文档化 `contract_check`  
 - [ ] 落地后再做 **一轮** 效能对比文档  
