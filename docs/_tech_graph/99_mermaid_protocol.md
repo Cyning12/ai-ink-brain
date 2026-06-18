@@ -15,7 +15,7 @@
 
 修改代码后：**先** 改 `*.graph.yaml`，**再** `pnpm tech-graph:yaml-compile` 生成 `*.md`，**再** `pnpm tech-graph:graph-export` 提交 `graph.json`。
 
-> 历史 `.ai.md` 文件已标记 `@deprecated · 源迁 YAML`，仅作只读对照，不再参与导出。
+> 历史 `.ai.md` 文件已在 G0 删除；如需回溯，见 Git 历史或后端仓归档。
 
 ---
 
@@ -62,3 +62,4 @@
 | --- | --- |
 | 2026-05-20 | 前端摘要落盘；完整协议引用后端仓 |
 | 2026-06-17 | **Inform YAML**：编辑源由 `.ai.md` 迁为 `.graph.yaml`；`.ai.md` 标记 deprecated |
+| 2026-06-18 | **G0**：删除 5× `.ai.md`，完成 YAML 单源 |
