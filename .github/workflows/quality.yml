@@ -44,7 +44,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install Python deps for tech graph
-        run: pip install pyyaml
+        run: pip install pyyaml pytest
 
       - name: Tech graph graph.json (--check)
         run: python3 ai-ink-brain-api-python/tools/tech_graph_graph_export.py --input "${GITHUB_WORKSPACE}/docs/_tech_graph" --output "${GITHUB_WORKSPACE}/docs/_tech_graph/graph.json" --check
@@ -54,6 +54,12 @@ jobs:
 
       - name: Tech graph manifest check
         run: python3 ai-ink-brain-api-python/tools/tech_graph_manifest_check.py --repo frontend --repo-root "${GITHUB_WORKSPACE}" --manifest "${GITHUB_WORKSPACE}/docs/_tech_graph/_manifest.json"
+
+      - name: Tech graph schema check
+        run: python3 scripts/tech_graph_schema_check.py
+
+      - name: Python tests for graph_v2 schema
+        run: python3 -m pytest tests/test_graph_v2_schema.py -v
 
       - name: Lint
         run: pnpm lint
