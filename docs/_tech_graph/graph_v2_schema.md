@@ -3,7 +3,7 @@
 > **状态**：与 committed `graph.json` 对齐  
 > **落盘**：`docs/_tech_graph/graph.json`，`schema_version: graph_v2`  
 > **关联规格**：`docs/tasks/specs/SPEC-tech_graph_v2_frontend_parity_v1.md`  
-> **导出**：自本目录 `*.ai.md`；工具在配对后端仓（见 §8）  
+> **导出**：自本目录 `*.graph.yaml`；工具在配对后端仓（见 §8）  
 > **工作区 SPEC**：`docs/tech_graph/SPEC/json_graph/scheme_1_graph_json.md`
 
 ---
@@ -58,9 +58,9 @@
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `id` | string | 默认与 `*.ai.md` 文件名去后缀一致 |
+| `id` | string | 默认与 `*.graph.yaml` 文件名去后缀一致 |
 | `title` | string | 展示标题 |
-| `source_ai_path` | string | 可选；来源 `.ai.md` 相对路径 |
+| `source_ai_path` | string | **遗留字段**；历史来源 `.ai.md` 相对路径，新图源为 `source_yaml_path` |
 
 本仓分图：`00_main`、`10_flow_route`、`11_flow_api`、`12_flow_auth`、`13_flow_components`。
 

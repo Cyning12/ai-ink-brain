@@ -18,15 +18,17 @@
 
 ---
 
-## 2. 三轨模型（样板仓须原样写入 README/AGENTS）
+## 2. 三轨模型（Inform · YAML 单源）
 
 | 轨 | 路径模式 | 维护者 | 消费方 |
 | --- | --- | --- | --- |
-| **人读轨** | `*.md`（flowchart 可裸边） | 开发者 | 人、按需 Agent |
-| **协议轨** | `*.ai.md`（零裸边 + `// →` 锚点） | LLM / 导出器 | 导出 `graph.json` |
-| **机器轨** | `graph.json`（`schema_version: graph_v2`） | CI + 导出脚本 | Agent 查询、影响分析 |
+| **编辑源** | `*.graph.yaml`（flowchart 结构化数据） | 开发者 / Agent | `scripts/graph_yaml_compile.py` 生成 `*.md`；后端导出器生成 `graph.json` |
+| **人读轨** | `*.md`（Mermaid + 表格，可裸边） | 脚本生成 | 人、按需 Agent |
+| **机器轨** | `graph.json`（`schema_version: graph_v2`） | CI + 后端导出脚本 | Agent 查询、影响分析 |
 
-**原则**：改代码 → 先改 `.ai.md` → 导出/提交 `graph.json` → 同步 `.md`（语义等价，非逐字复制）。
+**原则**：改代码 → 先改 `*.graph.yaml` → `pnpm tech-graph:yaml-compile` 生成 `*.md` → `pnpm tech-graph:graph-export` 提交 `graph.json`。
+
+> 历史 `*.ai.md` 已标记 `@deprecated · 源迁 YAML`，仅作只读对照，不参与导出。
 
 ---
 
