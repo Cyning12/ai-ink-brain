@@ -56,7 +56,7 @@ jobs:
         run: python3 ai-ink-brain-api-python/tools/tech_graph_manifest_check.py --repo frontend --repo-root "${GITHUB_WORKSPACE}" --manifest "${GITHUB_WORKSPACE}/docs/_tech_graph/_manifest.json"
 
       - name: Tech graph schema check
-        run: python3 scripts/tech_graph_schema_check.py
+        run: python3 scripts/tech_graph_schema_check.py --check-backend-sync
 
       - name: Python tests for graph_v2 schema
         run: python3 -m pytest tests/test_graph_v2_schema.py -v
