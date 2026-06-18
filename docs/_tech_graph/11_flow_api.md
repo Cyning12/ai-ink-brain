@@ -1,122 +1,133 @@
+---
+graph_id: 11_flow_api
+version: 
+generated_at: 2026-06-17T11:36:25Z
+source: docs/_tech_graph/11_flow_api.graph.yaml
+---
+
+# 11_flow_api
+
+## Mermaid
+
 ```mermaid
-flowchart LR
-  %% 11_flow_api: API 请求、转发、返回（含 SSE / sources header）
+flowchart TD
+    ADMINHOOK[ADMINHOOK]
+    AUTH_SESSION[AUTH_SESSION]
+    AUTH_UNLOCK[AUTH_UNLOCK]
+    BEARER[BEARER]
+    COOKIE[COOKIE]
+    FRAG[FRAG]
+    PSP[PSP]
+    PY_CHAT_HIS[PY_CHAT_HIS]
+    P_CHAIN[P_CHAIN]
+    P_CHAT[P_CHAT]
+    P_HIS[P_HIS]
+    P_T2S[P_T2S]
+    P_UNI_SSE[P_UNI_SSE]
+    REQ[REQ]
+    XS[x-sources header]
 
-  subgraph CLIENT[Client Components]
-    CP["ChatPanel\ncomponents/ChatPanel.tsx"]:::c
-    T2S["Text2SqlChatPanel\ncomponents/Text2SqlChatPanel.tsx"]:::c
-    CHAIN["ChainChatPageClient\ncomponents/chain-chat/ChainChatPageClient.tsx"]:::c
-    UNIFIED["UnifiedChatPageClient\ncomponents/unified-chat/UnifiedChatPageClient.tsx"]:::c
-    ADMINHOOK["useAdminSession\nlib/hooks/useAdminSession.ts"]:::c
-  end
+    ADMINHOOK --"~>"--> AUTH_SESSION
+    // → components/ChatPanel.tsx
+    // → components/Text2SqlChatPanel.tsx
+    // → components/chain-chat/ChainChatPageClient.tsx
+    // → components/unified-chat/UnifiedChatPageClient.tsx
+    // → lib/hooks/useAdminSession.ts
+    // → app/api/auth/session/route.ts
+    // → app/api/auth/unlock/route.ts
+    // → app/api/py/chat/route.ts
+    // → app/api/py/chat/history/route.ts
+    // → app/api/py/text2sql/chat/route.ts
+    // → app/api/py/chain/chat/route.ts
+    // → app/api/py/unified/chat/route.ts
+    // → app/api/py/unified/chat/stream/route.ts
+    // → lib/auth.ts
+    // → lib/auth/admin-cookie.ts
+    // → lib/py-service-proxy.ts
+    // → lib/server/forward-py-rag-chat.ts
+    AUTH_SESSION --> COOKIE
+    AUTH_UNLOCK --> COOKIE
+    BEARER --> REQ
+    CHAIN --"~>"--> PY_CHAIN
+    COOKIE --> REQ
+    CP --"streamChat"--> PY_CHAT
+    CP --"fetchChatHistory"--> PY_CHAT_HIS
+    FRAG --> PSP
+    PSP --"~>"--> P_CHAIN
+    PSP --"~>"--> P_CHAT
+    PSP --"~>"--> P_HIS
+    PSP --"~>"--> P_T2S
+    PSP --"~>"--> P_UNI
+    PSP --"~>"--> P_UNI_SSE
+    PY_CHAIN --> PSP
+    PY_CHAT --> REQ
+    PY_CHAT_HIS --> PSP
+    PY_T2S --> PSP
+    PY_UNIFIED --> PSP
+    PY_UNIFIED_SSE --> PSP
+    P_CHAT --"::yields"--> XS
+    // → lib/chat/chatApi.ts
+    REQ --> FRAG
+    T2S --"~>"--> PY_T2S
+    UNIFIED --"~>"--> AUTH_UNLOCK
+    UNIFIED --"~>"--> PY_UNIFIED
+    UNIFIED --"fetch POST + ReadableStream"--> PY_UNIFIED_SSE
 
-  subgraph NEXT_API[Next Route Handlers: app/api/**/route.ts]
-    AUTH_SESSION["GET /api/auth/session"]:::a
-    AUTH_UNLOCK["POST /api/auth/unlock"]:::a
-    PY_CHAT["POST /api/py/chat"]:::a
-    PY_CHAT_HIS["GET /api/py/chat/history"]:::a
-    PY_T2S["POST /api/py/text2sql/chat"]:::a
-    PY_CHAIN["POST /api/py/chain/chat"]:::a
-    PY_UNIFIED["POST /api/py/unified/chat"]:::a
-    PY_UNIFIED_SSE["POST /api/py/unified/chat/stream (SSE)"]:::a
-  end
-
-  subgraph AUTH[Auth Gate]
-    REQ["requireAdminApiSecret()\nlib/auth.ts"]:::s
-    COOKIE["ADMIN_SESSION_COOKIE\n(app/api/auth/unlock sets)\nlib/auth/admin-cookie.ts"]:::s
-    BEARER["Ink admin（非 Unified）/ cookie\nUnified：仅 X-ChatBI-Access-Token → Python Bearer"]:::s
-  end
-
-  subgraph PROXY["BFF Forward（py-service-proxy 单点）"]
-    PSP["lib/py-service-proxy.ts\nbuildPyApiUrl · forwardToPyApi* · buildChatbiAuthHeaders"]:::a
-    FRAG["lib/server/forward-py-rag-chat.ts\nRAG x-sources · UND_ERR_HEADERS_OVERFLOW"]:::a
-  end
-
-  subgraph PY[Python FastAPI (PY_API_URL)]
-    P_CHAT["/api/py/chat (stream text/plain)"]:::p
-    P_HIS["/api/py/chat/history (json)"]:::p
-    P_T2S["/api/py/text2sql/chat (json)"]:::p
-    P_CHAIN["/api/py/chain/chat (json events)"]:::p
-    P_UNI["/api/py/unified/chat (json events)"]:::p
-    P_UNI_SSE["/api/py/unified/chat/stream (text/event-stream)"]:::p
-  end
-
-  %% Admin session check (cookie-based)
-  ADMINHOOK --> AUTH_SESSION --> COOKIE
-
-  %% Unlock flow (cookie mint)
-  UNIFIED --> AUTH_UNLOCK --> COOKIE
-
-  %% RAG chat (stream) + history
-  CP -->|fetchChatHistory| PY_CHAT_HIS --> PSP --> P_HIS
-  CP -->|streamChat| PY_CHAT --> REQ --> FRAG --> PSP --> P_CHAT
-
-  %% Text2SQL / Chain / Unified JSON
-  T2S --> PY_T2S --> PSP --> P_T2S
-  CHAIN --> PY_CHAIN --> PSP --> P_CHAIN
-  UNIFIED --> PY_UNIFIED --> PSP --> P_UNI
-
-  %% Unified SSE (preferred)
-  UNIFIED -->|fetch POST + ReadableStream| PY_UNIFIED_SSE --> PSP --> P_UNI_SSE
-  %% SSE done.data stable keys（cross-repo contract）：ok, mode, run_id, session_id, request_id（v1：request_id == run_id）
-
-  %% sources transport（RAG）
-  P_CHAT --> XS["x-sources header (optional)\n+ stream tail marker ---RAG_SOURCES_JSON---\nlib/chat/chatApi.ts parses both"]:::s
-
-  %% auth evidence in gate
-  COOKIE --> REQ
-  BEARER --> REQ
-
-  classDef c fill:#f9f9f7,stroke:#999,color:#222;
-  classDef a fill:#eef6ff,stroke:#4a90e2,color:#123;
-  classDef s fill:#fff7e6,stroke:#d89b00,color:#553;
-  classDef p fill:#f3f0ff,stroke:#7b61ff,color:#221;
+    classDef phase fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef doc fill:#fff8e1,stroke:#ff6f00,stroke-width:1px
+    classDef infra fill:#e8f5e9,stroke:#2e7d32,stroke-width:1px
 ```
 
-## Unified Chat · Ink BFF 与 Python DB Bearer
+## Structured Data
 
-- **浏览器 → Next**：`Authorization: Bearer <NEXT_PUBLIC_ADMIN_SECRET>`（或 `x-blog-admin-token` / 管理 Cookie）仅用于 `requireAdminApiSecret`。
-- **浏览器 → Next（Unified / verify / RAG history BFF）**：**不**再强制 `NEXT_PUBLIC_ADMIN_SECRET`；仅 **`X-ChatBI-Access-Token: <明文>`**（`localStorage`：`chatbi_access_token_plain`）即可由 Python 鉴权；假登录触发点为 **Unified 页「解锁」**（`GET /api/py/chatbi/access/verify`）。
-- **兼容**：无 `X-ChatBI-Access-Token` 时 BFF 仍透传客户端 **`Authorization`**（旧 Ink admin 客户端）。
+### Nodes
 
-## admin/sync · admin/ingest（维护者 · 服务端密钥）
+| ID | Label | Kind |
+|----|-------|------|
+| ADMINHOOK | ADMINHOOK |  |
+| AUTH_SESSION | AUTH_SESSION |  |
+| AUTH_UNLOCK | AUTH_UNLOCK |  |
+| BEARER | BEARER |  |
+| COOKIE | COOKIE |  |
+| FRAG | FRAG |  |
+| PSP | PSP |  |
+| PY_CHAT_HIS | PY_CHAT_HIS |  |
+| P_CHAIN | P_CHAIN |  |
+| P_CHAT | P_CHAT |  |
+| P_HIS | P_HIS |  |
+| P_T2S | P_T2S |  |
+| P_UNI_SSE | P_UNI_SSE |  |
+| REQ | REQ |  |
+| XS | x-sources header |  |
 
-- **维护者 → Python（推荐）**：`Authorization: Bearer <ADMIN_TOKEN>` → `POST /api/py/admin/sync`（投递计划 §3.3；`ADMIN_TOKEN` 为 shell 别名，值 = `SYNC_ADMIN_SECRET`）。
-- **维护者 → BFF（curl）**：`Authorization: Bearer <SYNC_ADMIN_SECRET>` → `POST /api/admin/sync`。
-- **页面 → BFF（SystemStatus）**：`chatbi_site_bearer` HttpOnly Cookie + 上游 verify 有效（与 `session.admin`）→ `POST /api/admin/sync`；`credentials: include`。
-- **入站还可**：Ink admin session Cookie（`validateAdmin` · Legacy）。
-- **出站 BFF → Python**：`forwardToPyAdmin` 注入 `SYNC_ADMIN_SECRET` Bearer（与 curl 路径分离）。
-- **已废弃**：`x-admin-token` + 文档示例 `NEXT_PUBLIC_ADMIN_SECRET`（admin/sync 链 · 2026-06-30 移除 `x-admin-token` 兼容）。
-- **真值**：`lib/auth/sync-admin-env.ts` · `require-sync-admin-access.ts` · [`SPEC-portfolio_admin_sync_auth_v1_zh.md`](../../docs/tasks/specs/SPEC-portfolio_admin_sync_auth_v1_zh.md)
+### Edges
 
-## ChatBI V3 · Text2SQL 子阶段 SSE（Unified 增量路径）
-
-- **消费入口**：`UnifiedChatPageClient` → `POST /api/py/unified/chat/stream`（`X-ChatBI-Sse-Contract: 2`）。  
-- **契约帧**：`text2sql.phase.start` / `text2sql.phase.end`；终态汇总 **`tool.call.end` → `output.text2sql_phases_ms`**。  
-- **任务与真值**：`docs/tasks/active/task_chatbi_v3_text2sql_phase_sse_timeline_frontend_v1.md`（§V1 交付、§数据源与 UI 策略）；后端 L1 摘要见配对仓 `SPEC-ChatBI-V3-Observability-Text2SQL.md` §5.1。
-
-## ChatBI V3 · 多轮澄清 SSE（`agent.clarify`）
-
-- **消费入口**：同上 `UnifiedChatPageClient` SSE 路径。  
-- **契约帧**：`agent.clarify`，payload 最小键 `step_number` / `message` / `prompt_for_user`（真值：`Projects/ai-ink-brain-api-python/docs/_tech_graph/_contract_manifest.json`；语义见 `SPEC-ChatBI-V2-Events.md` §3.2.1）。  
-- **UI**：Timeline / `ChainEventCard` 与 `agent.think` 分开展示；未知 `chain.type` 走策略 B 丢弃。  
-- **SSE 文本样例**：`Projects/ai-ink-brain-api-python/docs/spec/v3-agent/P0/SSE-sample-agent-clarify.md`。
-
-## ChatBI V3 · 低置信方案预览与 `plan_execution_token`（Unified）
-
-- **消费入口**：`UnifiedChatPageClient` 解析 SSE `agent.plan.preview`（最小键见 manifest：`plan_id`、`tool`、`sql_draft`、`warnings`、`plan_execution_token`、`expires_in_sec`）。  
-- **放行请求**：用户点击「按预览执行」后，下一轮 `POST /api/py/unified/chat/stream` 的 JSON body 在 **与预览当轮相同的 `query` + `session_id`** 前提下附带 **`plan_execution_token`**（BFF 整段透传至 Python）。  
-- **状态**：改写输入并发送与绑定问句不同的问题时丢弃令牌；「取消」丢弃并记录令牌以免同帧重复弹出。  
-- **语义真值**：`Projects/ai-ink-brain-api-python/docs/spec/v3-agent/SPEC-ChatBI-V3-LowConfidence-Plan-Confirm.md`；事件字段见 `SPEC-ChatBI-V2-Events.md` §3.2.2。
-
-## 跨仓契约门禁（P6 · manifest 真值在后端）
-
-| 角色 | 路径 |
-| --- | --- |
-| 契约真值 | `ai-ink-brain-api-python/docs/_tech_graph/_contract_manifest.json` |
-| SSE 消费锚点 | `components/unified-chat/UnifiedChatPageClient.tsx` |
-| BFF 透传锚点 | `app/api/py/unified/chat/stream/route.ts` |
-| 校验脚本 | `ai-ink-brain-api-python/tools/tech_graph_contract_check.py` |
-
-工作区 sibling 布局下本地执行：`python3 ../ai-ink-brain-api-python/tools/tech_graph_contract_check.py`。前端 **quality** 默认不阻塞本脚本；详见 `99_spec.md` § 跨仓契约。
-
+| From | To | Mark | Type | Label | Anchors |
+|------|----|------|------|-------|---------|
+| ADMINHOOK | AUTH_SESSION | ~> | async_calls |  | 17 anchor(s) |
+| AUTH_SESSION | COOKIE | -> | depends_on |  |  |
+| AUTH_UNLOCK | COOKIE | -> | depends_on |  |  |
+| BEARER | REQ | -> | depends_on |  |  |
+| CHAIN | PY_CHAIN | ~> | async_calls |  |  |
+| COOKIE | REQ | -> | depends_on |  |  |
+| CP | PY_CHAT | -> | depends_on | streamChat |  |
+| CP | PY_CHAT_HIS | -> | depends_on | fetchChatHistory |  |
+| FRAG | PSP | -> | depends_on |  |  |
+| PSP | P_CHAIN | ~> | async_calls |  |  |
+| PSP | P_CHAT | ~> | async_calls |  |  |
+| PSP | P_HIS | ~> | async_calls |  |  |
+| PSP | P_T2S | ~> | async_calls |  |  |
+| PSP | P_UNI | ~> | async_calls |  |  |
+| PSP | P_UNI_SSE | ~> | async_calls |  |  |
+| PY_CHAIN | PSP | -> | depends_on |  |  |
+| PY_CHAT | REQ | -> | depends_on |  |  |
+| PY_CHAT_HIS | PSP | -> | depends_on |  |  |
+| PY_T2S | PSP | -> | depends_on |  |  |
+| PY_UNIFIED | PSP | -> | depends_on |  |  |
+| PY_UNIFIED_SSE | PSP | -> | depends_on |  |  |
+| P_CHAT | XS | ::yields | yields |  | 1 anchor(s) |
+| REQ | FRAG | -> | depends_on |  |  |
+| T2S | PY_T2S | ~> | async_calls |  |  |
+| UNIFIED | AUTH_UNLOCK | ~> | async_calls |  |  |
+| UNIFIED | PY_UNIFIED | ~> | async_calls |  |  |
+| UNIFIED | PY_UNIFIED_SSE | -> | depends_on | fetch POST + ReadableStream |  |

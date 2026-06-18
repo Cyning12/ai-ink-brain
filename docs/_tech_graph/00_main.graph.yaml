@@ -1,0 +1,339 @@
+graph_id: 00_main
+title: 00_main
+description: ''
+direction: TD
+nodes:
+- id: ABOUT
+  label: /about
+- id: ADMINS
+  label: useAdminSession()
+- id: APP
+  label: APP
+- id: AUTH
+  label: requireAdminApiSecret()
+- id: BLOG
+  label: /blog
+- id: BLOGSLUG
+  label: /blog/[...slug
+- id: CCP
+  label: ChainChatPageClient
+- id: CHAIN
+  label: /chain-chat
+- id: CHAT
+  label: /chat
+- id: CP
+  label: ChatPanel
+- id: DIARY
+  label: /diary
+- id: G_API
+  label: '>11_flow_api.md'
+- id: G_AUTH
+  label: '>12_flow_auth.md'
+- id: G_COMP
+  label: '>13_flow_components.md'
+- id: G_ROUTE
+  label: '>10_flow_route.md'
+- id: G_SPEC
+  label: '>99_spec.md'
+- id: G_STRUCT
+  label: '>01_struct.md'
+- id: G_VER
+  label: '>02_version.md'
+- id: HOME
+  label: / Home
+- id: L
+  label: app/layout.tsx
+- id: LEARNING
+  label: /learning
+- id: NAV
+  label: SiteNav
+- id: NAVFILTER
+  label: 过滤导航项
+- id: PROJECTS
+  label: /projects
+- id: PY
+  label: (Python FastAPI)
+- id: PY_CHAIN
+  label: PY_CHAIN
+- id: PY_CHAT
+  label: PY_CHAT
+- id: PY_T2S
+  label: PY_T2S
+- id: PY_UNIFIED
+  label: PY_UNIFIED
+- id: PY_UNIFIED_SSE
+  label: PY_UNIFIED_SSE
+- id: ROUTER
+  label: 路由匹配
+- id: T2P
+  label: Text2SqlChatPanel
+- id: T2S
+  label: /text2sql
+- id: UCP
+  label: UnifiedChatPageClient
+- id: UNIFIED
+  label: /unified-chat
+edges:
+- anchors: []
+  from: ADMINS
+  label: ''
+  mark: ->
+  to: NAVFILTER
+  type: depends_on
+- anchors: []
+  from: APP
+  label: 加载
+  mark: ->
+  to: G_SPEC
+  type: depends_on
+- anchors: []
+  from: APP
+  label: 加载
+  mark: ->
+  to: G_VER
+  type: depends_on
+- anchors: []
+  from: AUTH
+  label: 加载
+  mark: ->
+  to: G_AUTH
+  type: depends_on
+- anchors:
+  - path: PY_API_URL
+    symbol: ''
+  from: AUTH
+  label: ''
+  mark: ~>
+  sync: false
+  to: PY
+  type: async_calls
+- anchors:
+  - path: components/chain-chat/ChainChatPageClient.tsx
+    symbol: ''
+  from: CHAIN
+  label: ''
+  mark: ->
+  to: CCP
+  type: depends_on
+- anchors:
+  - path: components/ChatPanel.tsx
+    symbol: ''
+  from: CHAT
+  label: ''
+  mark: ->
+  to: CP
+  type: depends_on
+- anchors: []
+  from: CP
+  label: 加载
+  mark: ->
+  to: G_API
+  type: depends_on
+- anchors: []
+  from: HOME
+  label: 加载
+  mark: ->
+  to: G_ROUTE
+  type: depends_on
+- anchors:
+  - path: app/layout.tsx
+    symbol: ''
+  from: L
+  label: ''
+  mark: ->
+  to: NAV
+  type: depends_on
+- anchors:
+  - path: app/**/page.tsx
+    symbol: ''
+  from: L
+  label: ''
+  mark: ->
+  to: ROUTER
+  type: depends_on
+- anchors:
+  - path: lib/hooks/useAdminSession.ts
+    symbol: ''
+  from: NAV
+  label: ''
+  mark: ->
+  to: ADMINS
+  type: depends_on
+- anchors: []
+  from: NAVFILTER
+  label: ''
+  mark: '[admin]'
+  to: ROUTER
+  type: depends_on
+- anchors: []
+  from: NAVFILTER
+  label: ''
+  mark: '[non-admin]'
+  to: ROUTER
+  type: depends_on
+- anchors: []
+  from: PY_CHAIN
+  label: ''
+  mark: ->
+  to: AUTH
+  type: depends_on
+- anchors:
+  - path: lib/auth.ts
+    symbol: ''
+  from: PY_CHAT
+  label: ''
+  mark: ->
+  to: AUTH
+  type: depends_on
+- anchors: []
+  from: PY_T2S
+  label: ''
+  mark: ->
+  to: AUTH
+  type: depends_on
+- anchors: []
+  from: PY_UNIFIED
+  label: ''
+  mark: ->
+  to: AUTH
+  type: depends_on
+- anchors: []
+  from: PY_UNIFIED_SSE
+  label: ''
+  mark: ->
+  to: AUTH
+  type: depends_on
+- anchors:
+  - path: app/about/page.tsx
+    symbol: ''
+  from: ROUTER
+  label: ''
+  mark: ->
+  to: ABOUT
+  type: depends_on
+- anchors:
+  - path: app/blog/page.tsx
+    symbol: ''
+  from: ROUTER
+  label: ''
+  mark: ->
+  to: BLOG
+  type: depends_on
+- anchors:
+  - path: app/blog/[...slug]/page.tsx
+    symbol: ''
+  from: ROUTER
+  label: ''
+  mark: ->
+  to: BLOGSLUG
+  type: depends_on
+- anchors:
+  - path: app/chain-chat/page.tsx
+    symbol: ''
+  from: ROUTER
+  label: ''
+  mark: ->
+  to: CHAIN
+  type: depends_on
+- anchors:
+  - path: app/chat/page.tsx
+    symbol: ''
+  from: ROUTER
+  label: ''
+  mark: ->
+  to: CHAT
+  type: depends_on
+- anchors:
+  - path: app/diary/page.tsx
+    symbol: ''
+  from: ROUTER
+  label: ''
+  mark: ->
+  to: DIARY
+  type: depends_on
+- anchors: []
+  from: ROUTER
+  label: 加载
+  mark: ->
+  to: G_STRUCT
+  type: depends_on
+- anchors:
+  - path: app/page.tsx
+    symbol: ''
+  from: ROUTER
+  label: ''
+  mark: ->
+  to: HOME
+  type: depends_on
+- anchors:
+  - path: app/learning/page.tsx
+    symbol: ''
+  from: ROUTER
+  label: ''
+  mark: ->
+  to: LEARNING
+  type: depends_on
+- anchors:
+  - path: app/projects/page.tsx
+    symbol: ''
+  from: ROUTER
+  label: ''
+  mark: ->
+  to: PROJECTS
+  type: depends_on
+- anchors:
+  - path: app/text2sql/page.tsx
+    symbol: ''
+  from: ROUTER
+  label: ''
+  mark: ->
+  to: T2S
+  type: depends_on
+- anchors:
+  - path: app/unified-chat/page.tsx
+    symbol: ''
+  from: ROUTER
+  label: ''
+  mark: ->
+  to: UNIFIED
+  type: depends_on
+- anchors:
+  - path: components/Text2SqlChatPanel.tsx
+    symbol: ''
+  from: T2S
+  label: ''
+  mark: ->
+  to: T2P
+  type: depends_on
+- anchors: []
+  from: UCP
+  label: 加载
+  mark: ->
+  to: G_COMP
+  type: depends_on
+- anchors:
+  - path: components/unified-chat/UnifiedChatPageClient.tsx
+    symbol: ''
+  - path: app/api/auth/session/route.ts
+    symbol: ''
+  - path: app/api/auth/unlock/route.ts
+    symbol: ''
+  - path: app/api/py/chat/route.ts
+    symbol: ''
+  - path: app/api/py/chat/history/route.ts
+    symbol: ''
+  - path: app/api/py/text2sql/chat/route.ts
+    symbol: ''
+  - path: app/api/py/chain/chat/route.ts
+    symbol: ''
+  - path: app/api/py/unified/chat/route.ts
+    symbol: ''
+  - path: app/api/py/unified/chat/stream/route.ts
+    symbol: ''
+  - path: app/api/system/status/route.ts
+    symbol: ''
+  from: UNIFIED
+  label: ''
+  mark: ->
+  to: UCP
+  type: depends_on

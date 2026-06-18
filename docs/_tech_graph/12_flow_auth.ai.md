@@ -1,3 +1,6 @@
+> **@deprecated · 源迁 YAML**  
+> 本文件已转为只读对照，编辑源为 [`12_flow_auth.graph.yaml`](12_flow_auth.graph.yaml)。人类可读版见 [`12_flow_auth.md`](12_flow_auth.md)。
+
 ```mermaid
 flowchart TD
     %% 12_flow_auth: 登录、权限、Session、Bearer

@@ -1,3 +1,6 @@
+> **@deprecated · 源迁 YAML**  
+> 本文件已转为只读对照，编辑源为 [`13_flow_components.graph.yaml`](13_flow_components.graph.yaml)。人类可读版见 [`13_flow_components.md`](13_flow_components.md)。
+
 ```mermaid
 flowchart TB
     %% 13_flow_components: 通用组件渲染 & 数据流向
