@@ -2,6 +2,7 @@
 
 > **状态**：与 committed `graph.json` 对齐  
 > **落盘**：`docs/_tech_graph/graph.json`，`schema_version: graph_v2`  
+> **机器可读真值**：`docs/_tech_graph/graph_v2.schema.json`（与后端仓同源；双轨：本 Markdown + JSON Schema）  
 > **关联规格**：`docs/tasks/specs/SPEC-tech_graph_v2_frontend_parity_v1.md`  
 > **导出**：自本目录 `*.graph.yaml`；工具在配对后端仓（见 §8）  
 > **工作区 SPEC**：`docs/tech_graph/SPEC/json_graph/scheme_1_graph_json.md`
@@ -91,7 +92,8 @@
 | --- | --- |
 | `tech_graph_graph_export.py` | 导出 / `--check` |
 | `tech_graph_graph_equivalence_check.py` | 等价 CI |
-| `tech_graph_graph_v2_schema.py` | 结构校验（`pnpm tech-graph:schema-check`） |
+| `tech_graph_graph_v2_schema.py` | 结构校验真值（JSON Schema + 校验逻辑） |
+| `scripts/tech_graph_schema_check.py` | 前端封装：同步检查本地 `graph_v2.schema.json` 并与后端同源 schema 比对，再校验 `graph.json` |
 | `tech_graph_graph_query.py` | 单图 query（`pnpm tech-graph:query …`） |
 
 本地封装见根目录 `package.json` 的 `tech-graph:*`。
