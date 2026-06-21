@@ -130,3 +130,5 @@ Ink 前端启用 **`site_mode=ops`**：默认入口 `/ops/kimi-code` · 隐藏�
 
 **遗留/下一棒**：P0-4~6 看板数据页待 P0-2 完成后由 00 派工
 
+**50 独立复检 R1**：[`task_ops_desk_p0_ops_site_mode_v1_reinspect_R1_20260621.md`](../../../docs/harness/reviews/task_ops_desk_p0_ops_site_mode_v1_reinspect_R1_20260621.md) · **pass** · 2026-06-21
+
