@@ -1,20 +1,22 @@
 # SPEC · Kimi Code Ops Desk（Issue ChatBI + 看板 · MVP v1）
 
-| 项 | 内容 |
-| --- | --- |
-| **状态** | `draft`（R0–R9 规格已细化 · 含领域本体 · 待 HG-SPEC-SIGNOFF） |
-| **类型** | 规格真值（`docs/tasks/specs/`） |
-| **代号** | **Ops Desk** · `site_mode=ops` |
-| **监控仓** | **`MoonshotAI/kimi-code`**（MVP 唯一；未来 **一仓一页**） |
-| **test_strategy（建议）** | `required`（sync · metrics API · ops_run/events · 鉴权） |
-| **关联** | [`PLAN_kimi_code_meta_harness_2x_v1_zh.md`](../../../../docs/harness/guides/PLAN_kimi_code_meta_harness_2x_v1_zh.md) · [`ISSUE_SCAN_kimi_code_open_c2_v1_zh.md`](../../../../docs/harness/guides/ISSUE_SCAN_kimi_code_open_c2_v1_zh.md) · [`STRATEGY_agent_runtime_ce_v1_zh.md`](../../../../docs/harness/guides/STRATEGY_agent_runtime_ce_v1_zh.md) · [**领域本体**](../../../../docs/harness/guides/ONTOLOGY_ops_desk_kimi_code_v1_zh.md) |
-| **10-spec invoke** | [`ops-desk-kimi-code-spec-refine`](../../../../docs/harness/invokes/by-task/ops-desk-kimi-code-spec-refine/README.md) · [`PROMPT_START_10_spec_rethink_v1.md`](../../../../docs/harness/invokes/by-task/ops-desk-kimi-code-spec-refine/PROMPT_START_10_spec_rethink_v1.md) |
+
+| 项                     | 内容                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **状态**                | `approved`（R0–R9 · **HG-SPEC-SIGNOFF approved** · 2026-06-21）                                                                                                                                                                                                                                                                                                                                                                                     |
+| **类型**                | 规格真值（`docs/tasks/specs/`）                                                                                                                                                                                                                                                                                                                                                                                                               |
+| **代号**                | **Ops Desk** · `site_mode=ops`                                                                                                                                                                                                                                                                                                                                                                                                          |
+| **监控仓**               | `**MoonshotAI/kimi-code`**（MVP 唯一；未来 **一仓一页**）                                                                                                                                                                                                                                                                                                                                                                                          |
+| **test_strategy（建议）** | `required`（sync · metrics API · ops_run/events · 鉴权）                                                                                                                                                                                                                                                                                                                                                                                    |
+| **关联**                | `[PLAN_kimi_code_meta_harness_2x_v1_zh.md](../../../../docs/harness/guides/PLAN_kimi_code_meta_harness_2x_v1_zh.md)` · `[ISSUE_SCAN_kimi_code_open_c2_v1_zh.md](../../../../docs/harness/guides/ISSUE_SCAN_kimi_code_open_c2_v1_zh.md)` · `[STRATEGY_agent_runtime_ce_v1_zh.md](../../../../docs/harness/guides/STRATEGY_agent_runtime_ce_v1_zh.md)` · **[领域本体](../../../../docs/harness/guides/ONTOLOGY_ops_desk_kimi_code_v1_zh.md)** |
+| **10-spec invoke**    | `[ops-desk-kimi-code-spec-refine](../../../../docs/harness/invokes/by-task/ops-desk-kimi-code-spec-refine/README.md)` · `[PROMPT_START_10_spec_rethink_v1.md](../../../../docs/harness/invokes/by-task/ops-desk-kimi-code-spec-refine/PROMPT_START_10_spec_rethink_v1.md)`                                                                                                                                                              |
+
 
 ---
 
 ## §0 完成态一句话
 
-在 **不新建前端仓** 前提下，Ink 前端新增 **`site_mode=ops`**：针对 **MoonshotAI/kimi-code** 的 **只读** Issue/PR/CI 看板 + **单仓 ChatBI**（**Orchestrator Agent · 00 帽** 总调度：建议题快答 · 深析派 **子 Agent** · **Review 闸** 后总结）；编排目标态 **LangGraph** + **`ops_run_events` 全链路可观测**（断联靠 `run_id` 续看）；数据 **日同步**（GitHub Actions）+ **维护者手动触发**；融合 **ISSUE_SCAN** 与 **meta graph.json（只读）**；鉴权 **M0 邀请制秘钥**；**不**改上游 · **不** Neo4j。
+在 **不新建前端仓** 前提下，Ink 前端新增 `**site_mode=ops`**：针对 **MoonshotAI/kimi-code** 的 **只读** Issue/PR/CI 看板 + **单仓 ChatBI**（**Orchestrator Agent · 00 帽** 总调度：建议题快答 · 深析派 **子 Agent** · **Review 闸** 后总结）；编排目标态 **LangGraph** + `**ops_run_events` 全链路可观测**（断联靠 `run_id` 续看）；数据 **日同步**（GitHub Actions）+ **维护者手动触发**；融合 **ISSUE_SCAN** 与 **meta graph.json（只读）**；鉴权 **M0 邀请制秘钥**；**不**改上游 · **不** Neo4j。
 
 ---
 
@@ -22,48 +24,56 @@
 
 ### 1.1 不做什么（排除误选）
 
-| 产品 | 结论 |
-| --- | --- |
-| **Octoboard** | 营销分析 · **与 GitHub 工程无关** · 不参考 |
-| **GitPulse** | Issue **推荐/发现** · 非团队 PR/Issue 看板 · 不照搬 |
-| **Plane / ZenHub / Swarmia** | 成熟 PM/效能平台 · **过重** · 仅借鉴指标与页面结构 |
-| **Metabase 自托管 BI** | MVP **不做** · 直接用 Next + 图表库 |
+
+| 产品                           | 结论                                      |
+| ---------------------------- | --------------------------------------- |
+| **Octoboard**                | 营销分析 · **与 GitHub 工程无关** · 不参考          |
+| **GitPulse**                 | Issue **推荐/发现** · 非团队 PR/Issue 看板 · 不照搬 |
+| **Plane / ZenHub / Swarmia** | 成熟 PM/效能平台 · **过重** · 仅借鉴指标与页面结构        |
+| **Metabase 自托管 BI**          | MVP **不做** · 直接用 Next + 图表库             |
+
 
 ### 1.2 差异化（本产品）
 
-| 维度 | 通用 GitHub Dashboard | **Ops Desk（本 SPEC）** |
-| --- | --- | --- |
-| 范围 | 多仓 / 通用 | **单仓 kimi-code** · 未来一仓一页 |
-| 策略层 | 无 | **ISSUE_SCAN**（P0/P1/占坑/backlog） |
-| 架构 | 无 | **meta `graph.json`** 模块/flow 关联 |
-| 过程轨 | 无 | Harness/HGM **只读** 展示（可选 P2） |
-| 对话 | 泛 NL→SQL | **00 Orchestrator + 子 Agent + Review** · fast/deep 路由 · **events 可观测** |
-| 写操作 | 部分产品可改 | **只读** · 网页 **不 commit** |
+
+| 维度  | 通用 GitHub Dashboard | **Ops Desk（本 SPEC）**                                                   |
+| --- | ------------------- | ---------------------------------------------------------------------- |
+| 范围  | 多仓 / 通用             | **单仓 kimi-code** · 未来一仓一页                                              |
+| 策略层 | 无                   | **ISSUE_SCAN**（P0/P1/占坑/backlog）                                       |
+| 架构  | 无                   | **meta `graph.json`** 模块/flow 关联                                       |
+| 过程轨 | 无                   | Harness/HGM **只读** 展示（可选 P2）                                           |
+| 对话  | 泛 NL→SQL            | **00 Orchestrator + 子 Agent + Review** · fast/deep 路由 · **events 可观测** |
+| 写操作 | 部分产品可改              | **只读** · 网页 **不 commit**                                               |
+
 
 ### 1.3 可借鉴（结构 · 非照搬）
 
-| 来源 | 借鉴 |
-| --- | --- |
+
+| 来源                   | 借鉴                                           |
+| -------------------- | -------------------------------------------- |
 | **ZenHub / Swarmia** | PR Cycle Time · Review Time · Throughput 类指标 |
-| **GitRevio** | PR/Issue/CI 多源面板思路 |
-| **三方建议** | 定时同步为主 · NL→API 优先于 NL→SQL · MVP 严控范围 |
-| **自建路径** | GitHub API → Supabase → Next 可视化（与现有栈一致） |
+| **GitRevio**         | PR/Issue/CI 多源面板思路                           |
+| **三方建议**             | 定时同步为主 · NL→API 优先于 NL→SQL · MVP 严控范围        |
+| **自建路径**             | GitHub API → Supabase → Next 可视化（与现有栈一致）     |
+
 
 ---
 
 ## §2 已拍板决策
 
-| # | 决策 |
-| --- | --- |
-| 1 | 仅 **kimi-code**；扩展时 **一仓一页 · Chat 不跨仓** |
-| 2 | 部署 **Vercel + Supabase + GitHub Actions 同步** · **不** MVP 迁国内 VPS |
-| 3 | 前端 **Ink 内 ops 模块** · 博客 **deprecated 隐藏** · 内容不删 |
-| 4 | 鉴权 **M0 邀请制秘钥** · 无公网注册 |
-| 5 | 同步 **默认 24h** · **手动触发** 更新（GHA `workflow_dispatch`） |
-| 6 | **Chat 编排全在后端 Python** · 前端读 **run events**（SSE 仅 progress） |
-| 7 | 图谱 **graph.json → Supabase** · **不用 Neo4j**（INK-P7 deferred） |
-| 8 | 国内 Demo：页面略慢可接受 · **断联续看**靠 `run_id` + `ops_run_events` |
-| 9 | **Orchestrator（00）+ 子 Agent + Review（20）** · 目标态 **LangGraph** · **不**走 Unified Chat chain |
+
+| #   | 决策                                                                                         |
+| --- | ------------------------------------------------------------------------------------------ |
+| 1   | 仅 **kimi-code**；扩展时 **一仓一页 · Chat 不跨仓**                                                    |
+| 2   | 部署 **Vercel + Supabase + GitHub Actions 同步** · **不** MVP 迁国内 VPS                           |
+| 3   | 前端 **Ink 内 ops 模块** · 博客 **deprecated 隐藏** · 内容不删                                          |
+| 4   | 鉴权 **M0 邀请制秘钥** · 无公网注册                                                                    |
+| 5   | 同步 **默认 24h** · **手动触发** 更新（GHA `workflow_dispatch`）                                       |
+| 6   | **Chat 编排全在后端 Python** · 前端读 **run events**（SSE 仅 progress）                                |
+| 7   | 图谱 **graph.json → Supabase** · **不用 Neo4j**（INK-P7 deferred）                               |
+| 8   | 国内 Demo：页面略慢可接受 · **断联续看**靠 `run_id` + `ops_run_events`                                    |
+| 9   | **Orchestrator（00）+ 子 Agent + Review（20）** · 目标态 **LangGraph** · **不**走 Unified Chat chain |
+
 
 ---
 
@@ -101,37 +111,43 @@ ai-ink-brain-api-python
 
 ### 4.2 同步策略（相对三方「每小时」的调整）
 
-| 项 | 本 SPEC |
-| --- | --- |
-| 默认定时 | **每 24h** 增量/全量（GHA cron） |
-| 手动刷新 | Ops 页 **「同步数据」**（maintainer）→ `workflow_dispatch` |
-| Webhook | **MVP 不做** · P2 可选「新 PR 通知」非看板主路径 |
-| 兜底 | 每次 sync 记录 `sync_runs` · UI 显示 **数据截至** |
-| API 限流 | 只拉 **kimi-code** 单仓 · 必要字段 · `since` 增量 |
+
+| 项       | 本 SPEC                                            |
+| ------- | ------------------------------------------------- |
+| 默认定时    | **每 24h** 增量/全量（GHA cron）                         |
+| 手动刷新    | Ops 页 **「同步数据」**（maintainer）→ `workflow_dispatch` |
+| Webhook | **MVP 不做** · P2 可选「新 PR 通知」非看板主路径                 |
+| 兜底      | 每次 sync 记录 `sync_runs` · UI 显示 **数据截至**           |
+| API 限流  | 只拉 **kimi-code** 单仓 · 必要字段 · `since` 增量           |
+
 
 ### 4.3 对话 · Run 模型与断联续看
 
-| 模式 | 行为 |
-| --- | --- |
-| **Fast（建议题/列表/指标）** | Orchestrator 直查 DB / 预置模板 / Demo 缓存 · 无或短 LLM · 可选轻量 `ops_run_events` |
-| **Deep（Issue/PR 深析）** | `POST /ops/chat/messages` → 创建 **`run_id`** → LangGraph 子图：delegate → review → synthesize |
-| **前端** | **`GET /ops/runs/{id}/events?after_seq=`** 拉时间线 · 展示 partial · **断线用同一 run_id 续看** |
-| **重试** | `POST /ops/runs/{id}/retry` + `retry_token` 幂等重跑 |
-| **Demo 缓存** | 8 题预计算 · fast path 短路 |
-| **SSE** | `GET /ops/runs/{id}/stream` **可选 · 仅 progress** · **结论不以 SSE 为唯一真值** |
+
+| 模式                    | 行为                                                                                        |
+| --------------------- | ----------------------------------------------------------------------------------------- |
+| **Fast（建议题/列表/指标）**   | Orchestrator 直查 DB / 预置模板 / Demo 缓存 · 无或短 LLM · 可选轻量 `ops_run_events`                     |
+| **Deep（Issue/PR 深析）** | `POST /ops/chat/messages` → 创建 `**run_id`** → LangGraph 子图：delegate → review → synthesize |
+| **前端**                | `**GET /ops/runs/{id}/events?after_seq=`** 拉时间线 · 展示 partial · **断线用同一 run_id 续看**        |
+| **重试**                | `POST /ops/runs/{id}/retry` + `retry_token` 幂等重跑                                          |
+| **Demo 缓存**           | 8 题预计算 · fast path 短路                                                                     |
+| **SSE**               | `GET /ops/runs/{id}/stream` **可选 · 仅 progress** · **结论不以 SSE 为唯一真值**                      |
+
 
 **Run 状态机**：`queued` → `running` → `reviewing` → `done` | `failed` | `partial`
 
-**与 R3 关系**：原 `ops_analysis_jobs/steps` 语义并入 **`ops_runs` + `ops_run_events`**；对外 API 以 `/ops/runs` 为准（`/ops/analysis-jobs` 可保留一版 deprecated alias）。
+**与 R3 关系**：原 `ops_analysis_jobs/steps` 语义并入 `**ops_runs` + `ops_run_events`**；对外 API 以 `/ops/runs` 为准（`/ops/analysis-jobs` 可保留一版 deprecated alias）。
 
 ### 4.4 对话 Phase 1（采纳三方建议 · 不做 NL→SQL）
 
-| 用户意图示例 | 路由 | 实现 |
-| --- | --- | --- |
-| 「#437 适合我做吗」 | **Deep** | `issue_analyst` → Review → Orchestrator 总结 |
-| 「PR 周期时间趋势」 | **Fast** | `GET /ops/metrics/cycle-time` |
-| 「Read 工具相关 open issue」 | **Fast** | `GET /ops/issues?…`（P2 可加 graph filter） |
-| 开放复杂问 | **Deep** | `fallback` 子图 + Review |
+
+| 用户意图示例                 | 路由       | 实现                                         |
+| ---------------------- | -------- | ------------------------------------------ |
+| 「#545 适合我做吗」（P1 Demo · 实施时从 ISSUE_SCAN 选较新 open issue） | **Deep** | `issue_analyst` → Review → Orchestrator 总结 |
+| 「PR 周期时间趋势」            | **Fast** | `GET /ops/metrics/cycle-time`              |
+| 「Read 工具相关 open issue」 | **Fast** | `GET /ops/issues?…`（P2 可加 graph filter）    |
+| 开放复杂问                  | **Deep** | `fallback` 子图 + Review                     |
+
 
 Phase 2+：受限 NL→SQL（单表/视图）· 须 SQL 审计。
 
@@ -157,25 +173,29 @@ POST /ops/chat/messages
 
 #### 4.6.2 与 Unified Chat 边界
 
-| 项 | Unified Chat（现网） | Ops Orchestrator |
-| --- | --- | --- |
-| 入口 | `/api/py/unified/chat` | `/ops/chat/messages` → `/ops/runs/*` |
-| Agent | `ChatBIAgent` | **新建** `OpsOrchestrator` + 子图 |
-| 工具 | rag / text2sql / direct | **只读** ops 工具（issue/pr/scan/metrics） |
-| 持久化 | `rag_conversation_logs` | **`ops_runs` + `ops_run_events`** |
-| 可观测 | `events[]` 随请求 | **events 落库** · 前端按 seq 增量拉 |
-| 借鉴 | intent→step→emit **结构** · event type 命名 | ✅ |
-| 复用 chain | — | **禁止** |
+
+| 项        | Unified Chat（现网）                        | Ops Orchestrator                     |
+| -------- | --------------------------------------- | ------------------------------------ |
+| 入口       | `/api/py/unified/chat`                  | `/ops/chat/messages` → `/ops/runs/*` |
+| Agent    | `ChatBIAgent`                           | **新建** `OpsOrchestrator` + 子图        |
+| 工具       | rag / text2sql / direct                 | **只读** ops 工具（issue/pr/scan/metrics） |
+| 持久化      | `rag_conversation_logs`                 | `**ops_runs` + `ops_run_events`**    |
+| 可观测      | `events[]` 随请求                          | **events 落库** · 前端按 seq 增量拉          |
+| 借鉴       | intent→step→emit **结构** · event type 命名 | ✅                                    |
+| 复用 chain | —                                       | **禁止**                               |
+
 
 #### 4.6.3 子 Agent（分期）
 
-| agent_role | 阶段 | 职责 |
-| --- | --- | --- |
-| `orchestrator` | P1 | 分类 · fast 回复 · 派工 · 总结 |
-| `issue_analyst` | P1 | Issue/PR 深析 · 适合度/风险/建议 |
-| `review` | P1 | 引用校验 · 非范围拦截 |
-| `graph_analyst` | P2 | 模块×Issue · graph 快照 |
-| `scan_analyst` | P2 | ISSUE_SCAN 摘要 |
+
+| agent_role      | 阶段  | 职责                      |
+| --------------- | --- | ----------------------- |
+| `orchestrator`  | P1  | 分类 · fast 回复 · 派工 · 总结  |
+| `issue_analyst` | P1  | Issue/PR 深析 · 适合度/风险/建议 |
+| `review`        | P1  | 引用校验 · 非范围拦截            |
+| `graph_analyst` | P2  | 模块×Issue · graph 快照     |
+| `scan_analyst`  | P2  | ISSUE_SCAN 摘要           |
+
 
 #### 4.6.4 Review 最小规则
 
@@ -186,14 +206,16 @@ POST /ops/chat/messages
 
 #### 4.6.5 LangGraph 实施分期
 
-| 阶段 | 交付 |
-| --- | --- |
+
+| 阶段       | 交付                                                                      |
+| -------- | ----------------------------------------------------------------------- |
 | **P1-a** | 手写 FSM 实现 Orchestrator + issue_analyst + review；**表结构 LangGraph-ready** |
-| **P1-b** | 引入 `langgraph` · Postgres/Supabase checkpointer · 图节点与 P1-a 等价 |
+| **P1-b** | 引入 `langgraph` · Postgres/Supabase checkpointer · 图节点与 P1-a 等价          |
+
 
 #### 4.6.6 可观测 · 前端
 
-- Chat 页复用 **unified-chat trace 壳**，数据源改为 **`ops_run_events`**
+- Chat 页复用 **unified-chat trace 壳**，数据源改为 `**ops_run_events`**
 - 断联：`run_id` + `after_seq` 续拉；无需重跑 LLM
 - thinking chain v2：由 events 渲染 `evidence → reasoning → suggestion`（见 §6.1）
 
@@ -211,7 +233,7 @@ cyning/meta 分支 graph.json（只读 raw/sync）
 
 ### 4.7 领域本体（R9 · 持续维护项目关系）
 
-> **真值**：[`ONTOLOGY_ops_desk_kimi_code_v1_zh.md`](../../../../docs/harness/guides/ONTOLOGY_ops_desk_kimi_code_v1_zh.md)（类 · 关系 · 公理 · 双 Loop 图 · 维护协议）
+> **真值**：`[ONTOLOGY_ops_desk_kimi_code_v1_zh.md](../../../../docs/harness/guides/ONTOLOGY_ops_desk_kimi_code_v1_zh.md)`（类 · 关系 · 公理 · 双 Loop 图 · 维护协议）
 
 - **Ops Chat Loop** 与 **Hermes Loop** **并行不冲突**：共用 Inform（ISSUE_SCAN · ops 表 · graph 快照）；Chat 负责只读分析+可观测 Run；Hermes 负责 task 草稿 Orchestrate（P3）；签收仍 **HumanGate + gate-check**。
 - 核心类：`MonitoredRepo` · `Issue`/`PullRequest` · `SyncRun` · `OpsRun`/`RunEvent` · `HermesDraft` · `HarnessWorkItem`。
@@ -222,12 +244,14 @@ cyning/meta 分支 graph.json（只读 raw/sync）
 
 ## §5 鉴权（M0）
 
-| 角色 | 能力 |
-| --- | --- |
-| **viewer** | 看板 + Chat（邀请秘钥） |
+
+| 角色             | 能力                             |
+| -------------- | ------------------------------ |
+| **viewer**     | 看板 + Chat（邀请秘钥）                |
 | **maintainer** | + 手动触发 sync · 看 sync 日志 · 导出草稿 |
 
-- 环境变量：`OPS_DESK_SECRET`（或复用 portfolio tier 体系扩展）
+
+- 环境变量：`OPS_DESK_SECRET`（viewer）；可选 `OPS_DESK_MAINTAINER_SECRET`（maintainer；未设时 viewer 兼 maintainer）。**不**复用 portfolio tier。
 - **不做**：公网注册 · 多租户
 - **P1 可选**：GitHub OAuth **只读**（绑定可见 fork/upstream）
 
@@ -237,48 +261,57 @@ cyning/meta 分支 graph.json（只读 raw/sync）
 
 ### 6.1 路由（MVP）
 
-| # | 路径 | 内容 | 优先级 |
-| --- | --- | --- | --- |
-| 1 | `/ops/kimi-code` | 总览：3 指标 + 30 天趋势 + scan 版本 + 数据截至 | P0 |
-| 2 | `/ops/kimi-code/issues` | Issue 列表 · 筛选 · ISSUE_SCAN 标签 | P0 |
-| 3 | `/ops/kimi-code/pulls` | PR 列表 · CI/review 状态 | P0 |
-| 4 | `/ops/kimi-code/chat` | Chat · **run events 时间线** · 断联续看 · thinking chain v2 | P1 |
-| 5 | `/ops/kimi-code/graph` | 模块×Issue · graph 节点只读 | P1 |
+
+| #   | 路径                      | 内容                                                   | 优先级 |
+| --- | ----------------------- | ---------------------------------------------------- | --- |
+| 1   | `/ops/kimi-code`        | 总览：3 指标 + 30 天趋势 + scan 版本 + 数据截至                    | P0  |
+| 2   | `/ops/kimi-code/issues` | Issue 列表 · 筛选 · ISSUE_SCAN 标签                        | P0  |
+| 3   | `/ops/kimi-code/pulls`  | PR 列表 · CI/review 状态                                 | P0  |
+| 4   | `/ops/kimi-code/chat`   | Chat · **run events 时间线** · 断联续看 · thinking chain v2 | P1  |
+| 5   | `/ops/kimi-code/graph`  | 模块×Issue · graph 节点只读                                | P1  |
+
 
 ### 6.2 核心指标（三方建议 · 单仓版）
 
-| 指标 | 说明 |
-| --- | --- |
-| **PR Cycle Time** | 创建 → merge 中位数 |
-| **PR Review Time** | 创建 → 首次 review 中位数 |
-| **Issue Throughput** | 周/月 closed 数 |
-| **可选** | Open Issue Aging（>7/14/30 天） |
+
+| 指标                   | 说明                           |
+| -------------------- | ---------------------------- |
+| **PR Cycle Time**    | 创建 → merge 中位数               |
+| **PR Review Time**   | 创建 → 首次 review 中位数           |
+| **Issue Throughput** | 周/月 closed 数                 |
+| **可选**               | Open Issue Aging（>7/14/30 天） |
+
 
 ### 6.3 博客 / Portfolio 处理
 
-| 项 | 做法 |
-| --- | --- |
-| 默认入口 | `NEXT_PUBLIC_SITE_MODE=ops` → `/ops/kimi-code` |
-| `/blog` 等 | **导航隐藏** · 路由保留或 302 · **不删** `content/` |
-| unified-chat 组件 | **复用 trace 壳** · 数据源 **`ops_run_events`** · 非 Unified Chat API |
+
+| 项               | 做法                                                             |
+| --------------- | -------------------------------------------------------------- |
+| 默认入口            | `NEXT_PUBLIC_SITE_MODE=ops` → `/ops/kimi-code`                 |
+| `/blog` 等       | **导航隐藏** · 路由保留或 302 · **不删** `content/`                       |
+| unified-chat 组件 | **复用 trace 壳** · 数据源 `**ops_run_events`** · 非 Unified Chat API |
+
 
 ---
 
 ## §7 数据层（Supabase · 草案）
 
-| 表 | 用途 |
-| --- | --- |
-| `ops_repos` | 固定 `MoonshotAI/kimi-code` |
-| `ops_issues` · `ops_pull_requests` | GitHub 同步事实 |
-| `ops_sync_runs` | 同步批次 · 时间戳 · 状态 |
-| `ops_scan_snapshots` | ISSUE_SCAN 版本化摘要 |
-| `ops_graph_snapshots` | graph.json 快照 |
-| `ops_runs` | 一次 Chat 问答 / 深析 Run（含 route/status/final_answer/retry_token） |
-| `ops_run_events` | **可观测时间线**（seq · agent_role · event_type · payload） |
-| `ops_run_checkpoints` | LangGraph checkpointer 快照（P1-b） |
-| `ops_analysis_jobs` · `ops_analysis_job_steps` | **deprecated** · 语义并入 runs/events（实现过渡期可并存） |
-| `ops_demo_answers` | 高频问题缓存 · fast path |
-| `ops_chat_sessions` · `ops_chat_messages` | 会话（可选；run 可关联 session_id） |
+
+| 表                                              | 用途                                                           |
+| ---------------------------------------------- | ------------------------------------------------------------ |
+| `ops_repos`                                    | 固定 `MoonshotAI/kimi-code`                                    |
+| `ops_issues` · `ops_pull_requests`             | GitHub 同步事实                                                  |
+| `ops_sync_runs`                                | 同步批次 · 时间戳 · 状态                                              |
+| `ops_sync_run_artifacts`                       | 关联 sync_run 与 graph/scan 快照（P2 ingest）                        |
+| `ops_scan_snapshots`                           | ISSUE_SCAN 版本化摘要                                             |
+| `ops_graph_snapshots`                          | graph.json 快照                                                |
+| `ops_runs`                                     | 一次 Chat 问答 / 深析 Run（含 route/status/final_answer/retry_token） |
+| `ops_run_events`                               | **可观测时间线**（seq · agent_role · event_type · payload）          |
+| `ops_run_checkpoints`                          | LangGraph checkpointer 快照（P1-b）                              |
+| `ops_analysis_jobs` · `ops_analysis_job_steps` | **deprecated** · 语义并入 runs/events（实现过渡期可并存）                  |
+| `ops_demo_answers`                             | 高频问题缓存 · fast path                                           |
+| `ops_chat_sessions` · `ops_chat_messages`      | 会话（可选；run 可关联 session_id）                                    |
+
 
 索引：`repo_id` · `state` · `created_at` · `updated_at`。
 
@@ -286,18 +319,20 @@ cyning/meta 分支 graph.json（只读 raw/sync）
 
 ## §8 后端 API（Python · 草案）
 
-| 端点 | 说明 |
-| --- | --- |
-| `GET /ops/metrics/{cycle-time,review-time,throughput}` | 预置指标 |
-| `GET /ops/issues` · `GET /ops/pulls` | 列表筛选 |
-| `POST /ops/chat/messages` | 用户消息 → `{ run_id, route, status }` |
-| `GET /ops/runs/{id}` | Run 头 + status + final_answer |
-| `GET /ops/runs/{id}/events?after_seq=` | **可观测时间线**（断联续看） |
-| `GET /ops/runs/{id}/stream` | 可选 SSE · **仅 progress** |
-| `POST /ops/runs/{id}/retry` | 幂等重跑（retry_token） |
-| `POST /ops/analysis-jobs` | **deprecated alias** → 映射 chat/messages（过渡一版） |
-| `GET /ops/graph/module-issues` | 图谱×Issue 矩阵 |
-| `POST /ops/sync/trigger` | maintainer → 触发 GHA |
+
+| 端点                                                     | 说明                                            |
+| ------------------------------------------------------ | --------------------------------------------- |
+| `GET /ops/metrics/{cycle-time,review-time,throughput}` | 预置指标                                          |
+| `GET /ops/issues` · `GET /ops/pulls`                   | 列表筛选                                          |
+| `POST /ops/chat/messages`                              | 用户消息 → `{ run_id, route, status }`            |
+| `GET /ops/runs/{id}`                                   | Run 头 + status + final_answer                 |
+| `GET /ops/runs/{id}/events?after_seq=`                 | **可观测时间线**（断联续看）                              |
+| `GET /ops/runs/{id}/stream`                            | 可选 SSE · **仅 progress**                       |
+| `POST /ops/runs/{id}/retry`                            | 幂等重跑（retry_token）                             |
+| `POST /ops/analysis-jobs`                              | **deprecated alias** → 映射 chat/messages（过渡一版） |
+| `GET /ops/graph/module-issues`                         | 图谱×Issue 矩阵                                   |
+| `POST /ops/sync/trigger`                               | maintainer → 触发 GHA                           |
+
 
 同步脚本：可放 **api-python** 或 **独立 GHA workflow** 调 Python 脚本（30 定稿）。
 
@@ -305,49 +340,57 @@ cyning/meta 分支 graph.json（只读 raw/sync）
 
 ## §9 Harness / HGM 映射（展示 · P1/P2）
 
-| 支柱 | Ops Desk 体现 |
-| --- | --- |
-| Inform | 看板事实 + graph 切片 + scan |
-| Constrain | 只读 API · 鉴权 · 无写 Git |
-| Verify | CI 状态 · sync 成功 · job `done` + 引用 |
-| Orchestrate | **Orchestrator + 子 Agent + Review** · **`ops_run_events` 全链路可观测** |
+
+| 支柱          | Ops Desk 体现                                                       |
+| ----------- | ----------------------------------------------------------------- |
+| Inform      | 看板事实 + graph 切片 + scan                                            |
+| Constrain   | 只读 API · 鉴权 · 无写 Git                                              |
+| Verify      | CI 状态 · sync 成功 · job `done` + 引用                                 |
+| Orchestrate | **Orchestrator + 子 Agent + Review** · `**ops_run_events` 全链路可观测** |
+
 
 ---
 
 ## §10 MVP 分期
 
-| Phase | 交付 | 约 |
-| --- | --- | --- |
-| **P0** | GHA sync + 四表 + 总览/Issue/PR 页 + 秘钥 | 2 周 |
-| **P1-a** | metrics API · **ops_run schema** · Orchestrator FSM · issue_analyst · Review · Chat events UI | 2 周 |
-| **P1-b** | **LangGraph** + checkpointer（与 P1-a 行为等价） | +3–5 天 |
-| **P2** | graph Tab · scan ingest · graph/scan 子 Agent · thinking chain v2 完整 UI | 1–2 周 |
-| **P3** | Hermes 草稿区只读展示 · GitHub OAuth 可选 | C+E 后 |
+
+| Phase    | 交付                                                                                            | 约      |
+| -------- | --------------------------------------------------------------------------------------------- | ------ |
+| **P0**   | GHA sync + 四表 + 总览/Issue/PR 页 + 秘钥                                                            | 2 周    |
+| **P1-a** | metrics API · **ops_run schema** · Orchestrator FSM · issue_analyst · Review · Chat events UI | 2 周    |
+| **P1-b** | **LangGraph** + checkpointer（与 P1-a 行为等价）                                                     | +3–5 天 |
+| **P2**   | graph Tab · scan ingest · graph/scan 子 Agent · thinking chain v2 完整 UI                        | 1–2 周  |
+| **P3**   | Hermes 草稿区只读展示 · GitHub OAuth 可选                                                              | C+E 后  |
+
 
 ---
 
 ## §11 风险与缓解（合并三方清单）
 
-| 风险 | 级 | 缓解 |
-| --- | --- | --- |
-| GitHub API 限流 | 高 | 单仓 · 24h · 增量 · 手动补拉 |
-| MVP 范围膨胀 | 高 | 本 SPEC 非范围 · 5 页封顶 |
-| LLM 断联 | 高 | Job 化 + 缓存 + retry |
-| 国内 Vercel 慢 | 低 | Demo 预加载 · P2 CDN |
-| Supabase 性能 | 中 | 索引 · 单仓数据量可控 |
-| 图谱同步 drift | 中 | 快照版本号 · 与 sync_run 关联 |
-| LangGraph 引入复杂度 | 中 | P1-a 先 FSM · P1-b 再迁图 · pytest 对照 |
+
+| 风险              | 级   | 缓解                                |
+| --------------- | --- | --------------------------------- |
+| GitHub API 限流   | 高   | 单仓 · 24h · 增量 · 手动补拉              |
+| MVP 范围膨胀        | 高   | 本 SPEC 非范围 · 5 页封顶                |
+| LLM 断联          | 高   | Job 化 + 缓存 + retry                |
+| 国内 Vercel 慢     | 低   | Demo 预加载 · P2 CDN                 |
+| Supabase 性能     | 中   | 索引 · 单仓数据量可控                      |
+| 图谱同步 drift      | 中   | 快照版本号 · 与 sync_run 关联             |
+| LangGraph 引入复杂度 | 中   | P1-a 先 FSM · P1-b 再迁图 · pytest 对照 |
+
 
 ---
 
 ## §12 部署说明（回应「国内 VPS」）
 
-| 问题 | 结论 |
-| --- | --- |
-| MVP 是否迁国内机 | **否** |
-| 同步跑哪 | **GitHub Actions**（国内访问 GitHub API 最稳） |
-| Supabase | 继续用 · 前端/后端跨境访问可接受 |
-| 全迁国内工程量 | **2–4 周+** · 不纳入 MVP |
+
+| 问题         | 结论                                     |
+| ---------- | -------------------------------------- |
+| MVP 是否迁国内机 | **否**                                  |
+| 同步跑哪       | **GitHub Actions**（国内访问 GitHub API 最稳） |
+| Supabase   | 继续用 · 前端/后端跨境访问可接受                     |
+| 全迁国内工程量    | **2–4 周+** · 不纳入 MVP                   |
+
 
 ---
 
@@ -355,29 +398,33 @@ cyning/meta 分支 graph.json（只读 raw/sync）
 
 ### P0 有序 task 链（2 周最小可 Demo 切片）
 
-| 序 | slug | 仓 | 依赖 | 验收 | test_strategy | freeze_id |
-| --- | --- | --- | --- | --- | --- | --- |
-| P0-1 | `ops-desk-p0-supabase-schema` | `ai-ink-brain-api-python` | — | `ops_repos/issues/pull_requests/sync_runs` 四表及索引 DDL 落地；pytest 可建表/删表 | required | `OPS-DESK-KIMI-CODE-P0-SUPABASE-SCHEMA` |
-| P0-2 | `ops-desk-p0-github-sync` | `ai-ink-brain-api-python` + GHA | P0-1 | GHA workflow `ops_sync_kimi_code.yml`；cron 24h + workflow_dispatch；单仓增量 Issue/PR；`sync_runs` 写入状态 | required | `OPS-DESK-KIMI-CODE-P0-GITHUB-SYNC` |
-| P0-3 | `ops-desk-p0-ops-site-mode` | `ai-ink-brain` | — | `NEXT_PUBLIC_SITE_MODE=ops` 根路径 302 → `/ops/kimi-code`；导航隐藏博客；M0 秘钥中间件 | required | `OPS-DESK-KIMI-CODE-P0-OPS-SITE-MODE` |
-| P0-4 | `ops-desk-p0-overview-page` | `ai-ink-brain` | P0-2, P0-3 | `/ops/kimi-code` 展示 3 指标 + 30 天趋势 + 数据截至 + sync 状态 | recommended | `OPS-DESK-KIMI-CODE-P0-OVERVIEW-PAGE` |
-| P0-5 | `ops-desk-p0-issues-page` | `ai-ink-brain` | P0-2, P0-3 | `/ops/kimi-code/issues` 列表 + 筛选 + 分页；展示 ISSUE_SCAN 标签 | recommended | `OPS-DESK-KIMI-CODE-P0-ISSUES-PAGE` |
-| P0-6 | `ops-desk-p0-pulls-page` | `ai-ink-brain` | P0-2, P0-3 | `/ops/kimi-code/pulls` 列表 + state/CI/review 状态 + 分页 | recommended | `OPS-DESK-KIMI-CODE-P0-PULLS-PAGE` |
+
+| 序    | slug                          | 仓                               | 依赖         | 验收                                                                                                | test_strategy | freeze_id                               |
+| ---- | ----------------------------- | ------------------------------- | ---------- | ------------------------------------------------------------------------------------------------- | ------------- | --------------------------------------- |
+| P0-1 | `ops-desk-p0-supabase-schema` | `ai-ink-brain-api-python`       | —          | `ops_repos/issues/pull_requests/sync_runs` 四表及索引 DDL 落地；pytest 可建表/删表                             | required      | `OPS-DESK-KIMI-CODE-P0-SUPABASE-SCHEMA` |
+| P0-2 | `ops-desk-p0-github-sync`     | `ai-ink-brain-api-python` + GHA | P0-1       | GHA workflow `ops_sync_kimi_code.yml`；cron 24h + workflow_dispatch；单仓增量 Issue/PR；`sync_runs` 写入状态 | required      | `OPS-DESK-KIMI-CODE-P0-GITHUB-SYNC`     |
+| P0-3 | `ops-desk-p0-ops-site-mode`   | `ai-ink-brain`                  | —          | `NEXT_PUBLIC_SITE_MODE=ops` 根路径 302 → `/ops/kimi-code`；导航隐藏博客；M0 秘钥中间件                            | required      | `OPS-DESK-KIMI-CODE-P0-OPS-SITE-MODE`   |
+| P0-4 | `ops-desk-p0-overview-page`   | `ai-ink-brain`                  | P0-2, P0-3 | `/ops/kimi-code` 展示 3 指标 + 30 天趋势 + 数据截至 + sync 状态                                                | recommended   | `OPS-DESK-KIMI-CODE-P0-OVERVIEW-PAGE`   |
+| P0-5 | `ops-desk-p0-issues-page`     | `ai-ink-brain`                  | P0-2, P0-3 | `/ops/kimi-code/issues` 列表 + 筛选 + 分页；展示 ISSUE_SCAN 标签                                             | recommended   | `OPS-DESK-KIMI-CODE-P0-ISSUES-PAGE`     |
+| P0-6 | `ops-desk-p0-pulls-page`      | `ai-ink-brain`                  | P0-2, P0-3 | `/ops/kimi-code/pulls` 列表 + state/CI/review 状态 + 分页                                               | recommended   | `OPS-DESK-KIMI-CODE-P0-PULLS-PAGE`      |
+
 
 ### P1 / P2 task 链（R8 修订 · Orchestrator + LangGraph）
 
-| 序 | slug | 仓 | 说明 | 依赖 |
-| --- | --- | --- | --- | --- |
-| P1-1 | `ops-desk-p1-metrics-api` | `ai-ink-brain-api-python` | metrics + issues/pulls 筛选 API | P0-2 |
-| P1-2 | `ops-desk-p1-ops-run-schema` | `ai-ink-brain-api-python` | `ops_runs` · `ops_run_events` · `ops_run_checkpoints` DDL | P0-1 |
-| P1-3 | `ops-desk-p1-orchestrator-core` | `ai-ink-brain-api-python` | Orchestrator fast/deep · issue_analyst · Review · FSM（LangGraph-ready） | P1-1, P1-2 |
-| P1-4 | `ops-desk-p1-langgraph` | `ai-ink-brain-api-python` | LangGraph 图 + checkpointer（**P1-b**） | P1-3 |
-| P1-5 | `ops-desk-p1-chat-ui` | `ai-ink-brain` | `/ops/kimi-code/chat` · events 时间线 · 断联续看 | P1-3 |
-| P1-6 | `ops-desk-p1-demo-cache` | `ai-ink-brain-api-python` | Demo 预计算 · fast path 短路 | P1-1 |
-| P2-1 | `ops-desk-p2-graph-tab` | 双仓 | graph 快照 + Tab + `graph_analyst` | P1-1, Track C |
-| P2-2 | `ops-desk-p2-scan-ingest` | `ai-ink-brain-api-python` | ISSUE_SCAN → `ops_scan_snapshots` + `scan_analyst` | P0-2 |
-| P2-3 | `ops-desk-p2-manual-sync` | `ai-ink-brain` + GHA | maintainer 手动 sync + 日志 UI | P0-2 |
-| P2-4 | `ops-desk-p2-thinking-chain-v2` | `ai-ink-brain` | evidence/reasoning/suggestion 完整 UI | P1-5 |
+
+| 序    | slug                            | 仓                         | 说明                                                                     | 依赖            |
+| ---- | ------------------------------- | ------------------------- | ---------------------------------------------------------------------- | ------------- |
+| P1-1 | `ops-desk-p1-metrics-api`       | `ai-ink-brain-api-python` | metrics + issues/pulls 筛选 API                                          | P0-2          |
+| P1-2 | `ops-desk-p1-ops-run-schema`    | `ai-ink-brain-api-python` | `ops_runs` · `ops_run_events` · `ops_run_checkpoints` DDL              | P0-1          |
+| P1-3 | `ops-desk-p1-orchestrator-core` | `ai-ink-brain-api-python` | Orchestrator fast/deep · issue_analyst · Review · FSM（LangGraph-ready） | P1-1, P1-2    |
+| P1-4 | `ops-desk-p1-langgraph`         | `ai-ink-brain-api-python` | LangGraph 图 + checkpointer（**P1-b**）                                   | P1-3          |
+| P1-5 | `ops-desk-p1-chat-ui`           | `ai-ink-brain`            | `/ops/kimi-code/chat` · events 时间线 · 断联续看                              | P1-3          |
+| P1-6 | `ops-desk-p1-demo-cache`        | `ai-ink-brain-api-python` | Demo 预计算 · fast path 短路                                                | P1-1          |
+| P2-1 | `ops-desk-p2-graph-tab`         | 双仓                        | graph 快照 + Tab + `graph_analyst`                                       | P1-1, Track C |
+| P2-2 | `ops-desk-p2-scan-ingest`       | `ai-ink-brain-api-python` | ISSUE_SCAN → `ops_scan_snapshots` + `scan_analyst`                     | P0-2          |
+| P2-3 | `ops-desk-p2-manual-sync`       | `ai-ink-brain` + GHA      | maintainer 手动 sync + 日志 UI                                             | P0-2          |
+| P2-4 | `ops-desk-p2-thinking-chain-v2` | `ai-ink-brain`            | evidence/reasoning/suggestion 完整 UI                                    | P1-5          |
+
 
 > **废止**：`ops-desk-p1-analysis-job`（R1）并入 P1-2 + P1-3。
 
@@ -385,7 +432,7 @@ cyning/meta 分支 graph.json（只读 raw/sync）
 
 ## §15 思考轮（10-spec 回填 · 自主 N 轮 · 系列落盘）
 
-> **00 只预置空槽**；**10-spec** 专责回填。每轮完整思考见 invoke [`rounds/`](../../../../docs/harness/invokes/by-task/ops-desk-kimi-code-spec-refine/rounds/)。裁量见 [`FRAGMENT_rethink_backfill_spec_v1_zh.md`](../../../../docs/harness/FRAGMENT_rethink_backfill_spec_v1_zh.md)。阻塞见 [`BLOCKERS.md`](../../../../docs/harness/invokes/by-task/ops-desk-kimi-code-spec-refine/BLOCKERS.md)。
+> **00 只预置空槽**；**10-spec** 专责回填。每轮完整思考见 invoke `[rounds/](../../../../docs/harness/invokes/by-task/ops-desk-kimi-code-spec-refine/rounds/)`。裁量见 `[FRAGMENT_rethink_backfill_spec_v1_zh.md](../../../../docs/harness/FRAGMENT_rethink_backfill_spec_v1_zh.md)`。阻塞见 `[BLOCKERS.md](../../../../docs/harness/invokes/by-task/ops-desk-kimi-code-spec-refine/BLOCKERS.md)`。
 
 ### R0 · 读入与约束
 
@@ -444,13 +491,11 @@ cyning/meta 分支 graph.json（只读 raw/sync）
 - sync_run 关联：新增 `ops_sync_run_artifacts` 表，将每次 sync_run 与最新的 `graph_snapshot_id`、`scan_snapshot_id` 关联。
 - P0/P1 不含 graph Tab；P2 若 Track C 未完成可用 fixtures/sample graph.json 降级开发。
 - ISSUE_SCAN ingest 默认 A：GHA sync 同批 checkout Projects 仓，解析 `docs/harness/guides/issues/` markdown 写入 `ops_scan_snapshots`。
-- scan 快照字段：`scan_version/total_open/p0_items/p1_items/p2_items/deferred_items/raw_markdown_url/parsed_summary`。 
-
-
+- scan 快照字段：`scan_version/total_open/p0_items/p1_items/p2_items/deferred_items/raw_markdown_url/parsed_summary`。
 
 ### R6 · Demo 缓存 + Chat 模板
 
-- Demo 问题 8 题（D1–D8），覆盖 metrics/issue/PR/graph/scan/contribution；metrics 类 sync 后预计算，单 issue/PR 深析首次后缓存 24h，列表查询不缓存。
+- Demo 问题 8 题（D1–D8），覆盖 metrics/issue/PR/graph/scan/contribution；metrics 类 sync 后预计算，单 issue/PR 深析首次后缓存 24h，列表查询不缓存。**D4 深析 Demo** 实施时从 [`ISSUE_SCAN`](../../../../docs/harness/guides/ISSUE_SCAN_kimi_code_open_c2_v1_zh.md) 选较新 open issue（**默认 #545**，非 #437）。
 - Phase 1 意图矩阵 7 类：`metrics_trend`、`issue_list`、`pr_list`、`issue_contribution`、`graph_module`、`scan_status`、`fallback`；对应 API/Job + 模板 ID。
 - 不做 NL→SQL；fallback 走 `POST /ops/analysis-jobs`。
 - `ops_demo_answers` 表含 `demo_id/query_template/params/answer_json/source_sync_run_id/expires_at`；TTL 默认 `sync_run + 25h`。
@@ -467,36 +512,42 @@ cyning/meta 分支 graph.json（只读 raw/sync）
 
 ### R8 · Orchestrator · LangGraph · 可观测 Run
 
-- **维护者拍板**：Chat = Orchestrator（00 帽）；建议题 **fast**；深析 **delegate 子 Agent → Review（20）→ 总结**；目标态 **LangGraph**；全流程 **`ops_run_events` 可观测** · 断联 `run_id` + `after_seq` 续看。
+- **维护者拍板**：Chat = Orchestrator（00 帽）；建议题 **fast**；深析 **delegate 子 Agent → Review（20）→ 总结**；目标态 **LangGraph**；全流程 `**ops_run_events` 可观测** · 断联 `run_id` + `after_seq` 续看。
 - **不**走 Unified Chat chain；**借鉴** ChatBIAgent 多步结构与 event 命名。
-- 主实体 **`ops_runs` + `ops_run_events` + `ops_run_checkpoints`**；`/ops/analysis-jobs` deprecated alias。
+- 主实体 `**ops_runs` + `ops_run_events` + `ops_run_checkpoints`**；`/ops/analysis-jobs` deprecated alias。
 - P1 拆：**P1-a** FSM（orchestrator + issue_analyst + review）· **P1-b** 迁 LangGraph。
 - §4.6 新增真值；§13 P1 task 链已按 R8 修订（废止 `ops-desk-p1-analysis-job`）。
 
 ### R9 · 领域本体 · 双 Loop 关系
 
-- 落盘 [`ONTOLOGY_ops_desk_kimi_code_v1_zh.md`](../../../../docs/harness/guides/ONTOLOGY_ops_desk_kimi_code_v1_zh.md)：Mermaid 总图 · Hermes×Chat 对照 · YAML 关系 · 公理 A1–A9 · §9 维护协议。
+- 落盘 `[ONTOLOGY_ops_desk_kimi_code_v1_zh.md](../../../../docs/harness/guides/ONTOLOGY_ops_desk_kimi_code_v1_zh.md)`：Mermaid 总图 · Hermes×Chat 对照 · YAML 关系 · 公理 A1–A9 · §9 维护协议。
 - 与 STRATEGY_ONTOLOGY / DESIGN_ONTOLOGY 分层；SPEC §4.7 摘要指针。
 
 ### 思考轮控制
 
-| 字段 | 值 |
-| --- | --- |
-| `actual_last_round` | `R9` |
-| `early_stop` | `no` |
-| `early_stop_reason` | — |
-| `residual_risks` | GitHub API 限流；MVP 范围膨胀；LLM 断联；国内 Vercel 慢；Track C graph.json 不稳定；LangGraph 引入复杂度；**本体与实现漂移**（靠 §9 维护） |
-| `round_extension_note` | R8 Orchestrator · R9 领域本体 |
-| `series_docs_path` | `docs/harness/invokes/by-task/ops-desk-kimi-code-spec-refine/rounds/` |
-| `ontology_path` | `docs/harness/guides/ONTOLOGY_ops_desk_kimi_code_v1_zh.md` |
+
+| 字段                     | 值                                                                                                     |
+| ---------------------- | ----------------------------------------------------------------------------------------------------- |
+| `actual_last_round`    | `R9`                                                                                                  |
+| `early_stop`           | `no`                                                                                                  |
+| `early_stop_reason`    | —                                                                                                     |
+| `residual_risks`       | GitHub API 限流；MVP 范围膨胀；LLM 断联；国内 Vercel 慢；Track C graph.json 不稳定；LangGraph 引入复杂度；**本体与实现漂移**（靠 §9 维护） |
+| `round_extension_note` | R8 Orchestrator · R9 领域本体                                                                             |
+| `series_docs_path`     | `docs/harness/invokes/by-task/ops-desk-kimi-code-spec-refine/rounds/`                                 |
+| `ontology_path`        | `docs/harness/guides/ONTOLOGY_ops_desk_kimi_code_v1_zh.md`                                            |
+
 
 ---
 
 ## §14 修订记录
 
-| 版本 | 日期 | 说明 |
-| --- | --- | --- |
-| v1.3 | 2026-06-18 | R9 · §4.7 领域本体 · 链 ONTOLOGY_ops_desk |
+
+| 版本   | 日期         | 说明                                                               |
+| ---- | ---------- | ---------------------------------------------------------------- |
+| v1.4 | 2026-06-21 | HG-SPEC-SIGNOFF approved · §5/§7 N1/N2 · §4.4 Demo 深析 issue 改为 ISSUE_SCAN 较新候选（默认 #545） |
+| v1.3 | 2026-06-18 | R9 · §4.7 领域本体 · 链 ONTOLOGY_ops_desk                             |
 | v1.2 | 2026-06-18 | R8 · §4.6 Orchestrator/LangGraph · ops_runs/events · P1 task 链修订 |
-| v1.1 | 2026-06-18 | §15 思考轮空槽 · 链 10-spec invoke（与 Track C 并行细化） |
-| v1.0 | 2026-06-18 | 初稿 · 吸收三方深研 + 维护者拍板 · Job 全后端 · 24h sync · 无 Neo4j |
+| v1.1 | 2026-06-18 | §15 思考轮空槽 · 链 10-spec invoke（与 Track C 并行细化）                     |
+| v1.0 | 2026-06-18 | 初稿 · 吸收三方深研 + 维护者拍板 · Job 全后端 · 24h sync · 无 Neo4j               |
+
+
