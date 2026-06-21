@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { PenTool, Wind } from "lucide-react";
 import SystemStatus from "@/components/SystemStatus";
 import { useAdminSession } from "@/lib/hooks/useAdminSession";
-import { isPortfolioMode } from "@/lib/site-mode";
+import { isOpsMode, isPortfolioMode } from "@/lib/site-mode";
 
 type NavItem = {
   href: string;
@@ -41,6 +41,7 @@ export function SiteNav() {
   const pathname = usePathname();
   const { isAdmin } = useAdminSession();
   const portfolio = isPortfolioMode();
+  const ops = isOpsMode();
 
   const visibleNav = DEVELOPMENT_NAV.filter((item) => {
     if (ADMIN_GATED_HREFS.has(item.href)) {
@@ -50,7 +51,8 @@ export function SiteNav() {
   });
 
   // Portfolio 模式由 PortfolioShell 左侧目录承担导航，不渲染顶栏
-  if (portfolio) {
+  // Ops 模式由 /ops/kimi-code/layout.tsx 自行渲染导航壳
+  if (portfolio || ops) {
     return null;
   }
 

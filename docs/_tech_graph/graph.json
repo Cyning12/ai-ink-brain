@@ -834,6 +834,44 @@
     {
       "anchors": [
         {
+          "path": "middleware.ts",
+          "symbol": ""
+        },
+        {
+          "path": "app/ops/kimi-code/page.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "MODE",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "[ops]",
+      "sync": true,
+      "to": "OPS_HOME",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "middleware.ts",
+          "symbol": ""
+        },
+        {
+          "path": "app/ops/login/page.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "MODE",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "[ops]",
+      "sync": true,
+      "to": "OPS_LOGIN",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
           "path": "lib/site-mode.ts",
           "symbol": ""
         }
@@ -1034,6 +1072,36 @@
       "mark": "->",
       "sync": true,
       "to": "N_UNI_PF",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "app/ops/kimi-code/layout.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "OPS_HOME",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "OPS_LAYOUT",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "components/ops/ops-logout-button.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "OPS_LAYOUT",
+      "graph_id": "10_flow_route",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "OPS_NAV",
       "type": "depends_on"
     },
     {
@@ -1568,6 +1636,164 @@
       "mark": "->",
       "sync": true,
       "to": "TOKEN",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "lib/auth/ops-session.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "OPS_BFF",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "[401]",
+      "sync": true,
+      "to": "OPS_DENY",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "lib/auth/ops-session.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "OPS_BFF",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "OPS_ENV",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "lib/auth/ops-session.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "OPS_COOKIE",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "OPS_MW",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "lib/auth/ops-session.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "OPS_LOGIN_API",
+      "graph_id": "12_flow_auth",
+      "label": "Set-Cookie HttpOnly",
+      "mark": "->",
+      "sync": true,
+      "to": "OPS_COOKIE",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "lib/auth/ops-env.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "OPS_LOGIN_API",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "OPS_ENV",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "app/ops/login/page.tsx",
+          "symbol": ""
+        }
+      ],
+      "from": "OPS_LOGIN_UI",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "OPS_LOGIN_API",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [
+        {
+          "path": "middleware.ts",
+          "symbol": ""
+        },
+        {
+          "path": "app/api/ops/[...slug]/route.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "OPS_MW",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "[pass]",
+      "sync": true,
+      "to": "OPS_BFF",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "middleware.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "OPS_MW",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "[401]",
+      "sync": true,
+      "to": "OPS_DENY",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "lib/auth/ops-session.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "OPS_SESSION_API",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "OPS_COOKIE",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "lib/auth/ops-env.ts",
+          "symbol": ""
+        },
+        {
+          "path": "lib/auth/ops-session.ts",
+          "symbol": ""
+        }
+      ],
+      "from": "OPS_SESSION_API",
+      "graph_id": "12_flow_auth",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "OPS_ENV",
       "type": "depends_on"
     },
     {
@@ -2121,7 +2347,7 @@
     }
   ],
   "freeze_id": "TECH_GRAPH_S2_FREEZE_20260519_V2_3",
-  "generated_at": "2026-06-17T11:29:59Z",
+  "generated_at": "2026-06-21T10:47:14Z",
   "graphs": [
     {
       "id": "00_main",
@@ -2494,6 +2720,66 @@
       "graph_id": "10_flow_route",
       "id": "N_UNI_PF",
       "label": "/unified-chat"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "OPS_BFF",
+      "label": "/api/ops/*"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "OPS_COOKIE",
+      "label": "ops_desk_token"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "OPS_DENY",
+      "label": "Unauthorized"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "OPS_ENV",
+      "label": "OPS_DESK_SECRET"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "OPS_HOME",
+      "label": "/ops/kimi-code"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "OPS_LAYOUT",
+      "label": "app/ops/kimi-code/layout.tsx"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "OPS_LOGIN",
+      "label": "/ops/login"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "OPS_LOGIN_API",
+      "label": "/api/ops/login"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "OPS_LOGIN_UI",
+      "label": "/ops/login"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "OPS_MW",
+      "label": "middleware.ts /ops/*"
+    },
+    {
+      "graph_id": "10_flow_route",
+      "id": "OPS_NAV",
+      "label": "OpsSidebar"
+    },
+    {
+      "graph_id": "12_flow_auth",
+      "id": "OPS_SESSION_API",
+      "label": "/api/ops/auth/session"
     },
     {
       "graph_id": "12_flow_auth",
