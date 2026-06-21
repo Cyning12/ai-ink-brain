@@ -1,7 +1,7 @@
 ---
 graph_id: 10_flow_route
 version: 
-generated_at: 2026-06-18T01:29:38Z
+generated_at: 2026-06-21T10:49:28Z
 source: docs/_tech_graph/10_flow_route.graph.yaml
 ---
 
@@ -49,6 +49,10 @@ flowchart TD
     SM[getSiteMode()]
     T2[/text2sql]
     UC[/unified-chat]
+    OPS_HOME[/ops/kimi-code]
+    OPS_LOGIN[/ops/login]
+    OPS_LAYOUT[app/ops/kimi-code/layout.tsx]
+    OPS_NAV[OpsSidebar]
 
     ADMINS --> FILTER
     BB --> HOME
@@ -133,6 +137,16 @@ flowchart TD
     // → app/text2sql/page.tsx
     UC --> BB
     // → app/_components/back-button.tsx
+    MODE --"[ops]"--> OPS_HOME
+    // → middleware.ts
+    // → app/ops/kimi-code/page.tsx
+    MODE --"[ops]"--> OPS_LOGIN
+    // → middleware.ts
+    // → app/ops/login/page.tsx
+    OPS_HOME --> OPS_LAYOUT
+    // → app/ops/kimi-code/layout.tsx
+    OPS_LAYOUT --> OPS_NAV
+    // → components/ops/ops-logout-button.tsx
 
     classDef phase fill:#e1f5fe,stroke:#01579b,stroke-width:2px
     classDef doc fill:#fff8e1,stroke:#ff6f00,stroke-width:1px
@@ -183,6 +197,10 @@ flowchart TD
 | SM | getSiteMode() |  |
 | T2 | /text2sql |  |
 | UC | /unified-chat |  |
+| OPS_HOME | /ops/kimi-code |  |
+| OPS_LOGIN | /ops/login |  |
+| OPS_LAYOUT | app/ops/kimi-code/layout.tsx |  |
+| OPS_NAV | OpsSidebar |  |
 
 ### Edges
 
@@ -234,3 +252,7 @@ flowchart TD
 | SM | MODE | -> | depends_on |  |  |
 | T2 | BB | -> | depends_on |  | 1 anchor(s) |
 | UC | BB | -> | depends_on |  | 1 anchor(s) |
+| MODE | OPS_HOME | [ops] | depends_on |  | 2 anchor(s) |
+| MODE | OPS_LOGIN | [ops] | depends_on |  | 2 anchor(s) |
+| OPS_HOME | OPS_LAYOUT | -> | depends_on |  | 1 anchor(s) |
+| OPS_LAYOUT | OPS_NAV | -> | depends_on |  | 1 anchor(s) |
