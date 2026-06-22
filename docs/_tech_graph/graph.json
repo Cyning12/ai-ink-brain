@@ -2381,7 +2381,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/api/ops/runs/[id]/events/route.ts",
+          "symbol": "GET handler"
+        }
+      ],
       "from": "BFF_EVT",
       "graph_id": "14_flow_ops_chat",
       "label": "",
@@ -2414,7 +2419,7 @@
       "anchors": [
         {
           "path": "app/api/ops/chat/messages/route.ts",
-          "symbol": "(P1 · 规划)"
+          "symbol": "POST handler"
         }
       ],
       "from": "BFF_POST",
@@ -2426,7 +2431,12 @@
       "type": "depends_on"
     },
     {
-      "anchors": [],
+      "anchors": [
+        {
+          "path": "app/api/ops/runs/[id]/route.ts",
+          "symbol": "GET handler"
+        }
+      ],
       "from": "BFF_RUN",
       "graph_id": "14_flow_ops_chat",
       "label": "",
@@ -2534,7 +2544,7 @@
       "anchors": [
         {
           "path": "app/ops/kimi-code/chat/page.tsx",
-          "symbol": "(P1 · 规划)"
+          "symbol": "OpsKimiCodeChatPage"
         }
       ],
       "from": "USER",
@@ -2547,7 +2557,7 @@
     }
   ],
   "freeze_id": "TECH_GRAPH_S2_FREEZE_20260519_V2_3",
-  "generated_at": "2026-06-22T07:48:00Z",
+  "generated_at": "2026-06-22T10:06:26Z",
   "graphs": [
     {
       "id": "00_main",
