@@ -19,6 +19,8 @@
     "/methodology",
     "/methodology/[...slug]",
     "/ops/kimi-code",
+    "/ops/kimi-code/issues",
+    "/ops/kimi-code/pulls",
     "/ops/login",
     "/projects",
     "/resume",
