@@ -12,7 +12,7 @@ export async function GET(
   if (denied) return denied;
 
   const { id } = await params;
-  return forwardOpsRequest(`/ops/runs/${encodeURIComponent(id)}`, {
+  return forwardOpsRequest(`/api/py/ops/runs/${encodeURIComponent(id)}`, {
     method: "GET",
   });
 }
