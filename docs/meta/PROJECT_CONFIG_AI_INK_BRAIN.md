@@ -57,7 +57,12 @@
 | **`SYNC_ADMIN_SECRET`** | **admin/sync 必填其一** | **服务端 only** · BFF `/api/admin/sync`、`/api/admin/ingest` 入站 Bearer + `forwardToPyAdmin` 出站；与 Python `admin_secret()` **同值**；文档 shell 别名 **`ADMIN_TOKEN`** | `lib/auth/sync-admin-env.ts`、`lib/py-service-proxy.ts`、`require-sync-admin-access.ts` | 未设时回退 `CHAT_API_SECRET` → 废弃回退 `NEXT_PUBLIC_ADMIN_SECRET`（2026-06-30 移除）；**禁止**写入 Portfolio W5 curl 示例 |
 | `RAG_MATCH_THRESHOLD` | 否 | 向量检索相似度阈值 | `app/api/chat/route.ts` | 仅影响 **本地 Node** `POST /api/chat` |
 | `PY_API_URL` | 否 | Python FastAPI 基址 | `next.config.mjs` rewrites、`app/api/py/**/route.ts`、`lib/py-service-proxy.ts` | 默认 `http://127.0.0.1:8000` |
-| `NEXT_PUBLIC_SITE_MODE` | 否 | 站点模式：`portfolio`（投递演示四链导航/首页）\| `development`（现网全量 NAV） | `lib/site-mode.ts` → `app/_components/site-nav.tsx`、`home-modules.tsx`、`app/layout.tsx`（`generateMetadata`） | 未设或非法值 **等同** `development`；portfolio build 须显式 `NEXT_PUBLIC_SITE_MODE=portfolio` |
+| `NEXT_PUBLIC_SITE_MODE` | 否 | 站点模式：`portfolio`（投递演示四链导航/首页）\| `development`（现网全量 NAV）\| `ops`（Ops Desk） | `lib/site-mode.ts` → `app/_components/site-nav.tsx`、`home-modules.tsx`、`app/layout.tsx`（`generateMetadata`）、`middleware.ts` | 未设或非法值 **等同** `development`；portfolio build 须显式 `NEXT_PUBLIC_SITE_MODE=portfolio`；ops build 须显式 `NEXT_PUBLIC_SITE_MODE=ops` 且配置 `OPS_DESK_SECRET` |
+| `OPS_DESK_SECRET` | **ops 模式必填** | Ops Desk viewer 邀请秘钥；未设 `OPS_DESK_MAINTAINER_SECRET` 时也具备 maintainer 能力 | `lib/auth/ops-env.ts`、`lib/auth/ops-session.ts`、`middleware.ts`、BFF `/api/ops/*` | 未设时 `/ops/*` 返回 503（F1） |
+| `OPS_DESK_MAINTAINER_SECRET` | 否 | maintainer 专属秘钥 | `lib/auth/ops-env.ts`、`lib/auth/ops-session.ts` | 未设时 `OPS_DESK_SECRET` 视为 maintainer |
+| `OPS_DESK_GITHUB_TOKEN` | 否 | 触发 GHA `workflow_dispatch`（P2） | BFF `/api/ops/sync/trigger` | 需 `repo` scope 或个人 access token |
+| `OPS_DESK_SESSION_TTL_HOURS` | 否 | `ops_desk_token` Cookie 有效期 | `/api/ops/login` | 默认 24h；非法/未设为 session cookie |
+| `OPS_DESK_DEMO_TOKEN` | 否 | 面试一次性 Demo token（仅 viewer） | `/ops/login?token=`、`/api/ops/login` | 可选，避免泄露主秘钥 |
 
 **Portfolio 演示 · 后端 ingest（非本仓 env，配对 api-python 进程）**
 
@@ -128,7 +133,7 @@
 | `docs/meta/` | **本文件**：项目级配置清单（非任务） |
 | `supabase/sql/` | `init.sql` 及补丁 SQL（RPC、混合检索等） |
 | `.github/workflows/` | 如 `rag_ingest_supabase.yml`：checkout 本仓 + 后端仓跑 ingest |
-| `middleware.ts` | 仅匹配 **`/api/chat`**（及子路径）：校验管理员 Token |
+| `middleware.ts` | 匹配 **`/`**、**`/api/chat`**（及子路径）管理员 Token 校验；**`/ops/*`** 与 **`/api/ops/*`** Ops Desk M0 秘钥守卫 |
 | `next.config.mjs` | `outputFileTracingRoot`、`/api/py/*` → `PY_API_URL` rewrites 等 |
 
 ---

@@ -33,6 +33,22 @@ nodes:
   label: (Python FastAPI)
 - id: VALIDATE
   label: VALIDATE
+- id: OPS_ENV
+  label: OPS_DESK_SECRET
+- id: OPS_LOGIN_API
+  label: /api/ops/login
+- id: OPS_SESSION_API
+  label: /api/ops/auth/session
+- id: OPS_COOKIE
+  label: ops_desk_token
+- id: OPS_LOGIN_UI
+  label: /ops/login
+- id: OPS_MW
+  label: middleware.ts /ops/*
+- id: OPS_BFF
+  label: /api/ops/*
+- id: OPS_DENY
+  label: Unauthorized
 edges:
 - anchors: []
   from: API_PY
@@ -212,3 +228,88 @@ edges:
   mark: '[else]'
   to: PARSE
   type: depends_on
+- anchors:
+  - path: lib/auth/ops-env.ts
+    symbol: ''
+  from: OPS_LOGIN_API
+  label: ''
+  mark: ->
+  to: OPS_ENV
+  type: depends_on
+- anchors:
+  - path: lib/auth/ops-session.ts
+    symbol: ''
+  from: OPS_LOGIN_API
+  label: Set-Cookie HttpOnly
+  mark: ->
+  to: OPS_COOKIE
+  type: depends_on
+- anchors:
+  - path: lib/auth/ops-env.ts
+    symbol: ''
+  - path: lib/auth/ops-session.ts
+    symbol: ''
+  from: OPS_SESSION_API
+  label: ''
+  mark: ->
+  to: OPS_ENV
+  type: depends_on
+- anchors:
+  - path: lib/auth/ops-session.ts
+    symbol: ''
+  from: OPS_SESSION_API
+  label: ''
+  mark: ->
+  to: OPS_COOKIE
+  type: depends_on
+- anchors:
+  - path: lib/auth/ops-session.ts
+    symbol: ''
+  from: OPS_COOKIE
+  label: ''
+  mark: ->
+  to: OPS_MW
+  type: depends_on
+- anchors:
+  - path: middleware.ts
+    symbol: ''
+  from: OPS_MW
+  label: ''
+  mark: '[401]'
+  to: OPS_DENY
+  type: depends_on
+- anchors:
+  - path: middleware.ts
+    symbol: ''
+  - path: app/api/ops/[...slug]/route.ts
+    symbol: ''
+  from: OPS_MW
+  label: ''
+  mark: '[pass]'
+  to: OPS_BFF
+  type: depends_on
+- anchors:
+  - path: lib/auth/ops-session.ts
+    symbol: ''
+  from: OPS_BFF
+  label: ''
+  mark: ->
+  to: OPS_ENV
+  type: depends_on
+- anchors:
+  - path: lib/auth/ops-session.ts
+    symbol: ''
+  from: OPS_BFF
+  label: ''
+  mark: '[401]'
+  to: OPS_DENY
+  type: depends_on
+- anchors:
+  - path: app/ops/login/page.tsx
+    symbol: ''
+  from: OPS_LOGIN_UI
+  label: ''
+  mark: ~>
+  sync: false
+  to: OPS_LOGIN_API
+  type: async_calls
