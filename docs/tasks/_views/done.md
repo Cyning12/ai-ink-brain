@@ -5,6 +5,8 @@
 ## 已完成
 
 - `../done/task_ops_desk_p0_overview_page_v1.md` — 2026-06-22 验收通过（Ops Desk P0-4 · 总览页 + 共享数据层 + layout 导航链 · 分支 `task/ops-desk-p0-overview-page` · merge `fb9fc37`）
+- `../done/task_ops_desk_p0_issues_page_v1.md` — 2026-06-22 验收通过（Ops Desk P0-5 · Issues 列表页 + 筛选/分页/scan_tags · 分支 `task/ops-desk-p0-issues-page`）
+- `../done/task_ops_desk_p0_pulls_page_v1.md` — 2026-06-22 验收通过（Ops Desk P0-6 · Pull Requests 列表页 + 筛选/分页/CI 状态 · 分支 `task/ops-desk-p0-pulls-page`）
 - `../done/task_ops_desk_p0_ops_site_mode_v1.md` — 2026-06-21 验收通过（Ops Desk P0-3 · site_mode=ops + M0 秘钥守卫 + /ops/login + /api/ops/* 骨架 · 分支 `task/ops-desk-p0-ops-site-mode`）
 - `../done/task_portfolio_e2e_demo_qa_v1.md` — 2026-06-03 验收通过（Portfolio W6 · 五问 E2E · sync job `c44158a5-…` · 录屏 · `PORTFOLIO-RAG-DEMO@2026-06-01` · KPI 90% · 分支 `task/portfolio-e2e-demo-qa-v1`）
 - `../done/task_portfolio_unified_chat_ui_v1.md` — 2026-06-02 验收通过（Portfolio W4 · Unified Chat 档位裁剪 + 五问 chip · `PORTFOLIO-RAG-DEMO@2026-06-01` · KPI 90% · reinspect warn · 分支 `task/portfolio-visitor-auth-v1` · impl `99015b7`）

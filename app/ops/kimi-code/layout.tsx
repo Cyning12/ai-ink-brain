@@ -18,6 +18,13 @@ async function getOpsSession(): Promise<ParsedOpsDeskSession | null> {
   );
 }
 
+function isActive(pathname: string, href: string): boolean {
+  if (href === "/ops/kimi-code") {
+    return pathname === href;
+  }
+  return pathname === href || pathname.startsWith(href + "/");
+}
+
 export default async function OpsKimiCodeLayout({
   children,
 }: {
@@ -25,6 +32,14 @@ export default async function OpsKimiCodeLayout({
 }) {
   const session = await getOpsSession();
   const roleLabel = session?.role === "maintainer" ? "维护者" : "访客";
+  const h = await headers();
+  const pathname = h.get("x-nextjs-pathname") ?? "";
+
+  const navItems = [
+    { href: "/ops/kimi-code", label: "总览" },
+    { href: "/ops/kimi-code/issues", label: "Issues" },
+    { href: "/ops/kimi-code/pulls", label: "Pull Requests" },
+  ];
 
   return (
     <div className="flex min-h-full flex-col md:flex-row">
@@ -42,25 +57,22 @@ export default async function OpsKimiCodeLayout({
         </div>
 
         <nav className="space-y-1">
-          <Link
-            href="/ops/kimi-code"
-            className="block rounded-lg px-3 py-2 text-sm font-medium text-[color:var(--color-foreground)] hover:bg-[color:var(--color-wash)]"
-          >
-            总览
-          </Link>
-          <Link
-            href="/ops/kimi-code/issues"
-            className="block rounded-lg px-3 py-2 text-sm font-medium text-[color:var(--color-foreground)] hover:bg-[color:var(--color-wash)]"
-          >
-            Issues
-          </Link>
-          <Link
-            href="/ops/kimi-code/pulls"
-            className="block rounded-lg px-3 py-2 text-sm font-medium text-[color:var(--color-foreground)] hover:bg-[color:var(--color-wash)]"
-          >
-            Pull Requests
-          </Link>
-          <span className="block rounded-lg px-3 py-2 text-sm text-[color:var(--color-muted-foreground)] opacity-60"
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={[
+                "block rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                isActive(pathname, item.href)
+                  ? "bg-[color:var(--color-wash)] text-[color:var(--color-foreground)]"
+                  : "text-[color:var(--color-foreground)] hover:bg-[color:var(--color-wash)]",
+              ].join(" ")}
+            >
+              {item.label}
+            </Link>
+          ))}
+          <span
+            className="block rounded-lg px-3 py-2 text-sm text-[color:var(--color-muted-foreground)] opacity-60"
             title="P1-5 实现"
           >
             Chat
