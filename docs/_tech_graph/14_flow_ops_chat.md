@@ -1,7 +1,7 @@
 ---
 graph_id: 14_flow_ops_chat
 version: 2026-06-22
-generated_at: 2026-06-22T07:47:59Z
+generated_at: 2026-06-22T10:10:01Z
 source: docs/_tech_graph/14_flow_ops_chat.graph.yaml
 ---
 
@@ -27,7 +27,7 @@ flowchart TD
     NOT_UC[≠ /api/py/unified/chat]
 
     USER --> MW
-    // → app/ops/kimi-code/chat/page.tsx::(P1 · 规划)
+    // → app/ops/kimi-code/chat/page.tsx::OpsKimiCodeChatPage
     MW --"[err] 无 cookie"--> LOGIN
     // → middleware.ts::ops desk guard
     MW --"[ok] session"--> PAGE
@@ -35,12 +35,14 @@ flowchart TD
     PAGE --"trace 壳复用"--> REF_UC
     PAGE --"发送消息"--> BFF_POST
     BFF_POST --> OPS_PY
-    // → app/api/ops/chat/messages/route.ts::(P1 · 规划)
+    // → app/api/ops/chat/messages/route.ts::POST handler
     BFF_POST --"::gates"--> NOT_UC
     PAGE --"~>"--> BFF_RUN
     PAGE --"~>"--> BFF_EVT
     BFF_RUN --> OPS_PY
+    // → app/api/ops/runs/[id]/route.ts::GET handler
     BFF_EVT --> OPS_PY
+    // → app/api/ops/runs/[id]/events/route.ts::GET handler
     BFF_EVT --"断联续看"--> POLL
     POLL --> TRACE
     TRACE --"after_seq""--> BFF_EVT
@@ -83,8 +85,8 @@ flowchart TD
 | BFF_POST | NOT_UC | ::gates | gates |  |  |
 | PAGE | BFF_RUN | ~> | async_calls |  |  |
 | PAGE | BFF_EVT | ~> | async_calls |  |  |
-| BFF_RUN | OPS_PY | -> | depends_on |  |  |
-| BFF_EVT | OPS_PY | -> | depends_on |  |  |
+| BFF_RUN | OPS_PY | -> | depends_on |  | 1 anchor(s) |
+| BFF_EVT | OPS_PY | -> | depends_on |  | 1 anchor(s) |
 | BFF_EVT | POLL | ~> | async_calls | 断联续看 |  |
 | POLL | TRACE | -> | depends_on |  |  |
 | TRACE | BFF_EVT | ~> | async_calls | after_seq" |  |

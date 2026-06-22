@@ -71,12 +71,17 @@ export default async function OpsKimiCodeLayout({
               {item.label}
             </Link>
           ))}
-          <span
-            className="block rounded-lg px-3 py-2 text-sm text-[color:var(--color-muted-foreground)] opacity-60"
-            title="P1-5 实现"
+          <Link
+            href="/ops/kimi-code/chat"
+            className={[
+              "block rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              isActive(pathname, "/ops/kimi-code/chat")
+                ? "bg-[color:var(--color-wash)] text-[color:var(--color-foreground)]"
+                : "text-[color:var(--color-foreground)] hover:bg-[color:var(--color-wash)]",
+            ].join(" ")}
           >
             Chat
-          </span>
+          </Link>
         </nav>
 
         <div className="mt-8 flex items-center justify-between border-t border-[color:var(--color-border)] pt-4">

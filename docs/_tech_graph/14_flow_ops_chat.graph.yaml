@@ -36,7 +36,7 @@ edges:
     mark: "->"
     anchors:
       - path: app/ops/kimi-code/chat/page.tsx
-        symbol: "(P1 · 规划)"
+        symbol: OpsKimiCodeChatPage
   - from: MW
     to: LOGIN
     mark: "?>"
@@ -68,7 +68,7 @@ edges:
     mark: "->"
     anchors:
       - path: app/api/ops/chat/messages/route.ts
-        symbol: "(P1 · 规划)"
+        symbol: POST handler
   - from: BFF_POST
     to: NOT_UC
     mark: "::gates"
@@ -84,9 +84,15 @@ edges:
   - from: BFF_RUN
     to: OPS_PY
     mark: "->"
+    anchors:
+      - path: app/api/ops/runs/[id]/route.ts
+        symbol: GET handler
   - from: BFF_EVT
     to: OPS_PY
     mark: "->"
+    anchors:
+      - path: app/api/ops/runs/[id]/events/route.ts
+        symbol: GET handler
   - from: BFF_EVT
     to: POLL
     mark: "~>"
