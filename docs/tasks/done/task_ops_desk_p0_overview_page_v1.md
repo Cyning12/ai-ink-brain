@@ -1,6 +1,6 @@
 # Task · Ops Desk P0-4 · 总览页
 
-> **状态**：`pending`  
+> **状态**：`done（2026-06-22 验收通过）`  
 > **SPEC**：[`SPEC_ops_desk_kimi_code_mvp_v1_zh.md`](../specs/SPEC_ops_desk_kimi_code_mvp_v1_zh.md) · §6.1 · §6.2 · §13 P0-4  
 > **依赖**：[`task_ops_desk_p0_github_sync_v1.md`](../../../ai-ink-brain-api-python/docs/tasks/done/task_ops_desk_p0_github_sync_v1.md) · [`task_ops_desk_p0_ops_site_mode_v1.md`](../done/task_ops_desk_p0_ops_site_mode_v1.md)  
 > **后继**：P0-4 **merge 后** P0-5 ∥ P0-6 双 worktree 并行（见 §派工模式）
@@ -38,19 +38,19 @@
 
 ### 完成态
 
-- [ ] PR Cycle Time · PR Review Time · Issue Throughput 展示
-- [ ] 30 天趋势图（图表库与现有 Ink 栈一致）
-- [ ] 最近一次 `ops_sync_runs` 时间与 status
-- [ ] P0 可先 BFF 直查 Supabase 或临时 SQL；P1-1 再抽 metrics API
+- [x] PR Cycle Time · PR Review Time · Issue Throughput 展示
+- [x] 30 天趋势图（图表库与现有 Ink 栈一致）
+- [x] 最近一次 `ops_sync_runs` 时间与 status
+- [x] P0 可先 BFF 直查 Supabase 或临时 SQL；P1-1 再抽 metrics API
 
 ---
 
 ## 范围
 
-- [ ] `app/ops/kimi-code/page.tsx`
-- [ ] 共享数据层（建议 `lib/ops/` 或 BFF route · 供 P0-5/6 复用）
-- [ ] 加载/空态/sync 失败态
-- [ ] 响应式布局 · Ops layout 内
+- [x] `app/ops/kimi-code/page.tsx`
+- [x] 共享数据层（建议 `lib/ops/` 或 BFF route · 供 P0-5/6 复用）
+- [x] 加载/空态/sync 失败态
+- [x] 响应式布局 · Ops layout 内
 
 ## 非范围
 
@@ -62,10 +62,10 @@
 
 ## 验收标准
 
-- [ ] sync 有数据时 3 指标非空（当前基线：issue≈310 · pr≈642）
-- [ ] 显示数据截至时间（`ops_sync_runs.cursor` 或 `finished_at`）
-- [ ] `pnpm lint` · `pnpm test` · `pnpm build` 绿
-- [ ] 浏览器人工验收通过
+- [x] sync 有数据时 3 指标非空（当前基线：issue≈310 · pr≈642）
+- [x] 显示数据截至时间（`ops_sync_runs.cursor` 或 `finished_at`）
+- [x] `pnpm lint` · `pnpm test` · `pnpm build` 绿
+- [x] 浏览器人工验收通过
 
 ---
 
@@ -93,3 +93,12 @@
 ## 给 Cursor
 
 `ops-desk-p0-overview-page` · Open **`ai-ink-brain/`** · 指标定义见 SPEC §6.2 · **Phase 1 必须先 merge**。
+
+---
+
+## CLOSE 记录
+
+- **PR**：https://github.com/Cyning12/ai-ink-brain/pull/79
+- **merge SHA**：`fb9fc379df40370a78491579377a0abac8cdb97c`
+- **50 review**：[`docs/harness/reviews/task_ops_desk_p0_overview_page_v1_reinspect_R1_20260622.md`](../../harness/reviews/task_ops_desk_p0_overview_page_v1_reinspect_R1_20260622.md)
+- **下一棒**：Phase 2 · P0-5 ∥ P0-6 worktree 并行
