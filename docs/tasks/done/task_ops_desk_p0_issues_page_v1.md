@@ -1,6 +1,6 @@
 # Task · Ops Desk P0-5 · Issues 列表页
 
-> **状态**：`pending`  
+> **状态**：`done（2026-06-22 验收通过）`  
 > **SPEC**：[`SPEC_ops_desk_kimi_code_mvp_v1_zh.md`](../specs/SPEC_ops_desk_kimi_code_mvp_v1_zh.md) · §6.1 · §13 P0-5  
 > **依赖**：P0-2 sync · P0-3 site_mode · **[`task_ops_desk_p0_overview_page_v1.md`](task_ops_desk_p0_overview_page_v1.md) 已 merge main**（Phase 2 卡点）  
 > **ISSUE_SCAN**：[`ISSUE_SCAN_kimi_code_open_c2_v1_zh.md`](../../../docs/harness/guides/ISSUE_SCAN_kimi_code_open_c2_v1_zh.md) · P0 可硬编码 C2/C3 标签
@@ -38,17 +38,17 @@
 
 ### 完成态
 
-- [ ] 表格/列表：number · title · state · labels · updated_at · html_url
-- [ ] 筛选：open/closed · label 多选
-- [ ] 分页（cursor 或 offset）
-- [ ] scan 标签列或 badge（C2/C3/OBSERVE 等 · 硬编码映射或 `scan_tags` 列）
+- [x] 表格/列表：number · title · state · labels · updated_at · html_url
+- [x] 筛选：open/closed · label 多选
+- [x] 分页（cursor 或 offset）
+- [x] scan 标签列或 badge（C2/C3/OBSERVE 等 · 硬编码映射或 `scan_tags` 列）
 
 ---
 
 ## 范围
 
-- [ ] `app/ops/kimi-code/issues/page.tsx`
-- [ ] BFF 或 Server Component 查 `ops_issues`（复用 P0-4 共享层）
+- [x] `app/ops/kimi-code/issues/page.tsx`
+- [x] BFF 或 Server Component 查 `ops_issues`（复用 P0-4 共享层）
 
 ## 非范围
 
@@ -60,10 +60,10 @@
 
 ## 验收标准
 
-- [ ] 列表与 Supabase 数据一致
-- [ ] 筛选/分页可用
-- [ ] `pnpm lint` · `pnpm test` · `pnpm build` 绿
-- [ ] 浏览器验收通过
+- [x] 列表与 Supabase 数据一致
+- [x] 筛选/分页可用
+- [x] `pnpm lint` · `pnpm test` · `pnpm build` 绿
+- [x] 浏览器验收通过
 
 ---
 
@@ -92,3 +92,12 @@
 ## 给 Cursor
 
 `ops-desk-p0-issues-page` · Open **`ai-ink-brain-wt-issues-page/`** · 只读 · 链接 `html_url` 新开 GitHub。
+
+---
+
+## CLOSE 记录
+
+- **PR**：待创建
+- **merge SHA**：待创建
+- **50 review**：[`docs/harness/reviews/task_ops_desk_p0_issues_page_v1_reinspect_R1_20260622.md`](../../harness/reviews/task_ops_desk_p0_issues_page_v1_reinspect_R1_20260622.md)
+- **下一棒**：P0-6 Pulls 页 merge 后统一填人类 checklist
