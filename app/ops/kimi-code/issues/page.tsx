@@ -8,67 +8,20 @@ import {
   type IssueRow,
 } from "@/lib/ops/data";
 import { formatDateTime } from "@/lib/ops/format";
+import {
+  buildQueryString,
+  parseFilter,
+  scanTagStyle,
+} from "@/lib/ops/filter";
 
 export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 25;
 
-const SCAN_TAG_COLORS: Record<string, string> = {
-  C2: "bg-amber-100 text-amber-800 border-amber-200",
-  C3: "bg-red-100 text-red-800 border-red-200",
-  OBSERVE: "bg-sky-100 text-sky-800 border-sky-200",
-  P0: "bg-rose-100 text-rose-800 border-rose-200",
-  P1: "bg-orange-100 text-orange-800 border-orange-200",
-  P2: "bg-yellow-100 text-yellow-800 border-yellow-200",
-};
-
-const DEFAULT_TAG_STYLE =
-  "bg-[color:var(--color-wash)] text-[color:var(--color-muted-foreground)] border-[color:var(--color-border)]";
-
-function scanTagStyle(tag: string): string {
-  return SCAN_TAG_COLORS[tag] ?? DEFAULT_TAG_STYLE;
-}
-
 function stateStyle(state: string): string {
   return state === "open"
     ? "bg-emerald-50 text-emerald-700 border-emerald-200"
     : "bg-[color:var(--color-muted)] text-[color:var(--color-muted-foreground)] border-[color:var(--color-border)]";
-}
-
-function parseFilter(searchParams: {
-  [key: string]: string | string[] | undefined;
-}): IssueFilter {
-  const state =
-    searchParams.state === "open" || searchParams.state === "closed"
-      ? searchParams.state
-      : undefined;
-
-  const labelsParam = searchParams.labels;
-  const labels =
-    typeof labelsParam === "string"
-      ? labelsParam.split(",").filter(Boolean)
-      : undefined;
-
-  const page =
-    typeof searchParams.page === "string"
-      ? Math.max(1, parseInt(searchParams.page, 10) || 1)
-      : 1;
-
-  return { state, labels, page, pageSize: PAGE_SIZE };
-}
-
-function buildQueryString(
-  filter: IssueFilter,
-  overrides?: Partial<IssueFilter>,
-): string {
-  const params = new URLSearchParams();
-  const merged = { ...filter, ...overrides };
-  if (merged.state) params.set("state", merged.state);
-  if (merged.labels && merged.labels.length > 0)
-    params.set("labels", merged.labels.join(","));
-  if (merged.page && merged.page > 1) params.set("page", String(merged.page));
-  const qs = params.toString();
-  return qs ? `?${qs}` : "";
 }
 
 function IssueTable({ rows }: { rows: IssueRow[] }) {
@@ -223,17 +176,24 @@ function Pagination({
 function FilterBar({
   filter,
   allLabels,
+  allScanTags,
 }: {
   filter: IssueFilter;
   allLabels: string[];
+  allScanTags: string[];
 }) {
   const currentLabels = filter.labels ?? [];
+  const currentScanTag = filter.scanTag;
 
   function toggleLabel(label: string): string[] {
     if (currentLabels.includes(label)) {
       return currentLabels.filter((l) => l !== label);
     }
     return [...currentLabels, label];
+  }
+
+  function toggleScanTag(tag: string): string | undefined {
+    return currentScanTag === tag ? undefined : tag;
   }
 
   return (
@@ -279,12 +239,37 @@ function FilterBar({
           })}
         </div>
       )}
+
+      {/* Scan tag filter */}
+      {allScanTags.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-xs text-[color:var(--color-muted-foreground)]">
+            Scan:
+          </span>
+          {allScanTags.map((tag) => {
+            const active = currentScanTag === tag;
+            return (
+              <Link
+                key={tag}
+                href={`/ops/kimi-code/issues${buildQueryString(filter, { scanTag: toggleScanTag(tag), page: 1 })}`}
+                className={`inline-flex rounded-md border px-2 py-0.5 text-xs font-medium transition-colors ${
+                  active
+                    ? "border-[color:var(--color-foreground)] bg-[color:var(--color-foreground)] text-[color:var(--color-background)]"
+                    : scanTagStyle(tag)
+                }`}
+              >
+                {tag}
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
 type PageData =
-  | { kind: "loaded"; rows: IssueRow[]; count: number; allLabels: string[] }
+  | { kind: "loaded"; rows: IssueRow[]; count: number; allLabels: string[]; allScanTags: string[] }
   | { kind: "no-repo" }
   | { kind: "error"; message: string };
 
@@ -297,14 +282,19 @@ async function loadPageData(filter: IssueFilter): Promise<PageData> {
     const { rows, count } = await getIssues(repo.id, filter);
 
     const labelSet = new Set<string>();
+    const scanTagSet = new Set<string>();
     for (const issue of rows) {
       for (const label of issue.labels) {
         labelSet.add(label);
       }
+      for (const tag of issue.scan_tags) {
+        scanTagSet.add(tag);
+      }
     }
     const allLabels = Array.from(labelSet).sort();
+    const allScanTags = Array.from(scanTagSet).sort();
 
-    return { kind: "loaded", rows, count, allLabels };
+    return { kind: "loaded", rows, count, allLabels, allScanTags };
   } catch (err) {
     const message =
       err instanceof OpsDataError
@@ -352,7 +342,7 @@ export default async function OpsKimiCodeIssuesPage({
 
       {data.kind === "loaded" && (
         <>
-          <FilterBar filter={filter} allLabels={data.allLabels} />
+          <FilterBar filter={filter} allLabels={data.allLabels} allScanTags={data.allScanTags} />
 
           {data.rows.length === 0 ? (
             <div className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-muted)] p-8 text-center">
@@ -361,7 +351,8 @@ export default async function OpsKimiCodeIssuesPage({
               </p>
               <p className="mt-1 text-sm text-[color:var(--color-muted-foreground)] opacity-70">
                 {filter.state ||
-                (filter.labels && filter.labels.length > 0)
+                (filter.labels && filter.labels.length > 0) ||
+                filter.scanTag
                   ? "尝试调整筛选条件"
                   : "请确认 GHA sync 已首跑成功"}
               </p>

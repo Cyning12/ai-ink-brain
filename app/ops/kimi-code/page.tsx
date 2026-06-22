@@ -1,18 +1,21 @@
 import {
   getKimiCodeRepo,
+  getLatestScanSnapshot,
   getOverviewMetrics,
   OpsDataError,
   type OverviewMetrics,
+  type ScanSnapshotSummary,
 } from "@/lib/ops/data";
 import { formatDurationDays } from "@/lib/ops/format";
 import { MetricCard } from "@/components/ops/metric-card";
+import { ScanSummaryCard } from "@/components/ops/scan-summary-card";
 import { SyncStatus } from "@/components/ops/sync-status";
 import { TrendChart } from "@/components/ops/trend-chart";
 
 export const dynamic = "force-dynamic";
 
 type PageData =
-  | { kind: "loaded"; metrics: OverviewMetrics }
+  | { kind: "loaded"; metrics: OverviewMetrics; scanSnapshot: ScanSnapshotSummary | null }
   | { kind: "no-repo" }
   | { kind: "error"; message: string };
 
@@ -22,8 +25,11 @@ async function loadPageData(): Promise<PageData> {
     if (!repo) {
       return { kind: "no-repo" };
     }
-    const metrics = await getOverviewMetrics(repo.id);
-    return { kind: "loaded", metrics };
+    const [metrics, scanSnapshot] = await Promise.all([
+      getOverviewMetrics(repo.id),
+      getLatestScanSnapshot(repo.id),
+    ]);
+    return { kind: "loaded", metrics, scanSnapshot };
   } catch (err) {
     const message =
       err instanceof OpsDataError
@@ -96,6 +102,13 @@ export default async function OpsKimiCodeOverviewPage() {
               }
               subtext={`近 ${data.metrics.issueThroughput.periodDays} 天 closed issues`}
             />
+          </div>
+
+          <div className="space-y-3">
+            <h2 className="font-serif text-lg font-semibold tracking-tight text-[color:var(--color-foreground)]">
+              Scan 摘要
+            </h2>
+            <ScanSummaryCard snapshot={data.scanSnapshot} />
           </div>
 
           <TrendChart data={data.metrics.trend} />
