@@ -2,7 +2,7 @@
 
 > **状态**：`pending`  
 > **SPEC**：[`SPEC_ops_desk_kimi_code_mvp_v1_zh.md`](../specs/SPEC_ops_desk_kimi_code_mvp_v1_zh.md) · §6.1 · §13 P0-6  
-> **依赖**：[`task_ops_desk_p0_github_sync_v1.md`](../../../ai-ink-brain-api-python/docs/tasks/done/task_ops_desk_p0_github_sync_v1.md) · [`task_ops_desk_p0_ops_site_mode_v1.md`](../done/task_ops_desk_p0_ops_site_mode_v1.md) · 建议复用 P0-4 共享 BFF  
+> **依赖**：P0-2 sync · P0-3 site_mode · **[`task_ops_desk_p0_overview_page_v1.md`](task_ops_desk_p0_overview_page_v1.md) 已 merge main**（Phase 2 卡点）  
 > **后继**：P0 Demo 签收 · P1 链
 
 ---
@@ -14,9 +14,10 @@
 | **task_slug** | `ops-desk-p0-pulls-page` |
 | **test_strategy** | `recommended` |
 | **freeze_id** | `OPS-DESK-KIMI-CODE-P0-PULLS-PAGE` |
-| **git_branch** | `task/ops-desk-p0-dashboard-pages`（批链单分支 · 见 invoke） |
-| **worktree_root** | `ai-ink-brain/` |
-| **Open Folder** | `ai-ink-brain/` |
+| **git_branch** | `task/ops-desk-p0-pulls-page` |
+| **worktree_root** | `ai-ink-brain-wt-pulls-page/` |
+| **Open Folder** | `ai-ink-brain-wt-pulls-page/` |
+| **dispatch_phase** | **Phase 2B** · 与 P0-5 **并行** · **P0-4 merge 后** |
 | **audit_profile** | `full` |
 | **acceptance_interaction** | `required` |
 | **kpi_rubric** | `KPI_RUBRIC_v1_2` |
@@ -76,6 +77,17 @@
 
 ---
 
+## 派工模式（00 · Phase 2B）
+
+| 项 | 值 |
+| --- | --- |
+| **invoke** | [`PROMPT_PHASE2_PARALLEL_v1.md`](../../../docs/harness/invokes/by-task/ops-desk-p0-dashboard-pages/PROMPT_PHASE2_PARALLEL_v1.md) §调用体 B |
+| **worktree** | `git worktree add ../ai-ink-brain-wt-pulls-page -b task/ops-desk-p0-pulls-page origin/main` |
+| **并行** | 与 P0-5 **同时** · 负责补齐 layout Pulls 导航链 |
+| **checklist** | 三 PR 全 merge 后 [`CHECKLIST_ops_desk_p0_dashboard_pages_human_v1_zh.md`](../../../docs/harness/reviews/CHECKLIST_ops_desk_p0_dashboard_pages_human_v1_zh.md) |
+
+---
+
 ## 给 Cursor
 
-`ops-desk-p0-pulls-page` · Open **`ai-ink-brain/`** · P0 看板末页 · 与 P0-5 可同批 commit · 单 PR 合并。
+`ops-desk-p0-pulls-page` · Open **`ai-ink-brain-wt-pulls-page/`** · P0 看板末页 · 独立 PR。

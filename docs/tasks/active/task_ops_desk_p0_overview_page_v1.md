@@ -3,7 +3,7 @@
 > **状态**：`pending`  
 > **SPEC**：[`SPEC_ops_desk_kimi_code_mvp_v1_zh.md`](../specs/SPEC_ops_desk_kimi_code_mvp_v1_zh.md) · §6.1 · §6.2 · §13 P0-4  
 > **依赖**：[`task_ops_desk_p0_github_sync_v1.md`](../../../ai-ink-brain-api-python/docs/tasks/done/task_ops_desk_p0_github_sync_v1.md) · [`task_ops_desk_p0_ops_site_mode_v1.md`](../done/task_ops_desk_p0_ops_site_mode_v1.md)  
-> **后继**：P0-5 / P0-6 可并行（建议 P0-4 先落地共享 BFF/组件）
+> **后继**：P0-4 **merge 后** P0-5 ∥ P0-6 双 worktree 并行（见 §派工模式）
 
 ---
 
@@ -14,9 +14,10 @@
 | **task_slug** | `ops-desk-p0-overview-page` |
 | **test_strategy** | `recommended` |
 | **freeze_id** | `OPS-DESK-KIMI-CODE-P0-OVERVIEW-PAGE` |
-| **git_branch** | `task/ops-desk-p0-dashboard-pages`（批链单分支 · 见 invoke） |
+| **git_branch** | `task/ops-desk-p0-overview-page` |
 | **worktree_root** | `ai-ink-brain/` |
 | **Open Folder** | `ai-ink-brain/` |
+| **dispatch_phase** | **Phase 1**（必须先 merge · 阻塞 Phase 2） |
 | **audit_profile** | `full` |
 | **acceptance_interaction** | `required` |
 | **kpi_rubric** | `KPI_RUBRIC_v1_2` |
@@ -78,6 +79,17 @@
 
 ---
 
+## 派工模式（00 · Phase 1）
+
+| 项 | 值 |
+| --- | --- |
+| **invoke** | [`PROMPT_CHAIN_30_40_50_CLOSE_batch_v1.md`](../../../docs/harness/invokes/by-task/ops-desk-p0-dashboard-pages/PROMPT_CHAIN_30_40_50_CLOSE_batch_v1.md) §Phase 1 |
+| **并行** | **否** · 单 Agent · 本 task 单独 PR merge 后 Phase 2 才启动 |
+| **共享层** | 须落 `lib/ops/*` 或 BFF · 供 P0-5/6 只读复用 |
+| **终态 checklist** | 三 PR 全 merge 后 [`CHECKLIST_ops_desk_p0_dashboard_pages_human_v1_zh.md`](../../../docs/harness/reviews/CHECKLIST_ops_desk_p0_dashboard_pages_human_v1_zh.md) |
+
+---
+
 ## 给 Cursor
 
-`ops-desk-p0-overview-page` · Open **`ai-ink-brain/`** · 指标定义见 SPEC §6.2 · **批链中须先于 P0-5/6 提交共享层**。
+`ops-desk-p0-overview-page` · Open **`ai-ink-brain/`** · 指标定义见 SPEC §6.2 · **Phase 1 必须先 merge**。
