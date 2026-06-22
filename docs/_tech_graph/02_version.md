@@ -42,6 +42,7 @@ timeline
   2026-06-09 : P1 11_flow_api 增量 PROXY 子图（py-service-proxy · forward-py-rag-chat）
   2026-06-17 : 3a40c67 auto: package.json
   2026-06-21 : feat(ops-desk): site_mode=ops + /ops/login + middleware M0 secret guard + /api/ops/* skeleton
+  2026-06-22 : 1f32f29 auto: app/ops/kimi-code/issues/page.tsx
 ```
 
 **Verify（P1）**：PR 门禁 workflow **`quality`** 含 **`pnpm test`**、**`tech_graph_graph_export --check`** 与 **`tech_graph_graph_equivalence_check`**（graph_v2，与 `docs/tasks/specs/MIGRATION-tech_graph_v2_frontend_playbook_v1_zh.md` 一致）。

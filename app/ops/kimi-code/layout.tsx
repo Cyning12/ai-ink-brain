@@ -48,16 +48,18 @@ export default async function OpsKimiCodeLayout({
           >
             总览
           </Link>
-          <span className="block rounded-lg px-3 py-2 text-sm text-[color:var(--color-muted-foreground)] opacity-60"
-            title="P0-4 实现"
+          <Link
+            href="/ops/kimi-code/issues"
+            className="block rounded-lg px-3 py-2 text-sm font-medium text-[color:var(--color-foreground)] hover:bg-[color:var(--color-wash)]"
           >
             Issues
-          </span>
-          <span className="block rounded-lg px-3 py-2 text-sm text-[color:var(--color-muted-foreground)] opacity-60"
-            title="P0-5 实现"
+          </Link>
+          <Link
+            href="/ops/kimi-code/pulls"
+            className="block rounded-lg px-3 py-2 text-sm font-medium text-[color:var(--color-foreground)] hover:bg-[color:var(--color-wash)]"
           >
             Pull Requests
-          </span>
+          </Link>
           <span className="block rounded-lg px-3 py-2 text-sm text-[color:var(--color-muted-foreground)] opacity-60"
             title="P1-5 实现"
           >
