@@ -4,6 +4,7 @@
 
 ## 已完成
 
+- `../done/task_ops_desk_p2_scan_ingest_frontend_v1.md` — 2026-06-22 验收通过（Ops Desk P2-2 · Scan 摘要卡片 + scan_tag 筛选 · 分支 `task/ops-desk-p2-scan-ingest-frontend` · PR #86）
 - `../done/task_ops_desk_p0_overview_page_v1.md` — 2026-06-22 验收通过（Ops Desk P0-4 · 总览页 + 共享数据层 + layout 导航链 · 分支 `task/ops-desk-p0-overview-page` · merge `fb9fc37`）
 - `../done/task_ops_desk_p0_issues_page_v1.md` — 2026-06-22 验收通过（Ops Desk P0-5 · Issues 列表页 + 筛选/分页/scan_tags · 分支 `task/ops-desk-p0-issues-page`）
 - `../done/task_ops_desk_p0_pulls_page_v1.md` — 2026-06-22 验收通过（Ops Desk P0-6 · Pull Requests 列表页 + 筛选/分页/CI 状态 · 分支 `task/ops-desk-p0-pulls-page`）

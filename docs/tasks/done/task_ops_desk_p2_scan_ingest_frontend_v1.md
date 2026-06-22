@@ -1,6 +1,6 @@
 # Task · Ops Desk P2-2 · Scan Ingest（前端）
 
-> **状态**：`in_review`  
+> **状态**：`done（2026-06-22 验收通过）`  
 > **SPEC**：§6 · §10  
 > **协调**：[`task_ops_desk_p2_scan_ingest_v1.md`](../../../../docs/harness/tasks/active/task_ops_desk_p2_scan_ingest_v1.md)  
 > **依赖**：P0-5 issues 页 ✅ · P0-4 总览 ✅ · 后端 DDL 契约（R5 §3.3）
@@ -86,7 +86,7 @@ interface ScanSnapshotSummary {
 
 - [x] 单测覆盖 scan summary 渲染 / filter 逻辑
 - [x] build 含 `/ops/kimi-code` · `/ops/kimi-code/issues`
-- [ ] 50 reinspect pass · PR merge main（后端 DDL merge 后最终联调并合并）
+- [x] 50 reinspect pass · PR #86 merge main
 
 ---
 
