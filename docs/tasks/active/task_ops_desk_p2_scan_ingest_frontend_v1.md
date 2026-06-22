@@ -1,6 +1,6 @@
 # Task · Ops Desk P2-2 · Scan Ingest（前端）
 
-> **状态**：`pending`  
+> **状态**：`in_review`  
 > **SPEC**：§6 · §10  
 > **协调**：[`task_ops_desk_p2_scan_ingest_v1.md`](../../../../docs/harness/tasks/active/task_ops_desk_p2_scan_ingest_v1.md)  
 > **依赖**：P0-5 issues 页 ✅ · P0-4 总览 ✅ · 后端 DDL 契约（R5 §3.3）
@@ -26,11 +26,11 @@
 
 ### 完成态
 
-- [ ] `lib/ops/data.ts`：`getLatestScanSnapshot()` · 类型定义
-- [ ] 总览页：Scan 摘要卡片（版本 · open 数 · P0/P1/P2 计数 · 链接主索引 GitHub/raw）
-- [ ] Issues 页：`scan_tags` 列已有 · 增加 **scan tag 筛选** query param
-- [ ] `tests/fixtures/ops_scan_snapshot_v1.json` · 单测/mock 联调（后端未 merge 前）
-- [ ] `pnpm lint` · `pnpm test` · `pnpm build` 绿
+- [x] `lib/ops/data.ts`：`getLatestScanSnapshot()` · 类型定义
+- [x] 总览页：Scan 摘要卡片（版本 · open 数 · P0/P1/P2 计数 · 链接主索引 GitHub/raw）
+- [x] Issues 页：`scan_tags` 列已有 · 增加 **scan tag 筛选** query param
+- [x] `tests/fixtures/ops_scan_snapshot_v1.json` · 单测/mock 联调（后端未 merge 前）
+- [x] `pnpm lint` · `pnpm test` · `pnpm build` 绿
 
 ---
 
@@ -84,9 +84,9 @@ interface ScanSnapshotSummary {
 
 ## 验收标准
 
-- [ ] 单测覆盖 scan summary 渲染 / filter 逻辑
-- [ ] build 含 `/ops/kimi-code` · `/ops/kimi-code/issues`
-- [ ] 50 reinspect pass · PR merge main
+- [x] 单测覆盖 scan summary 渲染 / filter 逻辑
+- [x] build 含 `/ops/kimi-code` · `/ops/kimi-code/issues`
+- [ ] 50 reinspect pass · PR merge main（后端 DDL merge 后最终联调并合并）
 
 ---
 

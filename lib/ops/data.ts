@@ -75,6 +75,18 @@ export type OverviewMetrics = {
   trend: TrendPoint[];
 };
 
+export type ScanSnapshotSummary = {
+  scan_version: string;
+  total_open: number | null;
+  p0_items: unknown[];
+  p1_items: unknown[];
+  p2_items: unknown[];
+  deferred_items: unknown[];
+  parsed_summary: Record<string, unknown> | null;
+  raw_markdown_url: string | null;
+  created_at: string;
+};
+
 export class OpsDataError extends Error {
   constructor(message: string) {
     super(message);
@@ -153,6 +165,26 @@ export async function getLatestSyncRun(
     throw new OpsDataError(`查询 ops_sync_runs 失败：${error.message}`);
   }
   return (data as SyncRun | null) ?? null;
+}
+
+export async function getLatestScanSnapshot(
+  repoId: string,
+): Promise<ScanSnapshotSummary | null> {
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("ops_scan_snapshots")
+    .select(
+      "scan_version, total_open, p0_items, p1_items, p2_items, deferred_items, parsed_summary, raw_markdown_url, created_at",
+    )
+    .eq("repo_id", repoId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error && error.code !== "PGRST116") {
+    throw new OpsDataError(`查询 scan snapshot 失败：${error.message}`);
+  }
+  return (data as ScanSnapshotSummary | null) ?? null;
 }
 
 export async function getOverviewMetrics(
@@ -254,6 +286,7 @@ export async function getOverviewMetrics(
 export type IssueFilter = {
   state?: "open" | "closed";
   labels?: string[];
+  scanTag?: string;
   page?: number;
   pageSize?: number;
 };
@@ -262,7 +295,7 @@ export async function getIssues(
   repoId: string,
   filter: IssueFilter = {},
 ): Promise<{ rows: IssueRow[]; count: number }> {
-  const { state, labels, page = 1, pageSize = 25 } = filter;
+  const { state, labels, scanTag, page = 1, pageSize = 25 } = filter;
   const supabase = createSupabaseServerClient();
 
   let query = supabase
@@ -279,6 +312,9 @@ export async function getIssues(
   }
   if (labels && labels.length > 0) {
     query = query.overlaps("labels", labels);
+  }
+  if (scanTag) {
+    query = query.overlaps("scan_tags", [scanTag]);
   }
 
   const from = (page - 1) * pageSize;

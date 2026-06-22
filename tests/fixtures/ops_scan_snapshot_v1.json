@@ -1,0 +1,24 @@
+{
+  "scan_version": "v1.5.1",
+  "total_open": 7,
+  "p0_items": [
+    { "number": 101, "title": "Critical crash on startup", "tier": "P0" }
+  ],
+  "p1_items": [
+    { "number": 102, "title": "Important feature gap", "tier": "P1" },
+    { "number": 103, "title": "Refactor auth flow", "tier": "P1" }
+  ],
+  "p2_items": [
+    { "number": 104, "title": "Minor UI polish", "tier": "P2" },
+    { "number": 105, "title": "Docs update", "tier": "P2" },
+    { "number": 106, "title": "Cleanup stale imports", "tier": "P2" },
+    { "number": 107, "title": "Style consistency", "tier": "P2" }
+  ],
+  "deferred_items": [],
+  "parsed_summary": {
+    "total": 7,
+    "tiers": { "p0": 1, "p1": 2, "p2": 4, "deferred": 0 }
+  },
+  "raw_markdown_url": "https://raw.githubusercontent.com/Cyning/Projects/main/docs/harness/guides/issues/ISSUE_SCAN_kimi_code_open_c2_v1_zh.md",
+  "created_at": "2026-06-20T12:00:00Z"
+}
