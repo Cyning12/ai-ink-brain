@@ -1,8 +1,9 @@
 # Task · Ops Desk P1-5 · Chat UI + BFF
 
 > **状态**：`done`  
-> **合并 PR**：待填入  
-> **合并 SHA**：待填入  
+> **合并 PR**：https://github.com/Cyning12/ai-ink-brain/pull/84  
+> **分支 HEAD SHA**：`ccb58f226f8383cda60f68ba96ab2f1bb836e9ad`  
+> **合并 SHA**：待用户/Claude Code 完成 merge 后填入  
 > **SPEC**：§4.6 · §4.3  
 > **图谱**：[`14_flow_ops_chat.md`](../../docs/_tech_graph/14_flow_ops_chat.md)  
 > **后端契约**：[`16_flow_ops_chat.md`](../../../ai-ink-brain-api-python/docs/_tech_graph/16_flow_ops_chat.md) · merge **`b0af89df`**（PR #187）  
