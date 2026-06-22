@@ -1,7 +1,7 @@
 ---
 graph_id: 00_main
 version: 
-generated_at: 2026-06-21T11:32:11Z
+generated_at: 2026-06-22T07:47:59Z
 source: docs/_tech_graph/00_main.graph.yaml
 ---
 
@@ -46,6 +46,8 @@ flowchart TD
     T2S[/text2sql]
     UCP[UnifiedChatPageClient]
     UNIFIED[/unified-chat]
+    OPS_CHAT[/ops/kimi-code/chat (P1)]
+    G_OPS_CHAT[>14_flow_ops_chat.md]
 
     ADMINS --> NAVFILTER
     APP --"加载"--> G_SPEC
@@ -110,6 +112,10 @@ flowchart TD
     // → app/api/py/unified/chat/route.ts
     // → app/api/py/unified/chat/stream/route.ts
     // → app/api/system/status/route.ts
+    ROUTER --> OPS_CHAT
+    // → app/ops/kimi-code/chat/page.tsx::(P1 · 规划)
+    OPS_CHAT --"加载"--> G_OPS_CHAT
+    APP --"加载"--> G_OPS_CHAT
 
     classDef phase fill:#e1f5fe,stroke:#01579b,stroke-width:2px
     classDef doc fill:#fff8e1,stroke:#ff6f00,stroke-width:1px
@@ -158,6 +164,8 @@ flowchart TD
 | T2S | /text2sql |  |
 | UCP | UnifiedChatPageClient |  |
 | UNIFIED | /unified-chat |  |
+| OPS_CHAT | /ops/kimi-code/chat (P1) |  |
+| G_OPS_CHAT | >14_flow_ops_chat.md |  |
 
 ### Edges
 
@@ -197,6 +205,9 @@ flowchart TD
 | T2S | T2P | -> | depends_on |  | 1 anchor(s) |
 | UCP | G_COMP | -> | depends_on | 加载 |  |
 | UNIFIED | UCP | -> | depends_on |  | 10 anchor(s) |
+| ROUTER | OPS_CHAT | -> | depends_on |  | 1 anchor(s) |
+| OPS_CHAT | G_OPS_CHAT | -> | depends_on | 加载 |  |
+| APP | G_OPS_CHAT | -> | depends_on | 加载 |  |
 
 ## Sub-graph Links
 
@@ -206,6 +217,7 @@ flowchart TD
 - `API Flow`: [`11_flow_api.md`](11_flow_api.md)（编辑源：[11_flow_api.graph.yaml](11_flow_api.graph.yaml)）
 - `Auth Flow`: [`12_flow_auth.md`](12_flow_auth.md)（编辑源：[12_flow_auth.graph.yaml](12_flow_auth.graph.yaml)）
 - `Components Flow`: [`13_flow_components.md`](13_flow_components.md)（编辑源：[13_flow_components.graph.yaml](13_flow_components.graph.yaml)）
+- `Ops Desk Chat`: [`14_flow_ops_chat.md`](14_flow_ops_chat.md)（编辑源：[14_flow_ops_chat.graph.yaml](14_flow_ops_chat.graph.yaml) · P1 规划）
 - `Spec`: [`99_spec.md`](99_spec.md)
 - `Mermaid Protocol`: [`99_mermaid_protocol.md`](99_mermaid_protocol.md) — 拓扑图绘制规范
 

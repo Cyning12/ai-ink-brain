@@ -73,6 +73,10 @@ nodes:
   label: UnifiedChatPageClient
 - id: UNIFIED
   label: /unified-chat
+- id: OPS_CHAT
+  label: /ops/kimi-code/chat (P1)
+- id: G_OPS_CHAT
+  label: '>14_flow_ops_chat.md'
 edges:
 - anchors: []
   from: ADMINS
@@ -336,4 +340,24 @@ edges:
   label: ''
   mark: ->
   to: UCP
+  type: depends_on
+- anchors:
+  - path: app/ops/kimi-code/chat/page.tsx
+    symbol: '(P1 · 规划)'
+  from: ROUTER
+  label: ''
+  mark: ->
+  to: OPS_CHAT
+  type: depends_on
+- anchors: []
+  from: OPS_CHAT
+  label: 加载
+  mark: ->
+  to: G_OPS_CHAT
+  type: depends_on
+- anchors: []
+  from: APP
+  label: 加载
+  mark: ->
+  to: G_OPS_CHAT
   type: depends_on

@@ -46,6 +46,7 @@
 | `11_flow_api.graph.yaml` | BFF / 代理 |
 | `12_flow_auth.graph.yaml` | 鉴权 |
 | `13_flow_components.graph.yaml` | 组件数据流 |
+| `14_flow_ops_chat.graph.yaml` | **Ops Desk Chat**（P1 · BFF/UI · 规划） |
 
 ---
 
