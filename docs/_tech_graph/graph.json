@@ -17,6 +17,16 @@
       "label": "加载",
       "mark": "->",
       "sync": true,
+      "to": "G_OPS_CHAT",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "APP",
+      "graph_id": "00_main",
+      "label": "加载",
+      "mark": "->",
+      "sync": true,
       "to": "G_SPEC",
       "type": "depends_on"
     },
@@ -168,6 +178,16 @@
       "mark": "[non-admin]",
       "sync": true,
       "to": "ROUTER",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "OPS_CHAT",
+      "graph_id": "00_main",
+      "label": "加载",
+      "mark": "->",
+      "sync": true,
+      "to": "G_OPS_CHAT",
       "type": "depends_on"
     },
     {
@@ -353,6 +373,21 @@
       "mark": "->",
       "sync": true,
       "to": "LEARNING",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "app/ops/kimi-code/chat/page.tsx",
+          "symbol": "(P1 · 规划)"
+        }
+      ],
+      "from": "ROUTER",
+      "graph_id": "00_main",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "OPS_CHAT",
       "type": "depends_on"
     },
     {
@@ -2344,10 +2379,175 @@
       "sync": true,
       "to": "UCP",
       "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "BFF_EVT",
+      "graph_id": "14_flow_ops_chat",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "OPS_PY",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "BFF_EVT",
+      "graph_id": "14_flow_ops_chat",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "POLL",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
+      "from": "BFF_POST",
+      "graph_id": "14_flow_ops_chat",
+      "label": "",
+      "mark": "::gates",
+      "sync": true,
+      "to": "NOT_UC",
+      "type": "gates"
+    },
+    {
+      "anchors": [
+        {
+          "path": "app/api/ops/chat/messages/route.ts",
+          "symbol": "(P1 · 规划)"
+        }
+      ],
+      "from": "BFF_POST",
+      "graph_id": "14_flow_ops_chat",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "OPS_PY",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "BFF_RUN",
+      "graph_id": "14_flow_ops_chat",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "OPS_PY",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
+          "path": "middleware.ts",
+          "symbol": "ops desk guard"
+        }
+      ],
+      "from": "MW",
+      "graph_id": "14_flow_ops_chat",
+      "label": "",
+      "mark": "?>",
+      "sync": true,
+      "to": "LOGIN",
+      "type": "condition"
+    },
+    {
+      "anchors": [],
+      "from": "MW",
+      "graph_id": "14_flow_ops_chat",
+      "label": "",
+      "mark": "?>",
+      "sync": true,
+      "to": "PAGE",
+      "type": "condition"
+    },
+    {
+      "anchors": [],
+      "from": "PAGE",
+      "graph_id": "14_flow_ops_chat",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "BFF_EVT",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
+      "from": "PAGE",
+      "graph_id": "14_flow_ops_chat",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "BFF_POST",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
+      "from": "PAGE",
+      "graph_id": "14_flow_ops_chat",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "BFF_RUN",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
+      "from": "PAGE",
+      "graph_id": "14_flow_ops_chat",
+      "label": "",
+      "mark": "::merges",
+      "sync": true,
+      "to": "REF_UC",
+      "type": "merges"
+    },
+    {
+      "anchors": [],
+      "from": "PAGE",
+      "graph_id": "14_flow_ops_chat",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "TRACE",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "POLL",
+      "graph_id": "14_flow_ops_chat",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "TRACE",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [],
+      "from": "TRACE",
+      "graph_id": "14_flow_ops_chat",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
+      "to": "BFF_EVT",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [
+        {
+          "path": "app/ops/kimi-code/chat/page.tsx",
+          "symbol": "(P1 · 规划)"
+        }
+      ],
+      "from": "USER",
+      "graph_id": "14_flow_ops_chat",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "MW",
+      "type": "depends_on"
     }
   ],
   "freeze_id": "TECH_GRAPH_S2_FREEZE_20260519_V2_3",
-  "generated_at": "2026-06-21T10:47:14Z",
+  "generated_at": "2026-06-22T07:48:00Z",
   "graphs": [
     {
       "id": "00_main",
@@ -2378,6 +2578,12 @@
       "source_ai_path": "docs/_tech_graph/13_flow_components.ai.md",
       "source_yaml_path": "docs/_tech_graph/13_flow_components.graph.yaml",
       "title": "13_flow_components"
+    },
+    {
+      "id": "14_flow_ops_chat",
+      "source_ai_path": "docs/_tech_graph/14_flow_ops_chat.ai.md",
+      "source_yaml_path": "docs/_tech_graph/14_flow_ops_chat.graph.yaml",
+      "title": "Ops Desk Chat 前端 / BFF 子流程"
     }
   ],
   "nodes": [
@@ -2440,6 +2646,21 @@
       "graph_id": "11_flow_api",
       "id": "BEARER",
       "label": "BEARER"
+    },
+    {
+      "graph_id": "14_flow_ops_chat",
+      "id": "BFF_EVT",
+      "label": "GET /api/ops/runs/{id}/events"
+    },
+    {
+      "graph_id": "14_flow_ops_chat",
+      "id": "BFF_POST",
+      "label": "POST /api/ops/chat/messages"
+    },
+    {
+      "graph_id": "14_flow_ops_chat",
+      "id": "BFF_RUN",
+      "label": "GET /api/ops/runs/{id}"
     },
     {
       "graph_id": "00_main",
@@ -2533,6 +2754,11 @@
     },
     {
       "graph_id": "00_main",
+      "id": "G_OPS_CHAT",
+      "label": ">14_flow_ops_chat.md"
+    },
+    {
+      "graph_id": "00_main",
       "id": "G_ROUTE",
       "label": ">10_flow_route.md"
     },
@@ -2592,6 +2818,11 @@
       "label": "/learning"
     },
     {
+      "graph_id": "14_flow_ops_chat",
+      "id": "LOGIN",
+      "label": "/ops/login · OPS_DESK_SECRET"
+    },
+    {
       "graph_id": "12_flow_auth",
       "id": "LS",
       "label": "LS"
@@ -2642,6 +2873,11 @@
       "label": "portfolio?"
     },
     {
+      "graph_id": "14_flow_ops_chat",
+      "id": "MW",
+      "label": "middleware.ts /ops/*"
+    },
+    {
       "graph_id": "00_main",
       "id": "NAV",
       "label": "SiteNav"
@@ -2660,6 +2896,11 @@
       "graph_id": "10_flow_route",
       "id": "NAV_PF",
       "label": "NAV[] portfolio"
+    },
+    {
+      "graph_id": "14_flow_ops_chat",
+      "id": "NOT_UC",
+      "label": "≠ /api/py/unified/chat"
     },
     {
       "graph_id": "10_flow_route",
@@ -2727,6 +2968,11 @@
       "label": "/api/ops/*"
     },
     {
+      "graph_id": "00_main",
+      "id": "OPS_CHAT",
+      "label": "/ops/kimi-code/chat (P1)"
+    },
+    {
       "graph_id": "12_flow_auth",
       "id": "OPS_COOKIE",
       "label": "ops_desk_token"
@@ -2777,9 +3023,19 @@
       "label": "OpsSidebar"
     },
     {
+      "graph_id": "14_flow_ops_chat",
+      "id": "OPS_PY",
+      "label": "Python /ops/* (api-python)"
+    },
+    {
       "graph_id": "12_flow_auth",
       "id": "OPS_SESSION_API",
       "label": "/api/ops/auth/session"
+    },
+    {
+      "graph_id": "14_flow_ops_chat",
+      "id": "PAGE",
+      "label": "Ops Chat page · trace 壳"
     },
     {
       "graph_id": "12_flow_auth",
@@ -2795,6 +3051,11 @@
       "graph_id": "12_flow_auth",
       "id": "PFSESS",
       "label": "PFSESS"
+    },
+    {
+      "graph_id": "14_flow_ops_chat",
+      "id": "POLL",
+      "label": "after_seq 增量轮询"
     },
     {
       "graph_id": "00_main",
@@ -2887,6 +3148,11 @@
       "label": "P_UNI_SSE"
     },
     {
+      "graph_id": "14_flow_ops_chat",
+      "id": "REF_UC",
+      "label": "借鉴 UnifiedChatPageClient 壳"
+    },
+    {
       "graph_id": "11_flow_api",
       "id": "REQ",
       "label": "REQ"
@@ -2955,6 +3221,11 @@
       "graph_id": "12_flow_auth",
       "id": "TOKEN",
       "label": "TOKEN"
+    },
+    {
+      "graph_id": "14_flow_ops_chat",
+      "id": "TRACE",
+      "label": "ops run events 时间线 UI"
     },
     {
       "graph_id": "12_flow_auth",
@@ -3030,6 +3301,11 @@
       "graph_id": "12_flow_auth",
       "id": "UPSTREAM",
       "label": "(Python FastAPI)"
+    },
+    {
+      "graph_id": "14_flow_ops_chat",
+      "id": "USER",
+      "label": "/ops/kimi-code/chat"
     },
     {
       "graph_id": "12_flow_auth",

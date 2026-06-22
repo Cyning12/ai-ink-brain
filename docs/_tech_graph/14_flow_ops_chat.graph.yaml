@@ -1,0 +1,114 @@
+graph_id: 14_flow_ops_chat
+title: Ops Desk Chat 前端 / BFF 子流程
+description: P1 Chat UI · 复用 unified-chat trace 壳 · 数据源 ops_run_events · 不复用 Unified Chat API
+version: "2026-06-22"
+direction: TD
+
+nodes:
+  - id: USER
+    label: /ops/kimi-code/chat
+  - id: MW
+    label: middleware.ts /ops/*
+  - id: LOGIN
+    label: /ops/login · OPS_DESK_SECRET
+  - id: PAGE
+    label: Ops Chat page · trace 壳
+  - id: TRACE
+    label: ops run events 时间线 UI
+  - id: BFF_POST
+    label: POST /api/ops/chat/messages
+  - id: BFF_RUN
+    label: GET /api/ops/runs/{id}
+  - id: BFF_EVT
+    label: GET /api/ops/runs/{id}/events
+  - id: POLL
+    label: after_seq 增量轮询
+  - id: OPS_PY
+    label: Python /ops/* (api-python)
+  - id: REF_UC
+    label: 借鉴 UnifiedChatPageClient 壳
+  - id: NOT_UC
+    label: "≠ /api/py/unified/chat"
+
+edges:
+  - from: USER
+    to: MW
+    mark: "->"
+    anchors:
+      - path: app/ops/kimi-code/chat/page.tsx
+        symbol: "(P1 · 规划)"
+  - from: MW
+    to: LOGIN
+    mark: "?>"
+    type: condition
+    label: "[err] 无 cookie"
+    anchors:
+      - path: middleware.ts
+        symbol: "ops desk guard"
+  - from: MW
+    to: PAGE
+    mark: "?>"
+    type: condition
+    label: "[ok] session"
+  - from: PAGE
+    to: TRACE
+    mark: "->"
+  - from: PAGE
+    to: REF_UC
+    mark: "::merges"
+    type: merges
+    label: "trace 壳复用"
+  - from: PAGE
+    to: BFF_POST
+    mark: "~>"
+    type: async_calls
+    label: "发送消息"
+  - from: BFF_POST
+    to: OPS_PY
+    mark: "->"
+    anchors:
+      - path: app/api/ops/chat/messages/route.ts
+        symbol: "(P1 · 规划)"
+  - from: BFF_POST
+    to: NOT_UC
+    mark: "::gates"
+    type: gates
+  - from: PAGE
+    to: BFF_RUN
+    mark: "~>"
+    type: async_calls
+  - from: PAGE
+    to: BFF_EVT
+    mark: "~>"
+    type: async_calls
+  - from: BFF_RUN
+    to: OPS_PY
+    mark: "->"
+  - from: BFF_EVT
+    to: OPS_PY
+    mark: "->"
+  - from: BFF_EVT
+    to: POLL
+    mark: "~>"
+    type: async_calls
+    label: "断联续看"
+  - from: POLL
+    to: TRACE
+    mark: "->"
+  - from: TRACE
+    to: BFF_EVT
+    mark: "~>"
+    type: async_calls
+    label: after_seq"
+
+notes: |
+  ### 边界
+
+  - BFF 校验 `OPS_DESK_SECRET` / ops cookie（见 `12_flow_auth`）
+  - Python 信任 BFF · 不在浏览器暴露 service role
+  - **禁止**走 `/api/py/unified/chat` 或 `UnifiedChatPageClient` 数据源
+
+  ### 跨仓
+
+  - 后端 Orchestrator 真值：`../ai-ink-brain-api-python/docs/_tech_graph/16_flow_ops_chat.md`
+  - E2E 契约增量：`15_e2e_boundary`（P1 实施时补 SSE/JSON 键名）
