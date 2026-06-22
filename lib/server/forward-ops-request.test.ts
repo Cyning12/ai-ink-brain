@@ -30,7 +30,7 @@ describe("forwardOpsRequest", () => {
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    const res = await forwardOpsRequest("/ops/chat/messages", {
+    const res = await forwardOpsRequest("/api/py/ops/chat/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: "hi" }),
@@ -51,7 +51,7 @@ describe("forwardOpsRequest", () => {
     const fetchMock = vi.fn().mockRejectedValue(new Error("connect refused"));
     vi.stubGlobal("fetch", fetchMock);
 
-    const res = await forwardOpsRequest("/ops/runs/run-1", { method: "GET" });
+    const res = await forwardOpsRequest("/api/py/ops/runs/run-1", { method: "GET" });
     expect(res.status).toBe(503);
     const data = (await res.json()) as Record<string, unknown>;
     expect(data.ok).toBe(false);

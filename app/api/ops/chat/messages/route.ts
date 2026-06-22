@@ -10,7 +10,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const body = await request.text();
   const contentType = request.headers.get("content-type") ?? "application/json";
-  return forwardOpsRequest("/ops/chat/messages", {
+  return forwardOpsRequest("/api/py/ops/chat/messages", {
     method: "POST",
     headers: { "Content-Type": contentType },
     body,

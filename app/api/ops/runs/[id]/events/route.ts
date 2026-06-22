@@ -15,7 +15,7 @@ export async function GET(
   const { searchParams } = new URL(request.url);
   const afterSeq = searchParams.get("after_seq") ?? "0";
   const query = `?after_seq=${encodeURIComponent(afterSeq)}`;
-  return forwardOpsRequest(`/ops/runs/${encodeURIComponent(id)}/events${query}`, {
+  return forwardOpsRequest(`/api/py/ops/runs/${encodeURIComponent(id)}/events${query}`, {
     method: "GET",
   });
 }
