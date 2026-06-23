@@ -1,6 +1,6 @@
 # Task · Ops Desk P2-3 · Manual Sync（前端）
 
-> **状态**：`pending`  
+> **状态**：done（2026-06-23 · #89 merged）  
 > **SCOPE**：[`SCOPE_NOTE_manual_sync_v1_zh.md`](../../../../docs/harness/invokes/by-task/ops-desk-p2-manual-sync/SCOPE_NOTE_manual_sync_v1_zh.md)  
 > **协调**：[`task_ops_desk_p2_manual_sync_v1.md`](../../../../docs/harness/tasks/active/task_ops_desk_p2_manual_sync_v1.md)  
 > **依赖**：P0 总览 `SyncStatus` ✅ · 后端 trigger API（泳道 A）
