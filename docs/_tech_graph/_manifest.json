@@ -20,6 +20,7 @@
     "/methodology/[...slug]",
     "/ops/kimi-code",
     "/ops/kimi-code/chat",
+    "/ops/kimi-code/graph",
     "/ops/kimi-code/issues",
     "/ops/kimi-code/pulls",
     "/ops/login",

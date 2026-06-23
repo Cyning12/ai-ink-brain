@@ -44,6 +44,7 @@ timeline
   2026-06-21 : feat(ops-desk): site_mode=ops + /ops/login + middleware M0 secret guard + /api/ops/* skeleton
   2026-06-22 : 1f32f29 auto: app/ops/kimi-code/issues/page.tsx
   2026-06-22 : P1 规划 14_flow_ops_chat · BFF/UI after_seq · 00_main 挂链
+  2026-06-23 : e52e83f auto: app/ops/kimi-code/graph/page.tsx
 ```
 
 **Verify（P1）**：PR 门禁 workflow **`quality`** 含 **`pnpm test`**、**`tech_graph_graph_export --check`** 与 **`tech_graph_graph_equivalence_check`**（graph_v2，与 `docs/tasks/specs/MIGRATION-tech_graph_v2_frontend_playbook_v1_zh.md` 一致）。
