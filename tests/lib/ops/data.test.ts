@@ -6,7 +6,6 @@ import {
   OpsDataError,
   type ScanSnapshotSummary,
   type GraphSnapshotSummary,
-  type GraphModuleRow,
 } from "@/lib/ops/data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
@@ -16,7 +15,7 @@ import {
 } from "@/lib/ops/filter";
 import scanFixture from "@/tests/fixtures/ops_scan_snapshot_v1.json";
 import graphSnapshotFixture from "@/tests/fixtures/graph_snapshot_sample_v1.json";
-import graphModuleFixture from "@/tests/fixtures/graph_module_issues_v1.json";
+import graphModuleOpenFixture from "@/tests/fixtures/graph_module_issues_open_v1.json";
 
 vi.mock("@/lib/supabase/server", () => ({
   createSupabaseServerClient: vi.fn(),
@@ -34,24 +33,6 @@ function makeSupabaseChain(result: {
     select: vi.fn(() => chain),
     eq: vi.fn(() => chain),
     order: vi.fn(() => chain),
-    limit: vi.fn(() => chain),
-    overlaps: vi.fn(() => chain),
-    range: vi.fn(() => Promise.resolve(result)),
-    single: vi.fn(() => Promise.resolve(result)),
-  };
-  return {
-    from: vi.fn(() => chain),
-  };
-}
-
-function makeSupabaseChainMulti(result: {
-  data: unknown;
-  error: { code: string; message: string } | null;
-}) {
-  const chain = {
-    select: vi.fn(() => chain),
-    eq: vi.fn(() => chain),
-    order: vi.fn(() => Promise.resolve(result)),
     limit: vi.fn(() => chain),
     overlaps: vi.fn(() => chain),
     range: vi.fn(() => Promise.resolve(result)),
@@ -110,7 +91,7 @@ describe("getLatestScanSnapshot", () => {
 });
 
 describe("getLatestGraphSnapshot", () => {
-  it("returns the latest graph snapshot with tier counts", async () => {
+  it("returns the latest graph snapshot with node counts", async () => {
     const client = makeSupabaseChain({ data: graphSnapshotFixture, error: null });
     mockClient.mockReturnValue(
       client as unknown as ReturnType<typeof createSupabaseServerClient>,
@@ -119,11 +100,12 @@ describe("getLatestGraphSnapshot", () => {
     const snapshot = await getLatestGraphSnapshot("repo-1");
 
     expect(snapshot).not.toBeNull();
-    expect(snapshot?.scan_version).toBe("v2.0.0");
-    expect(snapshot?.total_open).toBe(12);
-    expect(snapshot?.p0_items).toHaveLength(1);
-    expect(snapshot?.p1_items).toHaveLength(2);
-    expect(snapshot?.p2_items).toHaveLength(9);
+    expect(snapshot?.source_branch).toBe("cyning/meta");
+    expect(snapshot?.manifest_version).toBe("0.1.0");
+    expect(snapshot?.schema_version).toBe("graph_v2");
+    expect(snapshot?.node_count).toBe(5);
+    expect(snapshot?.edge_count).toBe(1);
+    expect(snapshot?.graph_count).toBe(1);
   });
 
   it("returns null when no graph snapshot exists (PGRST116)", async () => {
@@ -156,24 +138,55 @@ describe("getLatestGraphSnapshot", () => {
 });
 
 describe("getGraphModuleIssues", () => {
-  it("returns module rows ordered by issue_count desc", async () => {
-    const client = makeSupabaseChainMulti({ data: graphModuleFixture, error: null });
+  it("builds module rows from graph payload and open issues", async () => {
+    const snapshotChain = {
+      select: vi.fn(() => snapshotChain),
+      eq: vi.fn(() => snapshotChain),
+      order: vi.fn(() => snapshotChain),
+      limit: vi.fn(() => snapshotChain),
+      single: vi.fn(() =>
+        Promise.resolve({
+          data: { payload: graphSnapshotFixture.payload },
+          error: null,
+        }),
+      ),
+    };
+    const issuesChain = {
+      select: vi.fn(() => issuesChain),
+      eq: vi.fn(() => issuesChain),
+    };
+    issuesChain.eq.mockImplementation((column: string, value: string) => {
+      if (column === "state" && value === "open") {
+        return Promise.resolve({ data: graphModuleOpenFixture, error: null });
+      }
+      return issuesChain;
+    });
+
+    const client = {
+      from: vi.fn((table: string) => {
+        if (table === "ops_graph_snapshots") return snapshotChain;
+        if (table === "ops_issues") return issuesChain;
+        throw new Error(`unexpected table ${table}`);
+      }),
+    };
     mockClient.mockReturnValue(
       client as unknown as ReturnType<typeof createSupabaseServerClient>,
     );
 
     const rows = await getGraphModuleIssues("repo-1");
 
-    expect(rows).toHaveLength(5);
-    const typed = rows as GraphModuleRow[];
-    expect(typed[0].module_id).toBe("parser");
-    expect(typed[0].issue_count).toBe(3);
-    expect(typed[0].p0_count).toBe(1);
-    expect(typed[0].issue_numbers).toContain(201);
+    expect(rows.length).toBeGreaterThan(0);
+    const parser = rows.find((row) => row.module_id === "parser");
+    expect(parser?.issue_count).toBe(3);
+    expect(parser?.p0_count).toBe(1);
+    expect(parser?.issue_numbers).toContain(201);
   });
 
-  it("returns empty array when no modules", async () => {
-    const client = makeSupabaseChainMulti({ data: [], error: null });
+  it("returns empty array when no graph snapshot exists", async () => {
+    const client = makeSupabaseChain({
+      data: null,
+      error: { code: "PGRST116", message: "No rows found" },
+    });
     mockClient.mockReturnValue(
       client as unknown as ReturnType<typeof createSupabaseServerClient>,
     );
@@ -183,19 +196,39 @@ describe("getGraphModuleIssues", () => {
     expect(rows).toHaveLength(0);
   });
 
-  it("throws OpsDataError on database failures", async () => {
-    const chain = {
-      select: vi.fn(() => chain),
-      eq: vi.fn(() => chain),
-      order: vi.fn(() =>
+  it("throws OpsDataError on issues query failure", async () => {
+    const snapshotChain = {
+      select: vi.fn(() => snapshotChain),
+      eq: vi.fn(() => snapshotChain),
+      order: vi.fn(() => snapshotChain),
+      limit: vi.fn(() => snapshotChain),
+      single: vi.fn(() =>
         Promise.resolve({
-          data: null,
-          error: { code: "PGRST204", message: "relation does not exist" },
+          data: { payload: graphSnapshotFixture.payload },
+          error: null,
         }),
       ),
     };
+    const issuesChain = {
+      select: vi.fn(() => issuesChain),
+      eq: vi.fn(() => issuesChain),
+    };
+    issuesChain.eq.mockImplementation((column: string, value: string) => {
+      if (column === "state" && value === "open") {
+        return Promise.resolve({
+          data: null,
+          error: { code: "PGRST204", message: "relation does not exist" },
+        });
+      }
+      return issuesChain;
+    });
+
     const client = {
-      from: vi.fn(() => chain),
+      from: vi.fn((table: string) => {
+        if (table === "ops_graph_snapshots") return snapshotChain;
+        if (table === "ops_issues") return issuesChain;
+        throw new Error(`unexpected table ${table}`);
+      }),
     };
     mockClient.mockReturnValue(
       client as unknown as ReturnType<typeof createSupabaseServerClient>,
@@ -217,33 +250,22 @@ describe("scan snapshot fixture", () => {
 });
 
 describe("graph snapshot fixture", () => {
-  it("has expected tier distribution", () => {
-    const summary = graphSnapshotFixture as unknown as GraphSnapshotSummary;
-    expect(summary.p0_items.length + summary.p1_items.length + summary.p2_items.length).toBe(
-      summary.total_open ?? 0,
-    );
+  it("has expected graph structure", () => {
+    const row = graphSnapshotFixture as {
+      payload: { nodes: unknown[]; edges: unknown[]; graphs: unknown[] };
+    };
+    expect(row.payload.nodes.length).toBeGreaterThan(0);
+    expect(row.payload.edges.length).toBeGreaterThan(0);
+    expect(row.payload.graphs.length).toBeGreaterThan(0);
   });
 });
 
-describe("graph module fixture", () => {
-  it("has expected module structure", () => {
-    const modules = graphModuleFixture as unknown as GraphModuleRow[];
-    expect(modules.length).toBeGreaterThan(0);
-    const first = modules[0];
-    expect(first.module_id).toBeDefined();
-    expect(first.module_name).toBeDefined();
-    expect(first.issue_count).toBeGreaterThanOrEqual(0);
-    expect(Array.isArray(first.issue_numbers)).toBe(true);
-  });
-
-  it("has non-negative tier counts", () => {
-    const modules = graphModuleFixture as unknown as GraphModuleRow[];
-    for (const mod of modules) {
-      expect(mod.p0_count).toBeGreaterThanOrEqual(0);
-      expect(mod.p1_count).toBeGreaterThanOrEqual(0);
-      expect(mod.p2_count).toBeGreaterThanOrEqual(0);
-      expect(mod.p0_count + mod.p1_count + mod.p2_count).toBeLessThanOrEqual(mod.issue_count);
-    }
+describe("graph module open issues fixture", () => {
+  it("has module labels for matrix matching", () => {
+    const issues = graphModuleOpenFixture as Array<{ labels: string[] }>;
+    expect(issues.some((issue) => issue.labels.includes("module:parser"))).toBe(
+      true,
+    );
   });
 });
 

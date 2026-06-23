@@ -8,7 +8,7 @@
 | **代号**                | **Ops Desk** · `site_mode=ops`                                                                                                                                                                                                                                                                                                                                                                                                          |
 | **监控仓**               | `**MoonshotAI/kimi-code`**（MVP 唯一；未来 **一仓一页**）                                                                                                                                                                                                                                                                                                                                                                                          |
 | **test_strategy（建议）** | `required`（sync · metrics API · ops_run/events · 鉴权）                                                                                                                                                                                                                                                                                                                                                                                    |
-| **关联**                | `[PLAN_kimi_code_meta_harness_2x_v1_zh.md](../../../../docs/harness/guides/PLAN_kimi_code_meta_harness_2x_v1_zh.md)` · `[ISSUE_SCAN_kimi_code_open_c2_v1_zh.md](../../../../docs/harness/guides/ISSUE_SCAN_kimi_code_open_c2_v1_zh.md)` · `[STRATEGY_agent_runtime_ce_v1_zh.md](../../../../docs/harness/guides/STRATEGY_agent_runtime_ce_v1_zh.md)` · **[领域本体](../../../../docs/harness/guides/ONTOLOGY_ops_desk_kimi_code_v1_zh.md)** |
+| **关联**                | `[PLAN_kimi_code_meta_harness_2x_v1_zh.md](../../../../docs/harness/guides/PLAN_kimi_code_meta_harness_2x_v1_zh.md)` · `[ISSUE_SCAN_kimi_code_open_c2_v1_zh.md](../../../../docs/harness/guides/ISSUE_SCAN_kimi_code_open_c2_v1_zh.md)` · `[STRATEGY_agent_runtime_ce_v1_zh.md](../../../../docs/harness/guides/STRATEGY_agent_runtime_ce_v1_zh.md)` · **[领域本体](../../../../docs/harness/guides/ONTOLOGY_ops_desk_kimi_code_v1_zh.md)** · **[graph 远程映射](../../../../docs/harness/guides/POINTER_kimi_code_meta_git_mapping_v1_zh.md)** |
 | **10-spec invoke**    | `[ops-desk-kimi-code-spec-refine](../../../../docs/harness/invokes/by-task/ops-desk-kimi-code-spec-refine/README.md)` · `[PROMPT_START_10_spec_rethink_v1.md](../../../../docs/harness/invokes/by-task/ops-desk-kimi-code-spec-refine/PROMPT_START_10_spec_rethink_v1.md)`                                                                                                                                                              |
 
 
@@ -221,9 +221,11 @@ POST /ops/chat/messages
 
 ### 4.5 图谱层（无 Neo4j）
 
+> **graph 来源映射（防漂移）**：本地目录 **`kimi-code-meta/`**（worktree 名）· GitHub 远程 **`Cyning12/kimi-code`** @ **`cyning/meta`** · **无** `Cyning12/kimi-code-meta` 仓。真值 [`POINTER_kimi_code_meta_git_mapping_v1_zh.md`](../../../../docs/harness/guides/POINTER_kimi_code_meta_git_mapping_v1_zh.md) · GHA checkout `repository: Cyning12/kimi-code`。
+
 ```text
-cyning/meta 分支 graph.json（只读 raw/sync）
-  → ops_graph_nodes / ops_graph_edges（或 JSONB 快照）
+Cyning12/kimi-code @ cyning/meta · graph.json（GHA 只读 sync）
+  → ops_graph_snapshots（JSONB payload）
   → 查询：SQL 邻接 或 复用 graph_query 语义（Python）
   → UI：模块×Issue 矩阵 · 节点详情 · **只读**
   → 网页「建议改节点」→ 导出 task 草稿 Markdown · **不** commit
@@ -486,7 +488,7 @@ cyning/meta 分支 graph.json（只读 raw/sync）
 
 ### R5 · Track C 依赖与 graph ingest
 
-- graph.json 来源：`kimi-code-meta` 仓库 `cyning/meta` 分支，由 `pnpm tech-graph:graph-export` 生成；Ops Desk 只读消费。
+- graph.json 来源：**GitHub `Cyning12/kimi-code`** 分支 **`cyning/meta`**（本地 Open Folder 常写作 **`kimi-code-meta/`** · 见 POINTER）；由 `pnpm tech-graph:graph-export` 生成；Ops Desk 只读消费。
 - 快照版本：`ops_graph_snapshots` 记录 `source_branch/source_commit/manifest_version/payload`。
 - sync_run 关联：新增 `ops_sync_run_artifacts` 表，将每次 sync_run 与最新的 `graph_snapshot_id`、`scan_snapshot_id` 关联。
 - P0/P1 不含 graph Tab；P2 若 Track C 未完成可用 fixtures/sample graph.json 降级开发。
@@ -544,6 +546,7 @@ cyning/meta 分支 graph.json（只读 raw/sync）
 
 | 版本   | 日期         | 说明                                                               |
 | ---- | ---------- | ---------------------------------------------------------------- |
+| v1.5 | 2026-06-23 | §4.5 / R5 · graph 远程真值 **`Cyning12/kimi-code`**（非 kimi-code-meta 仓）· 链 POINTER |
 | v1.4 | 2026-06-21 | HG-SPEC-SIGNOFF approved · §5/§7 N1/N2 · §4.4 Demo 深析 issue 改为 ISSUE_SCAN 较新候选（默认 #545） |
 | v1.3 | 2026-06-18 | R9 · §4.7 领域本体 · 链 ONTOLOGY_ops_desk                             |
 | v1.2 | 2026-06-18 | R8 · §4.6 Orchestrator/LangGraph · ops_runs/events · P1 task 链修订 |
