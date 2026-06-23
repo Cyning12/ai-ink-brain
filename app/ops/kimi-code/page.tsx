@@ -2,20 +2,27 @@ import {
   getKimiCodeRepo,
   getLatestScanSnapshot,
   getOverviewMetrics,
+  getRecentSyncRuns,
   OpsDataError,
   type OverviewMetrics,
   type ScanSnapshotSummary,
+  type SyncRunListItem,
 } from "@/lib/ops/data";
 import { formatDurationDays } from "@/lib/ops/format";
 import { MetricCard } from "@/components/ops/metric-card";
 import { ScanSummaryCard } from "@/components/ops/scan-summary-card";
 import { SyncStatus } from "@/components/ops/sync-status";
 import { TrendChart } from "@/components/ops/trend-chart";
+import { ManualSyncButton } from "@/components/ops/manual-sync-button";
+import { SyncRunHistory } from "@/components/ops/sync-run-history";
+import { getOpsDeskSessionFromRequest } from "@/lib/auth/ops-session";
+import { getOpsDeskSecret } from "@/lib/auth/ops-env";
+import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 type PageData =
-  | { kind: "loaded"; metrics: OverviewMetrics; scanSnapshot: ScanSnapshotSummary | null }
+  | { kind: "loaded"; metrics: OverviewMetrics; scanSnapshot: ScanSnapshotSummary | null; syncRuns: SyncRunListItem[]; isMaintainer: boolean }
   | { kind: "no-repo" }
   | { kind: "error"; message: string };
 
@@ -25,11 +32,24 @@ async function loadPageData(): Promise<PageData> {
     if (!repo) {
       return { kind: "no-repo" };
     }
-    const [metrics, scanSnapshot] = await Promise.all([
+    const [metrics, scanSnapshot, syncRuns] = await Promise.all([
       getOverviewMetrics(repo.id),
       getLatestScanSnapshot(repo.id),
+      getRecentSyncRuns(repo.id, 10),
     ]);
-    return { kind: "loaded", metrics, scanSnapshot };
+
+    const secret = getOpsDeskSecret();
+    let isMaintainer = false;
+    if (secret) {
+      const h = await headers();
+      const session = await getOpsDeskSessionFromRequest(
+        new Request("http://localhost", { headers: h }),
+        secret,
+      );
+      isMaintainer = session?.role === "maintainer";
+    }
+
+    return { kind: "loaded", metrics, scanSnapshot, syncRuns, isMaintainer };
   } catch (err) {
     const message =
       err instanceof OpsDataError
@@ -68,11 +88,18 @@ export default async function OpsKimiCodeOverviewPage() {
 
       {data.kind === "loaded" && (
         <>
-          <SyncStatus
-            status={data.metrics.syncStatus}
-            syncRun={data.metrics.syncRun}
-            asOf={data.metrics.asOf}
-          />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <SyncStatus
+              status={data.metrics.syncStatus}
+              syncRun={data.metrics.syncRun}
+              asOf={data.metrics.asOf}
+            />
+            {data.isMaintainer && (
+              <ManualSyncButton
+                disabled={data.metrics.syncStatus === "running"}
+              />
+            )}
+          </div>
 
           <div className="grid gap-4 sm:grid-cols-3">
             <MetricCard
@@ -109,6 +136,13 @@ export default async function OpsKimiCodeOverviewPage() {
               Scan 摘要
             </h2>
             <ScanSummaryCard snapshot={data.scanSnapshot} />
+          </div>
+
+          <div className="space-y-3">
+            <h2 className="font-serif text-lg font-semibold tracking-tight text-[color:var(--color-foreground)]">
+              同步历史
+            </h2>
+            <SyncRunHistory runs={data.syncRuns} />
           </div>
 
           <TrendChart data={data.metrics.trend} />
