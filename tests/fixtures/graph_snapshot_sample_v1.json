@@ -1,29 +1,20 @@
 {
-  "scan_version": "v2.0.0",
-  "total_open": 12,
-  "p0_items": [
-    { "number": 201, "title": "Critical memory leak in parser", "tier": "P0" }
-  ],
-  "p1_items": [
-    { "number": 202, "title": "Auth token refresh race", "tier": "P1" },
-    { "number": 203, "title": "Graph edge deduplication missing", "tier": "P1" }
-  ],
-  "p2_items": [
-    { "number": 204, "title": "Tooltip z-index overlap", "tier": "P2" },
-    { "number": 205, "title": "Dark mode toggle flicker", "tier": "P2" },
-    { "number": 206, "title": "Missing aria-label on nav", "tier": "P2" },
-    { "number": 207, "title": "Cache invalidation too aggressive", "tier": "P2" },
-    { "number": 208, "title": "Footer link 404", "tier": "P2" },
-    { "number": 209, "title": "Toast animation stutter", "tier": "P2" },
-    { "number": 210, "title": "Type inference regression", "tier": "P2" },
-    { "number": 211, "title": "Build warning about source map", "tier": "P2" },
-    { "number": 212, "title": "Docs typo in README", "tier": "P2" }
-  ],
-  "deferred_items": [],
-  "parsed_summary": {
-    "total": 12,
-    "tiers": { "p0": 1, "p1": 2, "p2": 9, "deferred": 0 }
+  "id": "snap-graph-1",
+  "source_branch": "cyning/meta",
+  "source_commit": "0fa2d54f",
+  "manifest_version": "0.1.0",
+  "payload": {
+    "schema_version": "graph_v2",
+    "freeze_id": "KIMI-META-GRAPH-V2-BATCH@0fa2d54f",
+    "graphs": [{ "id": "00_main", "title": "Main" }],
+    "nodes": [
+      { "id": "parser", "label": "Parser", "graph_id": "00_main" },
+      { "id": "auth", "label": "Auth", "graph_id": "00_main" },
+      { "id": "graph", "label": "Graph Engine", "graph_id": "00_main" },
+      { "id": "ui", "label": "UI Components", "graph_id": "00_main" },
+      { "id": "docs", "label": "Documentation", "graph_id": "00_main" }
+    ],
+    "edges": [{ "from": "parser", "to": "auth", "graph_id": "00_main" }]
   },
-  "raw_markdown_url": "https://raw.githubusercontent.com/Cyning/Projects/main/docs/harness/guides/issues/GRAPH_SCAN_kimi_code_v2_zh.md",
   "created_at": "2026-06-22T10:00:00Z"
 }

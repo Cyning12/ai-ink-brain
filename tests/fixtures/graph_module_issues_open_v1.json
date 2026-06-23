@@ -1,0 +1,62 @@
+[
+  {
+    "number": 201,
+    "state": "open",
+    "labels": ["module:parser", "bug"],
+    "scan_tags": ["C3-P0"]
+  },
+  {
+    "number": 202,
+    "state": "open",
+    "labels": ["module:parser", "module:auth"],
+    "scan_tags": ["C3-P1"]
+  },
+  {
+    "number": 203,
+    "state": "open",
+    "labels": ["module:graph"],
+    "scan_tags": ["C3-P1"]
+  },
+  {
+    "number": 204,
+    "state": "open",
+    "labels": ["module:parser", "module:ui"],
+    "scan_tags": ["C3-P2"]
+  },
+  {
+    "number": 205,
+    "state": "open",
+    "labels": ["module:auth", "module:ui"],
+    "scan_tags": ["C3-P2"]
+  },
+  {
+    "number": 206,
+    "state": "open",
+    "labels": ["module:graph"],
+    "scan_tags": ["C3-P2"]
+  },
+  {
+    "number": 207,
+    "state": "open",
+    "labels": ["module:graph"],
+    "scan_tags": ["C3-P2"]
+  },
+  {
+    "number": 208,
+    "state": "open",
+    "labels": ["module:graph"],
+    "scan_tags": ["C3-P2"]
+  },
+  {
+    "number": 211,
+    "state": "open",
+    "labels": ["module:ui", "module:docs"],
+    "scan_tags": ["C3-P2"]
+  },
+  {
+    "number": 212,
+    "state": "open",
+    "labels": ["module:docs"],
+    "scan_tags": ["C3-P2"]
+  }
+]

@@ -172,44 +172,41 @@ function SnapshotSummary({ snapshot }: { snapshot: GraphSnapshotSummary | null }
           尚未 ingest
         </p>
         <p className="mt-1 text-xs text-[color:var(--color-muted-foreground)]">
-          未找到 graph snapshot 记录
+          未找到 graph snapshot 记录 · 请在 api-python 仓触发 ops-sync-kimi-code
         </p>
       </div>
     );
   }
 
-  const p0Count = Array.isArray(snapshot.p0_items) ? snapshot.p0_items.length : 0;
-  const p1Count = Array.isArray(snapshot.p1_items) ? snapshot.p1_items.length : 0;
-  const p2Count = Array.isArray(snapshot.p2_items) ? snapshot.p2_items.length : 0;
-  const total = snapshot.total_open ?? p0Count + p1Count + p2Count;
+  const versionLabel =
+    snapshot.manifest_version ?? snapshot.source_branch ?? "unknown";
 
   return (
     <div className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-background)] p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs text-[color:var(--color-muted-foreground)]">
-            GRAPH_SNAPSHOT · {snapshot.scan_version}
+            GRAPH_SNAPSHOT · {versionLabel}
           </p>
           <p className="mt-2 font-serif text-2xl font-semibold text-[color:var(--color-foreground)]">
-            {total} open
+            {snapshot.node_count} nodes · {snapshot.edge_count} edges
           </p>
         </div>
-        {snapshot.raw_markdown_url && (
-          <a
-            href={snapshot.raw_markdown_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 text-xs text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)] hover:underline"
-          >
-            主索引
-          </a>
+        {snapshot.schema_version && (
+          <span className="shrink-0 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-wash)] px-2 py-1 text-xs text-[color:var(--color-muted-foreground)]">
+            {snapshot.schema_version}
+          </span>
         )}
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-3 text-sm">
-        <span className="font-medium text-rose-700">P0 {p0Count}</span>
-        <span className="font-medium text-orange-700">P1 {p1Count}</span>
-        <span className="font-medium text-yellow-700">P2 {p2Count}</span>
+      <div className="mt-3 flex flex-wrap gap-3 text-sm text-[color:var(--color-muted-foreground)]">
+        <span>{snapshot.graph_count} graphs</span>
+        {snapshot.source_branch && <span>branch {snapshot.source_branch}</span>}
+        {snapshot.freeze_id && (
+          <span className="truncate" title={snapshot.freeze_id}>
+            freeze {snapshot.freeze_id}
+          </span>
+        )}
       </div>
 
       <p className="mt-2 text-xs text-[color:var(--color-muted-foreground)]">

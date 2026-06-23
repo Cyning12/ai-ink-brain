@@ -76,14 +76,15 @@ export type OverviewMetrics = {
 };
 
 export type GraphSnapshotSummary = {
-  scan_version: string;
-  total_open: number | null;
-  p0_items: unknown[];
-  p1_items: unknown[];
-  p2_items: unknown[];
-  deferred_items: unknown[];
-  parsed_summary: Record<string, unknown> | null;
-  raw_markdown_url: string | null;
+  id: string;
+  source_branch: string;
+  source_commit: string | null;
+  manifest_version: string | null;
+  schema_version: string | null;
+  freeze_id: string | null;
+  node_count: number;
+  edge_count: number;
+  graph_count: number;
   created_at: string;
 };
 
@@ -217,7 +218,7 @@ export async function getLatestGraphSnapshot(
   const { data, error } = await supabase
     .from("ops_graph_snapshots")
     .select(
-      "scan_version, total_open, p0_items, p1_items, p2_items, deferred_items, parsed_summary, raw_markdown_url, created_at",
+      "id, source_branch, source_commit, manifest_version, payload, created_at",
     )
     .eq("repo_id", repoId)
     .order("created_at", { ascending: false })
@@ -227,25 +228,135 @@ export async function getLatestGraphSnapshot(
   if (error && error.code !== "PGRST116") {
     throw new OpsDataError(`查询 graph snapshot 失败：${error.message}`);
   }
-  return (data as GraphSnapshotSummary | null) ?? null;
+  if (!data || typeof data !== "object") {
+    return null;
+  }
+
+  const row = data as {
+    id: string;
+    source_branch: string;
+    source_commit: string | null;
+    manifest_version: string | null;
+    payload: Record<string, unknown> | null;
+    created_at: string;
+  };
+  const payload = row.payload ?? {};
+  const nodes = Array.isArray(payload.nodes) ? payload.nodes : [];
+  const edges = Array.isArray(payload.edges) ? payload.edges : [];
+  const graphs = Array.isArray(payload.graphs) ? payload.graphs : [];
+
+  return {
+    id: row.id,
+    source_branch: row.source_branch,
+    source_commit: row.source_commit,
+    manifest_version: row.manifest_version,
+    schema_version:
+      typeof payload.schema_version === "string" ? payload.schema_version : null,
+    freeze_id: typeof payload.freeze_id === "string" ? payload.freeze_id : null,
+    node_count: nodes.length,
+    edge_count: edges.length,
+    graph_count: graphs.length,
+    created_at: row.created_at,
+  };
+}
+
+function tierCountsFromScanTags(scanTags: string[]): {
+  p0: number;
+  p1: number;
+  p2: number;
+} {
+  let p0 = 0;
+  let p1 = 0;
+  let p2 = 0;
+  for (const tag of scanTags) {
+    if (/P0/i.test(tag)) p0 += 1;
+    else if (/P1/i.test(tag)) p1 += 1;
+    else if (/P2/i.test(tag)) p2 += 1;
+  }
+  return { p0, p1, p2 };
 }
 
 export async function getGraphModuleIssues(
   repoId: string,
 ): Promise<GraphModuleRow[]> {
   const supabase = createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from("ops_graph_module_issues")
-    .select(
-      "module_id, module_name, issue_count, open_count, p0_count, p1_count, p2_count, issue_numbers",
-    )
+  const { data: snapshotRow, error: snapshotError } = await supabase
+    .from("ops_graph_snapshots")
+    .select("payload")
     .eq("repo_id", repoId)
-    .order("issue_count", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
 
-  if (error) {
-    throw new OpsDataError(`查询 graph module issues 失败：${error.message}`);
+  if (snapshotError && snapshotError.code !== "PGRST116") {
+    throw new OpsDataError(`查询 graph snapshot 失败：${snapshotError.message}`);
   }
-  return (data ?? []) as GraphModuleRow[];
+  if (!snapshotRow || typeof snapshotRow !== "object") {
+    return [];
+  }
+
+  const payload = (snapshotRow as { payload?: unknown }).payload;
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return [];
+  }
+
+  const nodes = Array.isArray((payload as Record<string, unknown>).nodes)
+    ? ((payload as Record<string, unknown>).nodes as unknown[])
+    : [];
+  if (nodes.length === 0) {
+    return [];
+  }
+
+  const { data: issues, error: issuesError } = await supabase
+    .from("ops_issues")
+    .select("number, state, labels, scan_tags")
+    .eq("repo_id", repoId)
+    .eq("state", "open");
+
+  if (issuesError) {
+    throw new OpsDataError(`查询 graph module issues 失败：${issuesError.message}`);
+  }
+
+  const openIssues = (issues ?? []) as Array<{
+    number: number;
+    state: string;
+    labels: string[];
+    scan_tags: string[];
+  }>;
+
+  const rows: GraphModuleRow[] = [];
+  for (const rawNode of nodes) {
+    if (!rawNode || typeof rawNode !== "object" || Array.isArray(rawNode)) {
+      continue;
+    }
+    const node = rawNode as { id?: string; label?: string };
+    const moduleId = node.id?.trim();
+    if (!moduleId) continue;
+
+    const moduleLabel = `module:${moduleId}`;
+    const matched = openIssues.filter(
+      (issue) =>
+        Array.isArray(issue.labels) && issue.labels.includes(moduleLabel),
+    );
+    const tier = tierCountsFromScanTags(
+      matched.flatMap((issue) =>
+        Array.isArray(issue.scan_tags) ? issue.scan_tags : [],
+      ),
+    );
+
+    rows.push({
+      module_id: moduleId,
+      module_name: node.label?.trim() || moduleId,
+      issue_count: matched.length,
+      open_count: matched.length,
+      p0_count: tier.p0,
+      p1_count: tier.p1,
+      p2_count: tier.p2,
+      issue_numbers: matched.map((issue) => issue.number).sort((a, b) => a - b),
+    });
+  }
+
+  return rows.sort((a, b) => b.issue_count - a.issue_count);
 }
 
 export async function getOverviewMetrics(
