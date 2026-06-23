@@ -75,6 +75,29 @@ export type OverviewMetrics = {
   trend: TrendPoint[];
 };
 
+export type GraphSnapshotSummary = {
+  scan_version: string;
+  total_open: number | null;
+  p0_items: unknown[];
+  p1_items: unknown[];
+  p2_items: unknown[];
+  deferred_items: unknown[];
+  parsed_summary: Record<string, unknown> | null;
+  raw_markdown_url: string | null;
+  created_at: string;
+};
+
+export type GraphModuleRow = {
+  module_id: string;
+  module_name: string;
+  issue_count: number;
+  open_count: number;
+  p0_count: number;
+  p1_count: number;
+  p2_count: number;
+  issue_numbers: number[];
+};
+
 export type ScanSnapshotSummary = {
   scan_version: string;
   total_open: number | null;
@@ -185,6 +208,44 @@ export async function getLatestScanSnapshot(
     throw new OpsDataError(`查询 scan snapshot 失败：${error.message}`);
   }
   return (data as ScanSnapshotSummary | null) ?? null;
+}
+
+export async function getLatestGraphSnapshot(
+  repoId: string,
+): Promise<GraphSnapshotSummary | null> {
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("ops_graph_snapshots")
+    .select(
+      "scan_version, total_open, p0_items, p1_items, p2_items, deferred_items, parsed_summary, raw_markdown_url, created_at",
+    )
+    .eq("repo_id", repoId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error && error.code !== "PGRST116") {
+    throw new OpsDataError(`查询 graph snapshot 失败：${error.message}`);
+  }
+  return (data as GraphSnapshotSummary | null) ?? null;
+}
+
+export async function getGraphModuleIssues(
+  repoId: string,
+): Promise<GraphModuleRow[]> {
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("ops_graph_module_issues")
+    .select(
+      "module_id, module_name, issue_count, open_count, p0_count, p1_count, p2_count, issue_numbers",
+    )
+    .eq("repo_id", repoId)
+    .order("issue_count", { ascending: false });
+
+  if (error) {
+    throw new OpsDataError(`查询 graph module issues 失败：${error.message}`);
+  }
+  return (data ?? []) as GraphModuleRow[];
 }
 
 export async function getOverviewMetrics(

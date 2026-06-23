@@ -1,0 +1,52 @@
+[
+  {
+    "module_id": "parser",
+    "module_name": "Parser",
+    "issue_count": 3,
+    "open_count": 2,
+    "p0_count": 1,
+    "p1_count": 1,
+    "p2_count": 1,
+    "issue_numbers": [201, 202, 204]
+  },
+  {
+    "module_id": "auth",
+    "module_name": "Auth",
+    "issue_count": 2,
+    "open_count": 1,
+    "p0_count": 0,
+    "p1_count": 1,
+    "p2_count": 1,
+    "issue_numbers": [202, 205]
+  },
+  {
+    "module_id": "graph",
+    "module_name": "Graph Engine",
+    "issue_count": 4,
+    "open_count": 3,
+    "p0_count": 0,
+    "p1_count": 1,
+    "p2_count": 3,
+    "issue_numbers": [203, 206, 207, 208]
+  },
+  {
+    "module_id": "ui",
+    "module_name": "UI Components",
+    "issue_count": 5,
+    "open_count": 4,
+    "p0_count": 0,
+    "p1_count": 0,
+    "p2_count": 5,
+    "issue_numbers": [204, 205, 209, 210, 211]
+  },
+  {
+    "module_id": "docs",
+    "module_name": "Documentation",
+    "issue_count": 2,
+    "open_count": 2,
+    "p0_count": 0,
+    "p1_count": 0,
+    "p2_count": 2,
+    "issue_numbers": [211, 212]
+  }
+]

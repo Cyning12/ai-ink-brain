@@ -264,6 +264,16 @@ function FilterBar({
           })}
         </div>
       )}
+
+      {/* Clear filters */}
+      {(filter.state || (filter.labels && filter.labels.length > 0) || filter.scanTag) && (
+        <Link
+          href="/ops/kimi-code/issues"
+          className="rounded-md border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 transition-colors hover:bg-red-100"
+        >
+          清空所有筛选
+        </Link>
+      )}
     </div>
   );
 }
