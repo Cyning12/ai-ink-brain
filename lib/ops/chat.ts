@@ -1,5 +1,24 @@
 "use client";
 
+export type OpsCitation = {
+  number: number;
+  url: string;
+};
+
+export type OpsAgentToolResultPayload = {
+  issue_number?: number;
+  confidence?: number;
+  reasoning?: string;
+  suggestion?: string;
+  citations?: OpsCitation[];
+};
+
+export type OpsReviewPayload = {
+  rule?: string;
+  message?: string;
+  attempt?: number;
+};
+
 export type OpsRun = {
   id: string;
   repo_id: string;
@@ -41,6 +60,16 @@ export type OpsRunEventsResponse = {
 export type OpsChatSendResult =
   | { ok: true; data: OpsChatMessagesResponse }
   | { ok: false; error: string };
+
+export type ThinkingChainPhase = "analysis" | "review" | "final" | "other";
+
+export type ThinkingChainItem = {
+  seq: number;
+  phase: ThinkingChainPhase;
+  event: OpsRunEvent;
+  toolResult?: OpsAgentToolResultPayload;
+  review?: OpsReviewPayload;
+};
 
 export async function sendOpsChatMessage(message: string, sessionId?: string): Promise<OpsChatSendResult> {
   const body: { message: string; session_id?: string } = { message: message.trim() };
@@ -105,6 +134,78 @@ export function mergeOpsEvents(existing: OpsRunEvent[], incoming: OpsRunEvent[])
   return Array.from(map.values()).sort((a, b) => a.seq - b.seq);
 }
 
+/** 解析 agent.tool.result 的 v2 payload。 */
+export function parseAgentToolResultPayload(payload: Record<string, unknown>): OpsAgentToolResultPayload {
+  const citations: OpsCitation[] = [];
+  const rawCitations = payload.citations;
+  if (Array.isArray(rawCitations)) {
+    for (const c of rawCitations) {
+      if (
+        typeof c === "object" &&
+        c !== null &&
+        typeof (c as Record<string, unknown>).number === "number" &&
+        typeof (c as Record<string, unknown>).url === "string"
+      ) {
+        citations.push({ number: (c as Record<string, unknown>).number as number, url: (c as Record<string, unknown>).url as string });
+      }
+    }
+  }
+  return {
+    issue_number: typeof payload.issue_number === "number" ? payload.issue_number : undefined,
+    confidence: typeof payload.confidence === "number" ? payload.confidence : undefined,
+    reasoning: typeof payload.reasoning === "string" ? payload.reasoning : undefined,
+    suggestion: typeof payload.suggestion === "string" ? payload.suggestion : undefined,
+    citations: citations.length > 0 ? citations : undefined,
+  };
+}
+
+/** 解析 review.* 的 payload。 */
+export function parseReviewPayload(payload: Record<string, unknown>): OpsReviewPayload {
+  return {
+    rule: typeof payload.rule === "string" ? payload.rule : undefined,
+    message: typeof payload.message === "string" ? payload.message : undefined,
+    attempt: typeof payload.attempt === "number" ? payload.attempt : undefined,
+  };
+}
+
+/** 判断 event_type 是否属于 Review 阶段。 */
+export function isReviewEventType(eventType: string): boolean {
+  return eventType === "review.pass" || eventType === "review.fail" || eventType === "review.partial";
+}
+
+/** 将事件列表按 Deep run 阶段分区。 */
+export function partitionThinkingChain(events: OpsRunEvent[]): ThinkingChainItem[] {
+  const items: ThinkingChainItem[] = [];
+  let currentPhase: ThinkingChainPhase = "other";
+
+  for (const event of events) {
+    const { event_type } = event;
+
+    // 阶段切换
+    if (event_type === "agent.delegate.start" || event_type === "agent.tool.result") {
+      currentPhase = "analysis";
+    } else if (isReviewEventType(event_type)) {
+      currentPhase = "review";
+    } else if (event_type === "final.answer") {
+      currentPhase = "final";
+    } else if (event_type === "run.start" || event_type === "run.end" || event_type === "router.decision") {
+      currentPhase = "other";
+    }
+
+    const item: ThinkingChainItem = { seq: event.seq, phase: currentPhase, event };
+
+    if (event_type === "agent.tool.result") {
+      item.toolResult = parseAgentToolResultPayload(event.payload ?? {});
+    } else if (isReviewEventType(event_type)) {
+      item.review = parseReviewPayload(event.payload ?? {});
+    }
+
+    items.push(item);
+  }
+
+  return items;
+}
+
 /** 从 events 提取最终答案文本（优先 final.answer payload.answer）。 */
 export function extractOpsFinalAnswer(events: OpsRunEvent[]): string {
   for (let i = events.length - 1; i >= 0; i -= 1) {
@@ -118,6 +219,23 @@ export function extractOpsFinalAnswer(events: OpsRunEvent[]): string {
   return "";
 }
 
+/** 提取所有 citations（去重 by url）。 */
+export function extractOpsCitations(events: OpsRunEvent[]): OpsCitation[] {
+  const seen = new Set<string>();
+  const result: OpsCitation[] = [];
+  for (const e of events) {
+    if (e.event_type !== "agent.tool.result" && e.event_type !== "final.answer") continue;
+    const parsed = parseAgentToolResultPayload(e.payload ?? {});
+    for (const c of parsed.citations ?? []) {
+      if (!seen.has(c.url)) {
+        seen.add(c.url);
+        result.push(c);
+      }
+    }
+  }
+  return result;
+}
+
 export function formatOpsEventSummary(event: OpsRunEvent): string {
   const payload = event.payload ?? {};
   switch (event.event_type) {
@@ -129,12 +247,19 @@ export function formatOpsEventSummary(event: OpsRunEvent): string {
       return `路由决策 · ${typeof payload.route === "string" ? payload.route : "—"}`;
     case "agent.delegate.start":
       return `委派 ${typeof payload.agent === "string" ? payload.agent : "—"}`;
-    case "agent.tool.result":
-      return "工具返回结果";
+    case "agent.tool.result": {
+      const tool = parseAgentToolResultPayload(payload);
+      const parts: string[] = ["工具返回结果"];
+      if (tool.issue_number != null) parts.push(`#${tool.issue_number}`);
+      if (tool.confidence != null) parts.push(`置信度 ${tool.confidence.toFixed(2)}`);
+      return parts.join(" · ");
+    }
     case "review.pass":
       return "Review 通过";
-    case "review.fail":
-      return `Review 失败 · ${typeof payload.rule === "string" ? payload.rule : "—"}`;
+    case "review.fail": {
+      const review = parseReviewPayload(payload);
+      return `Review 失败 · ${review.rule ?? "—"}`;
+    }
     case "review.partial":
       return "Review 部分通过";
     case "final.answer":
