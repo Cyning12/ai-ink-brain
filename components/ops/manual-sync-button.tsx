@@ -6,8 +6,10 @@ import { RefreshCw } from "lucide-react";
 
 export function ManualSyncButton({
   disabled = false,
+  onTriggered,
 }: {
   disabled?: boolean;
+  onTriggered?: () => void;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -24,7 +26,8 @@ export function ManualSyncButton({
       const body = await res.json().catch(() => ({ ok: false, error: "未知错误" }));
 
       if (res.ok) {
-        setMessage("同步已触发");
+        setMessage("同步已触发 · Actions 执行中");
+        onTriggered?.();
         router.refresh();
       } else if (res.status === 409) {
         setMessage("同步进行中，请稍后再试");
@@ -38,7 +41,7 @@ export function ManualSyncButton({
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, [router, onTriggered]);
 
   return (
     <div className="flex items-center gap-3">
@@ -59,7 +62,7 @@ export function ManualSyncButton({
         <span
           className={[
             "text-sm",
-            message === "同步已触发"
+            message === "同步已触发 · Actions 执行中"
               ? "text-emerald-600"
               : "text-amber-600",
           ].join(" ")}

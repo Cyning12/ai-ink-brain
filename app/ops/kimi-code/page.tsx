@@ -11,10 +11,8 @@ import {
 import { formatDurationDays } from "@/lib/ops/format";
 import { MetricCard } from "@/components/ops/metric-card";
 import { ScanSummaryCard } from "@/components/ops/scan-summary-card";
-import { SyncStatus } from "@/components/ops/sync-status";
+import { SyncControls, SyncPanelProvider, SyncRunHistoryLive } from "@/components/ops/sync-panel";
 import { TrendChart } from "@/components/ops/trend-chart";
-import { ManualSyncButton } from "@/components/ops/manual-sync-button";
-import { SyncRunHistory } from "@/components/ops/sync-run-history";
 import { getOpsDeskSessionFromRequest } from "@/lib/auth/ops-session";
 import { getOpsDeskSecret } from "@/lib/auth/ops-env";
 import { headers } from "next/headers";
@@ -87,19 +85,13 @@ export default async function OpsKimiCodeOverviewPage() {
       )}
 
       {data.kind === "loaded" && (
-        <>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <SyncStatus
-              status={data.metrics.syncStatus}
-              syncRun={data.metrics.syncRun}
-              asOf={data.metrics.asOf}
-            />
-            {data.isMaintainer && (
-              <ManualSyncButton
-                disabled={data.metrics.syncStatus === "running"}
-              />
-            )}
-          </div>
+        <SyncPanelProvider
+          initialRuns={data.syncRuns}
+          initialSyncStatus={data.metrics.syncStatus}
+          initialSyncRun={data.metrics.syncRun}
+          initialAsOf={data.metrics.asOf}
+        >
+          <SyncControls isMaintainer={data.isMaintainer} />
 
           <div className="grid gap-4 sm:grid-cols-3">
             <MetricCard
@@ -142,11 +134,11 @@ export default async function OpsKimiCodeOverviewPage() {
             <h2 className="font-serif text-lg font-semibold tracking-tight text-[color:var(--color-foreground)]">
               同步历史
             </h2>
-            <SyncRunHistory runs={data.syncRuns} />
+            <SyncRunHistoryLive />
           </div>
 
           <TrendChart data={data.metrics.trend} />
-        </>
+        </SyncPanelProvider>
       )}
     </div>
   );
