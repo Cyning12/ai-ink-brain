@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { ThinkingChainTimeline } from "@/components/ops/ThinkingChainTimeline";
 import {
   extractOpsFinalAnswer,
   fetchOpsRun,
@@ -109,6 +110,8 @@ export function OpsChatClient() {
 
   const finalAnswer = extractOpsFinalAnswer(events) || (run?.final_answer?.answer as string) || "";
 
+  const isDeep = run?.route === "deep";
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -163,44 +166,66 @@ export function OpsChatClient() {
         </section>
       ) : null}
 
-      <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
-        <div className="border-b border-[color:var(--color-border)] px-4 py-3">
-          <div className="font-serif text-sm text-[#2c2c2c]">运行事件</div>
-          <div className="mt-0.5 text-[11px] text-slate-500">
-            seq 递增 · 按 after_seq 增量合并
+      {/* Deep 路径：Thinking Chain v2 时间线 */}
+      {isDeep ? (
+        <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
+          <div className="border-b border-[color:var(--color-border)] px-4 py-3">
+            <div className="font-serif text-sm text-[#2c2c2c]">Deep 思考链</div>
+            <div className="mt-0.5 text-[11px] text-slate-500">
+              分析 / Review / 最终答案 · 结构化事件分区
+            </div>
           </div>
-        </div>
-        <div className="max-h-[60vh] overflow-auto px-4 py-3">
-          {events.length === 0 ? (
-            <p className="text-[12px] leading-relaxed text-slate-500">
-              {loading || polling ? "等待事件流…" : "发送问题后，此处展示 ops_run_events 时间线。"}
-            </p>
-          ) : (
-            <ul className="space-y-2">
-              {events.map((e) => (
-                <li
-                  key={e.seq}
-                  className="rounded-lg border border-slate-200/80 bg-[#f9f9f7]/80 px-3 py-2 text-sm"
-                >
-                  <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
-                    <span className="font-mono">seq {e.seq}</span>
-                    <span>·</span>
-                    <span className="font-mono text-slate-700">{e.agent_role}</span>
-                    <span>·</span>
-                    <span className="font-mono text-indigo-900/80">{e.event_type}</span>
-                  </div>
-                  <div className="mt-1 text-slate-800">{formatOpsEventSummary(e)}</div>
-                  {Object.keys(e.payload ?? {}).length > 0 ? (
-                    <pre className="mt-2 max-h-[24vh] overflow-auto whitespace-pre-wrap break-words rounded border border-slate-200/60 bg-white/80 p-2 font-mono text-[10px] text-slate-700">
-                      {JSON.stringify(e.payload, null, 2)}
-                    </pre>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </section>
+          <div className="max-h-[60vh] overflow-auto px-4 py-3">
+            {events.length === 0 ? (
+              <p className="text-[12px] leading-relaxed text-slate-500">
+                {loading || polling ? "等待事件流…" : "发送问题后，此处展示 Deep 思考链。"}
+              </p>
+            ) : (
+              <ThinkingChainTimeline events={events} />
+            )}
+          </div>
+        </section>
+      ) : (
+        /* Fast 路径：保持原有事件列表 UI 不变 */
+        <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
+          <div className="border-b border-[color:var(--color-border)] px-4 py-3">
+            <div className="font-serif text-sm text-[#2c2c2c]">运行事件</div>
+            <div className="mt-0.5 text-[11px] text-slate-500">
+              seq 递增 · 按 after_seq 增量合并
+            </div>
+          </div>
+          <div className="max-h-[60vh] overflow-auto px-4 py-3">
+            {events.length === 0 ? (
+              <p className="text-[12px] leading-relaxed text-slate-500">
+                {loading || polling ? "等待事件流…" : "发送问题后，此处展示 ops_run_events 时间线。"}
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {events.map((e) => (
+                  <li
+                    key={e.seq}
+                    className="rounded-lg border border-slate-200/80 bg-[#f9f9f7]/80 px-3 py-2 text-sm"
+                  >
+                    <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+                      <span className="font-mono">seq {e.seq}</span>
+                      <span>·</span>
+                      <span className="font-mono text-slate-700">{e.agent_role}</span>
+                      <span>·</span>
+                      <span className="font-mono text-indigo-900/80">{e.event_type}</span>
+                    </div>
+                    <div className="mt-1 text-slate-800">{formatOpsEventSummary(e)}</div>
+                    {Object.keys(e.payload ?? {}).length > 0 ? (
+                      <pre className="mt-2 max-h-[24vh] overflow-auto whitespace-pre-wrap break-words rounded border border-slate-200/60 bg-white/80 p-2 font-mono text-[10px] text-slate-700">
+                        {JSON.stringify(e.payload, null, 2)}
+                      </pre>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
