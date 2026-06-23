@@ -48,6 +48,7 @@
     { "method": "POST", "path": "/api/ops/chat/messages" },
     { "method": "POST", "path": "/api/ops/login" },
     { "method": "POST", "path": "/api/ops/logout" },
+    { "method": "GET", "path": "/api/ops/sync/runs" },
     { "method": "POST", "path": "/api/ops/sync/trigger" },
     { "method": "POST", "path": "/api/py/chain/chat" },
     { "method": "POST", "path": "/api/py/chat" },

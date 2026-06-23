@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { fetchOpsRaw } from "@/lib/server/forward-ops-request";
 
 const OWNER = "MoonshotAI";
 const NAME = "kimi-code";
@@ -472,20 +473,22 @@ export async function getRecentSyncRuns(
   repoId: string,
   limit = 10,
 ): Promise<SyncRunListItem[]> {
-  const supabase = createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from("ops_sync_runs")
-    .select(
-      "id, started_at, finished_at, status, trigger, records_issue, records_pr, error_message, has_graph_snapshot, has_scan_snapshot",
-    )
-    .eq("repo_id", repoId)
-    .order("started_at", { ascending: false })
-    .limit(limit);
+  void repoId;
+  // SCOPE D5/D6：列表由 api-python 聚合 · 前端 Server Component 经 fetchOpsRaw 调用
+  const res = await fetchOpsRaw(
+    `/api/py/ops/sync/runs?limit=${encodeURIComponent(String(limit))}`,
+    { method: "GET" },
+  );
 
-  if (error) {
-    throw new OpsDataError(`查询 sync runs 失败：${error.message}`);
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new OpsDataError(
+      `查询 sync runs 失败：${res.status}${detail ? ` · ${detail}` : ""}`,
+    );
   }
-  return (data ?? []) as SyncRunListItem[];
+
+  const body = (await res.json()) as { runs?: SyncRunListItem[] };
+  return body.runs ?? [];
 }
 
 export type IssueFilter = {
