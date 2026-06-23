@@ -1,0 +1,62 @@
+[
+  {
+    "id": "run-001",
+    "started_at": "2026-06-23T08:00:00Z",
+    "finished_at": "2026-06-23T08:02:30Z",
+    "status": "success",
+    "trigger": "manual",
+    "records_issue": 12,
+    "records_pr": 8,
+    "error_message": null,
+    "has_graph_snapshot": true,
+    "has_scan_snapshot": true
+  },
+  {
+    "id": "run-002",
+    "started_at": "2026-06-23T06:00:00Z",
+    "finished_at": "2026-06-23T06:01:15Z",
+    "status": "partial",
+    "trigger": "cron",
+    "records_issue": 10,
+    "records_pr": 8,
+    "error_message": "PR fetch rate-limited, 2 PRs skipped",
+    "has_graph_snapshot": true,
+    "has_scan_snapshot": false
+  },
+  {
+    "id": "run-003",
+    "started_at": "2026-06-22T22:00:00Z",
+    "finished_at": "2026-06-22T22:05:00Z",
+    "status": "failed",
+    "trigger": "cron",
+    "records_issue": 0,
+    "records_pr": 0,
+    "error_message": "GitHub token expired: 401 Unauthorized",
+    "has_graph_snapshot": false,
+    "has_scan_snapshot": false
+  },
+  {
+    "id": "run-004",
+    "started_at": "2026-06-22T14:00:00Z",
+    "finished_at": "2026-06-22T14:01:00Z",
+    "status": "success",
+    "trigger": "initial",
+    "records_issue": 45,
+    "records_pr": 32,
+    "error_message": null,
+    "has_graph_snapshot": true,
+    "has_scan_snapshot": true
+  },
+  {
+    "id": "run-005",
+    "started_at": "2026-06-22T08:00:00Z",
+    "finished_at": null,
+    "status": "running",
+    "trigger": "manual",
+    "records_issue": 0,
+    "records_pr": 0,
+    "error_message": null,
+    "has_graph_snapshot": false,
+    "has_scan_snapshot": false
+  }
+]

@@ -25,6 +25,19 @@ export type SyncRun = {
   trigger: "cron" | "manual" | "initial";
 };
 
+export type SyncRunListItem = {
+  id: string;
+  started_at: string;
+  finished_at: string | null;
+  status: SyncRun["status"];
+  trigger: SyncRun["trigger"];
+  records_issue: number;
+  records_pr: number;
+  error_message: string | null;
+  has_graph_snapshot: boolean;
+  has_scan_snapshot: boolean;
+};
+
 export type IssueRow = {
   id: string;
   repo_id: string;
@@ -453,6 +466,26 @@ export async function getOverviewMetrics(
     syncRun,
     trend,
   };
+}
+
+export async function getRecentSyncRuns(
+  repoId: string,
+  limit = 10,
+): Promise<SyncRunListItem[]> {
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("ops_sync_runs")
+    .select(
+      "id, started_at, finished_at, status, trigger, records_issue, records_pr, error_message, has_graph_snapshot, has_scan_snapshot",
+    )
+    .eq("repo_id", repoId)
+    .order("started_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    throw new OpsDataError(`查询 sync runs 失败：${error.message}`);
+  }
+  return (data ?? []) as SyncRunListItem[];
 }
 
 export type IssueFilter = {
