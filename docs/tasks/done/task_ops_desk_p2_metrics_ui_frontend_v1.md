@@ -1,9 +1,9 @@
 # Task · Ops Desk P2-5d · Metrics 摘要 UI（前端子仓）
 
-> **状态**：`done` · script CLOSE · 人验 pending · 2026-06-24  
+> **状态**：`done` · **human CLOSE pass** · 2026-06-24  
 > **协调 task**：Projects [`task_ops_desk_p2_metrics_ui_v1.md`](../../../../docs/harness/tasks/done/task_ops_desk_p2_metrics_ui_v1.md)  
 > **invoke**：[`PROMPT_CHAIN_30_40_50_CLOSE_v1.md`](../../../../docs/harness/invokes/by-task/ops-desk-p2-metrics-ui/PROMPT_CHAIN_30_40_50_CLOSE_v1.md)  
-> **分支**：`task/ops-desk-p2-metrics-ui-frontend`
+> **PR**：[#94](https://github.com/Cyning12/ai-ink-brain/pull/94) · merge `8c09fe8`
 
 ---
 
@@ -50,7 +50,7 @@ pnpm lint && pnpm test && pnpm build
 python3 ../ai-ink-brain-api-python/tools/tech_graph_manifest_check.py --repo frontend --repo-root .
 ```
 
-**结果**：2026-06-24 · lint 0 errors · test 140 passed · build OK · manifest OK
+**结果**：2026-06-24 · lint 0 errors · test 140 passed · build OK · manifest OK · human CLOSE pass
 
 ---
 
