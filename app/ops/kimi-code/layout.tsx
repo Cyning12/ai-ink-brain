@@ -40,6 +40,7 @@ export default async function OpsKimiCodeLayout({
     { href: "/ops/kimi-code/issues", label: "Issues" },
     { href: "/ops/kimi-code/pulls", label: "Pull Requests" },
     { href: "/ops/kimi-code/graph", label: "Graph" },
+    { href: "/ops/kimi-code/metrics", label: "Metrics" },
   ];
 
   return (
