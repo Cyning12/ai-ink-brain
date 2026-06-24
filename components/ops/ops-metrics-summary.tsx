@@ -7,8 +7,10 @@ import { MetricCard } from "@/components/ops/metric-card";
 import {
   formatDemoCacheHitRate,
   formatMetricsRouteLabel,
+  formatProviderCacheHitRate,
   METRICS_SUMMARY_DAY_OPTIONS,
   parseMetricsSummaryDays,
+  resolveProviderCacheTokenCount,
   type MetricsSummaryResponse,
 } from "@/lib/ops/metrics-summary";
 
@@ -85,7 +87,7 @@ export function OpsMetricsSummary() {
             Metrics
           </h1>
           <p className="mt-1 text-sm text-[color:var(--color-muted-foreground)]">
-            最近 {days} 日 LLM 用量与 Demo 缓存摘要
+            最近 {days} 日 LLM 用量 · Demo 缓存与 Provider KV 缓存分列展示
           </p>
         </div>
 
@@ -147,6 +149,14 @@ export function OpsMetricsSummary() {
               label="Demo 缓存命中率"
               value={formatDemoCacheHitRate(state.data.cache_hit_rate)}
               subtext={`Demo 缓存 · 命中 ${formatCount(state.data.cache_hits)} / 未命中 ${formatCount(state.data.cache_misses)}`}
+            />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <MetricCard
+              label="Provider KV 缓存命中率"
+              value={formatProviderCacheHitRate(state.data.provider_cache_hit_rate)}
+              subtext={`Provider KV 缓存 · SiliconFlow · 命中 ${formatCount(resolveProviderCacheTokenCount(state.data.provider_cache_hit_tokens))} / 未命中 ${formatCount(resolveProviderCacheTokenCount(state.data.provider_cache_miss_tokens))} tokens`}
             />
           </div>
 

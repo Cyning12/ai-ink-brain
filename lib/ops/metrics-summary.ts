@@ -15,6 +15,9 @@ export type MetricsSummaryResponse = {
   cache_hits: number;
   cache_misses: number;
   cache_hit_rate: number;
+  provider_cache_hit_tokens?: number;
+  provider_cache_miss_tokens?: number;
+  provider_cache_hit_rate?: number;
   by_route: Record<string, MetricsRouteStats>;
 };
 
@@ -44,6 +47,22 @@ export function formatDemoCacheHitRate(rate: number): string {
     return "0.00%";
   }
   return `${(rate * 100).toFixed(2)}%`;
+}
+
+/** Provider KV 缓存命中率：可选字段 · 缺失时显示 —。 */
+export function formatProviderCacheHitRate(rate: number | undefined): string {
+  if (rate == null || !Number.isFinite(rate)) {
+    return "—";
+  }
+  return `${(rate * 100).toFixed(2)}%`;
+}
+
+/** Provider KV token 计数：旧部署无字段时按 0。 */
+export function resolveProviderCacheTokenCount(value: number | undefined): number {
+  if (value == null || !Number.isFinite(value)) {
+    return 0;
+  }
+  return value;
 }
 
 /** by_route 行标签：unknown 显示为「历史/未标注」。 */

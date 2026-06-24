@@ -1,7 +1,7 @@
 ---
 graph_id: 11_flow_api
 version: 
-generated_at: 2026-06-24T12:45:13Z
+generated_at: 2026-06-24T13:20:27Z
 source: docs/_tech_graph/11_flow_api.graph.yaml
 ---
 
