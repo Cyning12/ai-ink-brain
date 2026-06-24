@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 import {
   formatDemoCacheHitRate,
   formatMetricsRouteLabel,
+  formatProviderCacheHitRate,
   isMetricsSummaryDayOption,
   parseMetricsSummaryDays,
+  resolveProviderCacheTokenCount,
 } from "@/lib/ops/metrics-summary";
 
 describe("parseMetricsSummaryDays", () => {
@@ -32,6 +34,25 @@ describe("formatDemoCacheHitRate", () => {
 
   it("非法值回退 0.00%", () => {
     expect(formatDemoCacheHitRate(Number.NaN)).toBe("0.00%");
+  });
+});
+
+describe("formatProviderCacheHitRate", () => {
+  it("小数转百分比，保留两位", () => {
+    expect(formatProviderCacheHitRate(0.6)).toBe("60.00%");
+    expect(formatProviderCacheHitRate(0)).toBe("0.00%");
+  });
+
+  it("缺失或非有限值显示 —", () => {
+    expect(formatProviderCacheHitRate(undefined)).toBe("—");
+    expect(formatProviderCacheHitRate(Number.NaN)).toBe("—");
+  });
+});
+
+describe("resolveProviderCacheTokenCount", () => {
+  it("缺失字段按 0", () => {
+    expect(resolveProviderCacheTokenCount(undefined)).toBe(0);
+    expect(resolveProviderCacheTokenCount(315)).toBe(315);
   });
 });
 
