@@ -1,8 +1,8 @@
 # Task · Ops Desk P2-5d-fix · Metrics UI · Provider KV（前端子仓）
 
-> **状态**：`done` · merged · 2026-06-24  
+> **状态**：`done` · **human CLOSE pass** · 2026-06-24  
+> **PR**：[#95](https://github.com/Cyning12/ai-ink-brain/pull/95) · merge `0bc1ba7`  
 > **协调 task**：Projects [`task_ops_desk_p2_metrics_ui_provider_kv_v1.md`](../../../../docs/harness/tasks/done/task_ops_desk_p2_metrics_ui_provider_kv_v1.md)  
-> **invoke**：[`PROMPT_CHAIN_30_40_50_CLOSE_v1.md`](../../../../docs/harness/invokes/by-task/ops-desk-p2-metrics-ui-provider-kv/PROMPT_CHAIN_30_40_50_CLOSE_v1.md)  
 > **父 task**：[P2-5d #94](https://github.com/Cyning12/ai-ink-brain/pull/94) · `8c09fe8`
 
 ---
