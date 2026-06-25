@@ -2406,6 +2406,21 @@
       "type": "async_calls"
     },
     {
+      "anchors": [
+        {
+          "path": "app/api/ops/chat/models/route.ts",
+          "symbol": "GET handler"
+        }
+      ],
+      "from": "BFF_MODELS",
+      "graph_id": "14_flow_ops_chat",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "OPS_PY",
+      "type": "depends_on"
+    },
+    {
       "anchors": [],
       "from": "BFF_POST",
       "graph_id": "14_flow_ops_chat",
@@ -2487,6 +2502,16 @@
       "label": "",
       "mark": "~>",
       "sync": false,
+      "to": "BFF_MODELS",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
+      "from": "PAGE",
+      "graph_id": "14_flow_ops_chat",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
       "to": "BFF_POST",
       "type": "async_calls"
     },
@@ -2557,7 +2582,7 @@
     }
   ],
   "freeze_id": "TECH_GRAPH_S2_FREEZE_20260519_V2_3",
-  "generated_at": "2026-06-22T10:06:26Z",
+  "generated_at": "2026-06-25T02:23:31Z",
   "graphs": [
     {
       "id": "00_main",
@@ -2661,6 +2686,11 @@
       "graph_id": "14_flow_ops_chat",
       "id": "BFF_EVT",
       "label": "GET /api/ops/runs/{id}/events"
+    },
+    {
+      "graph_id": "14_flow_ops_chat",
+      "id": "BFF_MODELS",
+      "label": "GET /api/ops/chat/models"
     },
     {
       "graph_id": "14_flow_ops_chat",

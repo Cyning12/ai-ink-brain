@@ -1,7 +1,7 @@
 ---
 graph_id: 14_flow_ops_chat
 version: 2026-06-22
-generated_at: 2026-06-24T13:20:27Z
+generated_at: 2026-06-25T02:23:09Z
 source: docs/_tech_graph/14_flow_ops_chat.graph.yaml
 ---
 
@@ -19,6 +19,7 @@ flowchart TD
     PAGE[Ops Chat page · trace 壳]
     TRACE[ops run events 时间线 UI]
     BFF_POST[POST /api/ops/chat/messages]
+    BFF_MODELS[GET /api/ops/chat/models]
     BFF_RUN[GET /api/ops/runs/{id}]
     BFF_EVT[GET /api/ops/runs/{id}/events]
     POLL[after_seq 增量轮询]
@@ -34,6 +35,9 @@ flowchart TD
     PAGE --> TRACE
     PAGE --"trace 壳复用"--> REF_UC
     PAGE --"发送消息"--> BFF_POST
+    PAGE --"加载模型列表"--> BFF_MODELS
+    BFF_MODELS --> OPS_PY
+    // → app/api/ops/chat/models/route.ts::GET handler
     BFF_POST --> OPS_PY
     // → app/api/ops/chat/messages/route.ts::POST handler
     BFF_POST --"::gates"--> NOT_UC
@@ -64,6 +68,7 @@ flowchart TD
 | PAGE | Ops Chat page · trace 壳 |  |
 | TRACE | ops run events 时间线 UI |  |
 | BFF_POST | POST /api/ops/chat/messages |  |
+| BFF_MODELS | GET /api/ops/chat/models |  |
 | BFF_RUN | GET /api/ops/runs/{id} |  |
 | BFF_EVT | GET /api/ops/runs/{id}/events |  |
 | POLL | after_seq 增量轮询 |  |
@@ -81,6 +86,8 @@ flowchart TD
 | PAGE | TRACE | -> | depends_on |  |  |
 | PAGE | REF_UC | ::merges | merges | trace 壳复用 |  |
 | PAGE | BFF_POST | ~> | async_calls | 发送消息 |  |
+| PAGE | BFF_MODELS | ~> | async_calls | 加载模型列表 |  |
+| BFF_MODELS | OPS_PY | -> | depends_on |  | 1 anchor(s) |
 | BFF_POST | OPS_PY | -> | depends_on |  | 1 anchor(s) |
 | BFF_POST | NOT_UC | ::gates | gates |  |  |
 | PAGE | BFF_RUN | ~> | async_calls |  |  |

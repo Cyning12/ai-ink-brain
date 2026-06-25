@@ -5,12 +5,14 @@ import { useCallback, useEffect, useState } from "react";
 import { ThinkingChainTimeline } from "@/components/ops/ThinkingChainTimeline";
 import {
   extractOpsFinalAnswer,
+  fetchOpsChatModels,
   fetchOpsRun,
   fetchOpsRunEvents,
   formatOpsEventSummary,
   isRunActive,
   mergeOpsEvents,
   sendOpsChatMessage,
+  type OpsChatModel,
   type OpsRun,
   type OpsRunEvent,
 } from "@/lib/ops/chat";
@@ -19,12 +21,26 @@ const POLL_INTERVAL_MS = 1200;
 
 export function OpsChatClient() {
   const [draft, setDraft] = useState("");
+  const [models, setModels] = useState<OpsChatModel[]>([]);
+  const [selectedModel, setSelectedModel] = useState("");
+  const [providerLabel, setProviderLabel] = useState("");
+  const [autoFallback, setAutoFallback] = useState(false);
   const [runId, setRunId] = useState<string | null>(null);
   const [run, setRun] = useState<OpsRun | null>(null);
   const [events, setEvents] = useState<OpsRunEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [polling, setPolling] = useState(false);
+
+  useEffect(() => {
+    void fetchOpsChatModels().then((data) => {
+      if (!data) return;
+      setModels(data.models);
+      setSelectedModel(data.default_model);
+      setProviderLabel(data.provider);
+      setAutoFallback(data.auto_fallback);
+    });
+  }, []);
 
   const handleSend = useCallback(async () => {
     const message = draft.trim();
@@ -37,7 +53,7 @@ export function OpsChatClient() {
     setRunId(null);
     setPolling(false);
 
-    const result = await sendOpsChatMessage(message);
+    const result = await sendOpsChatMessage(message, undefined, selectedModel || undefined);
     if (!result.ok) {
       setError(result.error);
       setLoading(false);
@@ -67,7 +83,7 @@ export function OpsChatClient() {
 
     setLoading(false);
     setPolling(true);
-  }, [draft, loading]);
+  }, [draft, loading, selectedModel]);
 
   useEffect(() => {
     if (!runId || !polling) return;
@@ -133,6 +149,26 @@ export function OpsChatClient() {
           className="w-full resize-none rounded-xl border border-[color:var(--color-border)] bg-white/65 px-3 py-2 text-sm text-[#2c2c2c] outline-none focus:border-slate-400"
           placeholder="输入问题，例如：最近指标趋势、#545 适合我吗、P0 完成没"
         />
+        {models.length > 0 ? (
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+            <label className="text-[11px] text-slate-500 shrink-0" htmlFor="ops-chat-model">
+              模型 · {providerLabel}
+              {autoFallback ? "（无额度自动换模）" : ""}
+            </label>
+            <select
+              id="ops-chat-model"
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
+              className="rounded-lg border border-[color:var(--color-border)] bg-white/80 px-2 py-1.5 text-sm text-[#2c2c2c] outline-none focus:border-slate-400"
+            >
+              {models.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.label}{m.test_only ? " · 测试" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : null}
         <div className="flex items-center justify-between gap-2">
           <span className="text-[11px] text-slate-500">
             {runId ? `run: ${runId}` : "未发起运行"}
