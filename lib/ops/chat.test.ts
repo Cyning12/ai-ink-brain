@@ -3,6 +3,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   extractOpsCitations,
   extractOpsFinalAnswer,
+  extractOpsLlmModelsUsed,
+  extractOpsModelFallbackChain,
+  formatModelFallbackChainLabel,
   formatOpsEventSummary,
   isReviewEventType,
   isRunActive,
@@ -285,6 +288,27 @@ describe("formatOpsEventSummary", () => {
   it("router.decision 含 route", () => {
     const event = makeEvent(1, "router.decision", { route: "deep" });
     expect(formatOpsEventSummary(event)).toBe("路由决策 · deep");
+  });
+});
+
+describe("extractOpsModelFallbackChain", () => {
+  it("提取 quota 换模步骤", () => {
+    const events = [
+      makeEvent(2, "llm.model.fallback", {
+        from_model: "kimi/kimi-k2.7-code",
+        to_model: "deepseek-v4-pro",
+        reason: "AllocationQuota.FreeTierOnly",
+        step: "analyze",
+      }),
+      makeEvent(5, "llm.usage", { model: "deepseek-v4-pro", step: "analyze" }),
+    ];
+    const chain = extractOpsModelFallbackChain(events);
+    expect(chain).toHaveLength(1);
+    expect(chain[0].toModel).toBe("deepseek-v4-pro");
+    expect(extractOpsLlmModelsUsed(events)).toEqual(["deepseek-v4-pro"]);
+    expect(formatModelFallbackChainLabel("kimi/kimi-k2.7-code", chain, ["deepseek-v4-pro"])).toContain(
+      "deepseek-v4-pro",
+    );
   });
 });
 

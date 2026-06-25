@@ -84,6 +84,68 @@ export type ThinkingChainItem = {
   review?: OpsReviewPayload;
 };
 
+export type OpsModelFallbackStep = {
+  seq: number;
+  fromModel: string;
+  toModel: string;
+  step: string;
+  reason: string;
+};
+
+/** 从 events 提取百炼 quota 换模链路（按 seq 排序）。 */
+export function extractOpsModelFallbackChain(events: OpsRunEvent[]): OpsModelFallbackStep[] {
+  const steps: OpsModelFallbackStep[] = [];
+  for (const event of events) {
+    if (event.event_type !== "llm.model.fallback") continue;
+    const payload = event.payload ?? {};
+    const fromModel = typeof payload.from_model === "string" ? payload.from_model : "";
+    const toModel = typeof payload.to_model === "string" ? payload.to_model : "";
+    if (!fromModel || !toModel) continue;
+    steps.push({
+      seq: event.seq,
+      fromModel,
+      toModel,
+      step: typeof payload.step === "string" ? payload.step : "other",
+      reason: typeof payload.reason === "string" ? payload.reason : "quota",
+    });
+  }
+  return steps.sort((a, b) => a.seq - b.seq);
+}
+
+/** 汇总 llm.usage 中实际使用的模型（去重、保序）。 */
+export function extractOpsLlmModelsUsed(events: OpsRunEvent[]): string[] {
+  const seen = new Set<string>();
+  const models: string[] = [];
+  for (const event of events) {
+    if (event.event_type !== "llm.usage") continue;
+    const model = event.payload?.model;
+    if (typeof model !== "string" || !model.trim() || seen.has(model)) continue;
+    seen.add(model);
+    models.push(model);
+  }
+  return models;
+}
+
+export function formatModelFallbackChainLabel(
+  selectedModel: string,
+  fallbackSteps: OpsModelFallbackStep[],
+  modelsUsed: string[],
+): string {
+  if (fallbackSteps.length === 0 && modelsUsed.length <= 1) {
+    return selectedModel ? `当前模型 · ${selectedModel}` : "";
+  }
+  const parts: string[] = [];
+  if (selectedModel) parts.push(selectedModel);
+  for (const step of fallbackSteps) {
+    parts.push(step.toModel);
+  }
+  const chain = [...new Set(parts)];
+  if (modelsUsed.length > 0) {
+    return `换模链路 · ${chain.join(" → ")} · 实际 ${modelsUsed.join("、")}`;
+  }
+  return `换模链路 · ${chain.join(" → ")}`;
+}
+
 export async function fetchOpsChatModels(): Promise<OpsChatModelsResponse | null> {
   const res = await fetch("/api/ops/chat/models");
   if (!res.ok) return null;
@@ -288,6 +350,17 @@ export function formatOpsEventSummary(event: OpsRunEvent): string {
       return "Review 部分通过";
     case "final.answer":
       return "生成最终答案";
+    case "llm.model.fallback": {
+      const fromModel = typeof payload.from_model === "string" ? payload.from_model : "—";
+      const toModel = typeof payload.to_model === "string" ? payload.to_model : "—";
+      const step = typeof payload.step === "string" ? payload.step : "";
+      return `模型切换 · ${fromModel} → ${toModel}${step ? ` · ${step}` : ""}`;
+    }
+    case "llm.usage": {
+      const model = typeof payload.model === "string" ? payload.model : "—";
+      const step = typeof payload.step === "string" ? payload.step : "";
+      return `LLM 调用 · ${model}${step ? ` · ${step}` : ""}`;
+    }
     default:
       return event.event_type;
   }
