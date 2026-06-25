@@ -73,7 +73,7 @@ export function formatMetricsRouteLabel(route: string): string {
   return route;
 }
 
-/** Provider KV 卡片：按当前 LLM Provider 展示文案（百炼暂未采集 KV）。 */
+/** Provider KV 卡片：按当前 LLM Provider 展示文案（百炼无数据时显示暂未采集）。 */
 export function resolveProviderCacheCardContent(
   provider: string | null | undefined,
   data: Pick<
@@ -86,6 +86,12 @@ export function resolveProviderCacheCardContent(
   const name = (provider ?? "").trim().toLowerCase();
 
   if (name === "bailian") {
+    if (hit + miss > 0) {
+      return {
+        value: formatProviderCacheHitRate(data.provider_cache_hit_rate),
+        subtext: `Provider KV 缓存 · 百炼 · 命中 ${hit.toLocaleString("zh-CN")} / 未命中 ${miss.toLocaleString("zh-CN")} tokens`,
+      };
+    }
     return {
       value: "—",
       subtext: "Provider KV · 百炼（暂未采集）",
