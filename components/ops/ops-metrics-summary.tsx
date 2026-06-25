@@ -7,23 +7,24 @@ import { MetricCard } from "@/components/ops/metric-card";
 import {
   formatDemoCacheHitRate,
   formatMetricsRouteLabel,
-  formatProviderCacheHitRate,
   METRICS_SUMMARY_DAY_OPTIONS,
   parseMetricsSummaryDays,
-  resolveProviderCacheTokenCount,
+  resolveProviderCacheCardContent,
   type MetricsSummaryResponse,
 } from "@/lib/ops/metrics-summary";
 
 type LoadState =
   | { kind: "loading" }
   | { kind: "error"; message: string }
-  | { kind: "loaded"; data: MetricsSummaryResponse };
+  | { kind: "loaded"; data: MetricsSummaryResponse; llmProvider: string | null };
 
 function formatCount(value: number): string {
   return Number.isFinite(value) ? value.toLocaleString("zh-CN") : "0";
 }
 
-async function fetchMetricsSummary(windowDays: number): Promise<LoadState> {
+async function fetchMetricsSummary(
+  windowDays: number,
+): Promise<{ kind: "error"; message: string } | { kind: "loaded"; data: MetricsSummaryResponse }> {
   try {
     const res = await fetch(`/api/ops/metrics/summary?days=${windowDays}`, {
       credentials: "same-origin",
@@ -47,6 +48,31 @@ async function fetchMetricsSummary(windowDays: number): Promise<LoadState> {
   }
 }
 
+async function fetchOpsLlmProvider(): Promise<string | null> {
+  try {
+    const res = await fetch("/api/ops/chat/models", { credentials: "same-origin" });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { provider?: string };
+    return typeof data.provider === "string" ? data.provider : null;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchMetricsPageData(windowDays: number): Promise<
+  | { kind: "error"; message: string }
+  | { kind: "loaded"; data: MetricsSummaryResponse; llmProvider: string | null }
+> {
+  const [summaryState, llmProvider] = await Promise.all([
+    fetchMetricsSummary(windowDays),
+    fetchOpsLlmProvider(),
+  ]);
+  if (summaryState.kind === "error") {
+    return summaryState;
+  }
+  return { kind: "loaded", data: summaryState.data, llmProvider };
+}
+
 export function OpsMetricsSummary() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -56,7 +82,7 @@ export function OpsMetricsSummary() {
   useEffect(() => {
     let cancelled = false;
 
-    void fetchMetricsSummary(days).then((nextState) => {
+    void fetchMetricsPageData(days).then((nextState) => {
       if (!cancelled) {
         setState(nextState);
       }
@@ -78,6 +104,11 @@ export function OpsMetricsSummary() {
     state.kind === "loaded"
       ? Object.entries(state.data.by_route).sort(([a], [b]) => a.localeCompare(b))
       : [];
+
+  const providerCacheCard =
+    state.kind === "loaded"
+      ? resolveProviderCacheCardContent(state.llmProvider, state.data)
+      : null;
 
   return (
     <div className="space-y-6">
@@ -155,8 +186,8 @@ export function OpsMetricsSummary() {
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               label="Provider KV 缓存命中率"
-              value={formatProviderCacheHitRate(state.data.provider_cache_hit_rate)}
-              subtext={`Provider KV 缓存 · SiliconFlow · 命中 ${formatCount(resolveProviderCacheTokenCount(state.data.provider_cache_hit_tokens))} / 未命中 ${formatCount(resolveProviderCacheTokenCount(state.data.provider_cache_miss_tokens))} tokens`}
+              value={providerCacheCard?.value ?? "—"}
+              subtext={providerCacheCard?.subtext ?? "Provider KV 缓存"}
             />
           </div>
 
