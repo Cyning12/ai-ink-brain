@@ -73,6 +73,38 @@ export function formatMetricsRouteLabel(route: string): string {
   return route;
 }
 
+/** Provider KV 卡片：按当前 LLM Provider 展示文案（百炼暂未采集 KV）。 */
+export function resolveProviderCacheCardContent(
+  provider: string | null | undefined,
+  data: Pick<
+    MetricsSummaryResponse,
+    "provider_cache_hit_rate" | "provider_cache_hit_tokens" | "provider_cache_miss_tokens"
+  >,
+): { value: string; subtext: string } {
+  const hit = resolveProviderCacheTokenCount(data.provider_cache_hit_tokens);
+  const miss = resolveProviderCacheTokenCount(data.provider_cache_miss_tokens);
+  const name = (provider ?? "").trim().toLowerCase();
+
+  if (name === "bailian") {
+    return {
+      value: "—",
+      subtext: "Provider KV · 百炼（暂未采集）",
+    };
+  }
+
+  if (name === "siliconflow") {
+    return {
+      value: formatProviderCacheHitRate(data.provider_cache_hit_rate),
+      subtext: `Provider KV 缓存 · SiliconFlow · 命中 ${hit.toLocaleString("zh-CN")} / 未命中 ${miss.toLocaleString("zh-CN")} tokens`,
+    };
+  }
+
+  return {
+    value: formatProviderCacheHitRate(data.provider_cache_hit_rate),
+    subtext: `Provider KV 缓存 · ${name || "未知"} · 命中 ${hit.toLocaleString("zh-CN")} / 未命中 ${miss.toLocaleString("zh-CN")} tokens`,
+  };
+}
+
 export function isMetricsSummaryDayOption(value: number): value is MetricsSummaryDayOption {
   return (METRICS_SUMMARY_DAY_OPTIONS as readonly number[]).includes(value);
 }

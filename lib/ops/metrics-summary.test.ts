@@ -6,6 +6,7 @@ import {
   formatProviderCacheHitRate,
   isMetricsSummaryDayOption,
   parseMetricsSummaryDays,
+  resolveProviderCacheCardContent,
   resolveProviderCacheTokenCount,
 } from "@/lib/ops/metrics-summary";
 
@@ -46,6 +47,27 @@ describe("formatProviderCacheHitRate", () => {
   it("缺失或非有限值显示 —", () => {
     expect(formatProviderCacheHitRate(undefined)).toBe("—");
     expect(formatProviderCacheHitRate(Number.NaN)).toBe("—");
+  });
+});
+
+describe("resolveProviderCacheCardContent", () => {
+  const sample = {
+    provider_cache_hit_rate: 0.6,
+    provider_cache_hit_tokens: 120,
+    provider_cache_miss_tokens: 80,
+  };
+
+  it("百炼显示暂未采集", () => {
+    const card = resolveProviderCacheCardContent("bailian", sample);
+    expect(card.value).toBe("—");
+    expect(card.subtext).toBe("Provider KV · 百炼（暂未采集）");
+  });
+
+  it("SiliconFlow 显示命中率与 token", () => {
+    const card = resolveProviderCacheCardContent("siliconflow", sample);
+    expect(card.value).toBe("60.00%");
+    expect(card.subtext).toContain("SiliconFlow");
+    expect(card.subtext).toContain("120");
   });
 });
 
