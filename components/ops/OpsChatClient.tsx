@@ -5,9 +5,12 @@ import { useCallback, useEffect, useState } from "react";
 import { ThinkingChainTimeline } from "@/components/ops/ThinkingChainTimeline";
 import {
   extractOpsFinalAnswer,
+  extractOpsLlmModelsUsed,
+  extractOpsModelFallbackChain,
   fetchOpsChatModels,
   fetchOpsRun,
   fetchOpsRunEvents,
+  formatModelFallbackChainLabel,
   formatOpsEventSummary,
   isRunActive,
   mergeOpsEvents,
@@ -127,6 +130,13 @@ export function OpsChatClient() {
   const finalAnswer = extractOpsFinalAnswer(events) || (run?.final_answer?.answer as string) || "";
 
   const isDeep = run?.route === "deep";
+  const modelFallbackSteps = extractOpsModelFallbackChain(events);
+  const llmModelsUsed = extractOpsLlmModelsUsed(events);
+  const modelChainLabel = formatModelFallbackChainLabel(
+    selectedModel,
+    modelFallbackSteps,
+    llmModelsUsed,
+  );
 
   return (
     <div className="space-y-6">
@@ -167,6 +177,24 @@ export function OpsChatClient() {
                 </option>
               ))}
             </select>
+          </div>
+        ) : null}
+        {modelChainLabel ? (
+          <p className="text-[11px] leading-relaxed text-amber-900/90 rounded-lg border border-amber-200/80 bg-amber-50/70 px-2 py-1.5">
+            {modelChainLabel}
+          </p>
+        ) : null}
+        {modelFallbackSteps.length > 0 ? (
+          <div className="rounded-lg border border-slate-200/80 bg-white/60 px-2 py-2">
+            <div className="text-[11px] font-medium text-slate-600">换模明细</div>
+            <ol className="mt-1 space-y-1 text-[11px] text-slate-700">
+              {modelFallbackSteps.map((step) => (
+                <li key={step.seq} className="font-mono">
+                  seq {step.seq} · {step.fromModel} → {step.toModel}
+                  {step.step ? ` · ${step.step}` : ""}
+                </li>
+              ))}
+            </ol>
           </div>
         ) : null}
         <div className="flex items-center justify-between gap-2">
