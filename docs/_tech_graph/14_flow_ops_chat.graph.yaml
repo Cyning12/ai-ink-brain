@@ -17,6 +17,8 @@ nodes:
     label: ops run events 时间线 UI
   - id: BFF_POST
     label: POST /api/ops/chat/messages
+  - id: BFF_MODELS
+    label: GET /api/ops/chat/models
   - id: BFF_RUN
     label: GET /api/ops/runs/{id}
   - id: BFF_EVT
@@ -63,6 +65,17 @@ edges:
     mark: "~>"
     type: async_calls
     label: "发送消息"
+  - from: PAGE
+    to: BFF_MODELS
+    mark: "~>"
+    type: async_calls
+    label: "加载模型列表"
+  - from: BFF_MODELS
+    to: OPS_PY
+    mark: "->"
+    anchors:
+      - path: app/api/ops/chat/models/route.ts
+        symbol: GET handler
   - from: BFF_POST
     to: OPS_PY
     mark: "->"
