@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   extractOpsCitations,
@@ -10,8 +10,78 @@ import {
   parseAgentToolResultPayload,
   parseReviewPayload,
   partitionThinkingChain,
+  fetchOpsChatModels,
+  sendOpsChatMessage,
   type OpsRunEvent,
 } from "@/lib/ops/chat";
+
+describe("fetchOpsChatModels", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("解析 models 响应", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            provider: "bailian",
+            models: [{ id: "deepseek-v4-pro", label: "DeepSeek V4 Pro", test_only: false }],
+            default_model: "deepseek-v4-pro",
+            auto_fallback: true,
+          }),
+          { status: 200 },
+        ),
+      ),
+    );
+
+    const data = await fetchOpsChatModels();
+    expect(data?.provider).toBe("bailian");
+    expect(data?.auto_fallback).toBe(true);
+    expect(data?.models).toHaveLength(1);
+  });
+
+  it("非 200 返回 null", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("", { status: 502 })));
+    expect(await fetchOpsChatModels()).toBeNull();
+  });
+});
+
+describe("sendOpsChatMessage", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("POST body 含 model 字段", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ run_id: "run-1", route: "fast", status: "done", answer: "ok" }), {
+        status: 200,
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await sendOpsChatMessage("hello", undefined, "deepseek-v4-pro");
+    expect(result.ok).toBe(true);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/ops/chat/messages",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ message: "hello", model: "deepseek-v4-pro" }),
+      }),
+    );
+  });
+
+  it("失败时返回结构化 error", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: "upstream fail" }), { status: 502 })),
+    );
+    const result = await sendOpsChatMessage("hello");
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toBe("upstream fail");
+  });
+});
 
 function makeEvent(seq: number, eventType: string, payload: Record<string, unknown> = {}): OpsRunEvent {
   return {

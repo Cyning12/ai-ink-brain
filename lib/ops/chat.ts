@@ -44,6 +44,19 @@ export type OpsRunEvent = {
   created_at?: string;
 };
 
+export type OpsChatModel = {
+  id: string;
+  label: string;
+  test_only: boolean;
+};
+
+export type OpsChatModelsResponse = {
+  provider: string;
+  models: OpsChatModel[];
+  default_model: string;
+  auto_fallback: boolean;
+};
+
 export type OpsChatMessagesResponse = {
   run_id: string;
   route: "fast" | "deep";
@@ -71,9 +84,20 @@ export type ThinkingChainItem = {
   review?: OpsReviewPayload;
 };
 
-export async function sendOpsChatMessage(message: string, sessionId?: string): Promise<OpsChatSendResult> {
-  const body: { message: string; session_id?: string } = { message: message.trim() };
+export async function fetchOpsChatModels(): Promise<OpsChatModelsResponse | null> {
+  const res = await fetch("/api/ops/chat/models");
+  if (!res.ok) return null;
+  return res.json().catch(() => null);
+}
+
+export async function sendOpsChatMessage(
+  message: string,
+  sessionId?: string,
+  model?: string,
+): Promise<OpsChatSendResult> {
+  const body: { message: string; session_id?: string; model?: string } = { message: message.trim() };
   if (sessionId?.trim()) body.session_id = sessionId.trim();
+  if (model?.trim()) body.model = model.trim();
 
   const res = await fetch("/api/ops/chat/messages", {
     method: "POST",
