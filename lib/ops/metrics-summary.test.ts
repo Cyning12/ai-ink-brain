@@ -57,10 +57,22 @@ describe("resolveProviderCacheCardContent", () => {
     provider_cache_miss_tokens: 80,
   };
 
-  it("百炼显示暂未采集", () => {
-    const card = resolveProviderCacheCardContent("bailian", sample);
+  it("百炼无 token 数据时显示暂未采集", () => {
+    const card = resolveProviderCacheCardContent("bailian", {
+      provider_cache_hit_rate: undefined,
+      provider_cache_hit_tokens: undefined,
+      provider_cache_miss_tokens: undefined,
+    });
     expect(card.value).toBe("—");
     expect(card.subtext).toBe("Provider KV · 百炼（暂未采集）");
+  });
+
+  it("百炼有 token 数据时显示命中率与 token", () => {
+    const card = resolveProviderCacheCardContent("bailian", sample);
+    expect(card.value).toBe("60.00%");
+    expect(card.subtext).toContain("百炼");
+    expect(card.subtext).toContain("120");
+    expect(card.subtext).toContain("80");
   });
 
   it("SiliconFlow 显示命中率与 token", () => {
