@@ -3,6 +3,7 @@
 > 说明：本视图只做聚合索引，不改变原任务正文。
 
 ## 已完成
+- `../done/task_ops_chat_run_events_collapsible_v1.md` — 2026-06-26 验收通过（Ops Chat · 运行事件折叠 + 终答置顶 · 分支 `task/ops-chat-run-events-collapsible`）
 
 - `../done/task_ops_desk_p2_scan_ingest_frontend_v1.md` — 2026-06-22 验收通过（Ops Desk P2-2 · Scan 摘要卡片 + scan_tag 筛选 · 分支 `task/ops-desk-p2-scan-ingest-frontend` · PR #86）
 - `../done/task_ops_desk_p0_overview_page_v1.md` — 2026-06-22 验收通过（Ops Desk P0-4 · 总览页 + 共享数据层 + layout 导航链 · 分支 `task/ops-desk-p0-overview-page` · merge `fb9fc37`）
