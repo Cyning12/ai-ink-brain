@@ -319,6 +319,16 @@ describe("issue filter query helpers", () => {
     expect(filter.state).toBe("open");
   });
 
+  it("parses module_id and numbers from search params", () => {
+    const filter = parseFilter({
+      module_id: "agent_core",
+      numbers: "705,916",
+      state: "open",
+    });
+    expect(filter.moduleId).toBe("agent_core");
+    expect(filter.numbers).toEqual([705, 916]);
+  });
+
   it("builds a query string with scan tag, labels and pagination", () => {
     const qs = buildQueryString({
       state: "open",
@@ -339,6 +349,17 @@ describe("issue filter query helpers", () => {
       scanTag: undefined,
     });
     expect(qs).not.toContain("scan_tag");
+  });
+
+  it("builds module_id query string for graph matrix links", () => {
+    const qs = buildQueryString({
+      state: "open",
+      moduleId: "agent_core",
+    });
+    const params = new URLSearchParams(qs.slice(1));
+    expect(params.get("state")).toBe("open");
+    expect(params.get("module_id")).toBe("agent_core");
+    expect(params.get("scan_tag")).toBeNull();
   });
 });
 

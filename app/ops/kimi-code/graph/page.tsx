@@ -140,7 +140,7 @@ function ModuleMatrix({ modules }: { modules: GraphModuleRow[] }) {
                   {mod.issue_numbers.slice(0, 8).map((num) => (
                     <Link
                       key={num}
-                      href={`/ops/kimi-code/issues?scan_tag=${encodeURIComponent(mod.module_id)}`}
+                      href={`/ops/kimi-code/issues?state=open&module_id=${encodeURIComponent(mod.module_id)}`}
                       className="inline-flex rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-wash)] px-1.5 py-0.5 text-xs text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)] hover:underline"
                     >
                       #{num}
