@@ -55,7 +55,7 @@ function LoginForm() {
         Ops Desk
       </h1>
       <p className="mt-2 text-sm text-[color:var(--color-muted-foreground)]">
-        请输入邀请秘钥以进入 Kimi Code 看板
+        请输入邀请密钥以进入 Kimi Code 看板
       </p>
 
       {sessionExpired && (
@@ -66,12 +66,12 @@ function LoginForm() {
 
       <div className="mt-6 space-y-4">
         <label className="block text-sm text-[color:var(--color-muted-foreground)]">
-          秘钥
+          邀请密钥
           <input
             type="password"
             value={token}
             onChange={(e) => setToken(e.target.value)}
-            placeholder="邀请秘钥"
+            placeholder="邀请密钥"
             className="mt-1 block w-full rounded-lg border border-[color:var(--color-border)] bg-transparent px-3 py-2 text-sm text-[color:var(--color-foreground)] outline-none focus:ring-2 focus:ring-[color:var(--color-ring)]"
             disabled={loading}
             autoFocus

@@ -5,10 +5,10 @@ export function mapOpsDbLoginError(detail: unknown, fallback = "登录失败"): 
   }
   const code = (detail as { code?: unknown }).code;
   if (code === "INVITE_EXPIRED") {
-    return "秘钥已过期";
+    return "密钥已过期";
   }
   if (code === "INVITE_INVALID" || code === "INVITE_REVOKED") {
-    return "秘钥无效";
+    return "密钥无效";
   }
   const message = (detail as { message?: unknown }).message;
   if (typeof message === "string" && message.trim()) {

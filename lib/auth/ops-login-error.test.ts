@@ -4,11 +4,11 @@ import { mapOpsDbLoginError } from "@/lib/auth/ops-login-error";
 
 describe("mapOpsDbLoginError", () => {
   it("maps invite expired", () => {
-    expect(mapOpsDbLoginError({ code: "INVITE_EXPIRED" })).toBe("秘钥已过期");
+    expect(mapOpsDbLoginError({ code: "INVITE_EXPIRED" })).toBe("密钥已过期");
   });
 
   it("maps invite invalid", () => {
-    expect(mapOpsDbLoginError({ code: "INVITE_INVALID" })).toBe("秘钥无效");
+    expect(mapOpsDbLoginError({ code: "INVITE_INVALID" })).toBe("密钥无效");
   });
 
   it("fallback", () => {
