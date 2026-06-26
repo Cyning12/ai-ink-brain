@@ -33,30 +33,33 @@ describe("GET /api/ops/metrics/summary", () => {
       new Response(JSON.stringify({ window_days: 7, total_runs: 0 }), { status: 200 }),
     );
 
-    const res = await GET(new Request("http://localhost/api/ops/metrics/summary"));
+    const req = new Request("http://localhost/api/ops/metrics/summary");
+    const res = await GET(req);
     expect(res.status).toBe(200);
     expect(forwardOpsRequest).toHaveBeenCalledWith("/api/py/ops/metrics/summary?days=7", {
       method: "GET",
-    });
+    }, req);
   });
 
   it("非法 days 回退 7", async () => {
     vi.mocked(requireOpsDeskAccess).mockResolvedValue(null);
     vi.mocked(forwardOpsRequest).mockResolvedValue(new Response("{}", { status: 200 }));
 
-    await GET(new Request("http://localhost/api/ops/metrics/summary?days=abc"));
+    const req = new Request("http://localhost/api/ops/metrics/summary?days=abc");
+    await GET(req);
     expect(forwardOpsRequest).toHaveBeenCalledWith("/api/py/ops/metrics/summary?days=7", {
       method: "GET",
-    });
+    }, req);
   });
 
   it("合法 days 透传", async () => {
     vi.mocked(requireOpsDeskAccess).mockResolvedValue(null);
     vi.mocked(forwardOpsRequest).mockResolvedValue(new Response("{}", { status: 200 }));
 
-    await GET(new Request("http://localhost/api/ops/metrics/summary?days=30"));
+    const req = new Request("http://localhost/api/ops/metrics/summary?days=30");
+    await GET(req);
     expect(forwardOpsRequest).toHaveBeenCalledWith("/api/py/ops/metrics/summary?days=30", {
       method: "GET",
-    });
+    }, req);
   });
 });
