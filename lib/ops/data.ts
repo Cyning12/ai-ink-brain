@@ -525,6 +525,10 @@ export type IssueFilter = {
   state?: "open" | "closed";
   labels?: string[];
   scanTag?: string;
+  /** Graph 矩阵 module 行跳转 · 非 scan tier 标签 */
+  moduleId?: string;
+  /** 精确 issue# 列表（矩阵 chip 单条跳转） */
+  numbers?: number[];
   page?: number;
   pageSize?: number;
 };
@@ -533,7 +537,8 @@ export async function getIssues(
   repoId: string,
   filter: IssueFilter = {},
 ): Promise<{ rows: IssueRow[]; count: number }> {
-  const { state, labels, scanTag, page = 1, pageSize = 25 } = filter;
+  const { state, labels, scanTag, moduleId, numbers, page = 1, pageSize = 25 } =
+    filter;
   const supabase = createSupabaseServerClient();
 
   let query = supabase
@@ -553,6 +558,19 @@ export async function getIssues(
   }
   if (scanTag) {
     query = query.overlaps("scan_tags", [scanTag]);
+  }
+
+  // numbers 优先于 moduleId（单条 chip 跳转）
+  if (numbers && numbers.length > 0) {
+    query = query.in("number", numbers);
+  } else if (moduleId) {
+    const modules = await getGraphModuleIssuesFromBff();
+    const match = modules.find((m) => m.module_id === moduleId);
+    const issueNumbers = match?.issue_numbers ?? [];
+    if (issueNumbers.length === 0) {
+      return { rows: [], count: 0 };
+    }
+    query = query.in("number", issueNumbers);
   }
 
   const from = (page - 1) * pageSize;

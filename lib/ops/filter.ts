@@ -36,12 +36,36 @@ export function parseFilter(searchParams: {
       ? searchParams.scan_tag
       : undefined;
 
+  const moduleId =
+    typeof searchParams.module_id === "string" && searchParams.module_id
+      ? searchParams.module_id
+      : undefined;
+
+  const numbersParam = searchParams.numbers;
+  const numbers =
+    typeof numbersParam === "string"
+      ? numbersParam
+          .split(",")
+          .map((n) => parseInt(n.trim(), 10))
+          .filter((n) => Number.isFinite(n) && n > 0)
+      : undefined;
+
   const page =
     typeof searchParams.page === "string"
       ? Math.max(1, parseInt(searchParams.page, 10) || 1)
       : 1;
 
-  return { state, labels, scanTag, page, pageSize: 25 };
+  return { state, labels, scanTag, moduleId, numbers, page, pageSize: 25 };
+}
+
+export function hasActiveIssueFilters(filter: IssueFilter): boolean {
+  return Boolean(
+    filter.state ||
+      (filter.labels && filter.labels.length > 0) ||
+      filter.scanTag ||
+      filter.moduleId ||
+      (filter.numbers && filter.numbers.length > 0),
+  );
 }
 
 export function buildQueryString(
@@ -54,6 +78,10 @@ export function buildQueryString(
   if (merged.labels && merged.labels.length > 0)
     params.set("labels", merged.labels.join(","));
   if (merged.scanTag) params.set("scan_tag", merged.scanTag);
+  if (merged.moduleId) params.set("module_id", merged.moduleId);
+  if (merged.numbers && merged.numbers.length > 0) {
+    params.set("numbers", merged.numbers.join(","));
+  }
   if (merged.page && merged.page > 1) params.set("page", String(merged.page));
   const qs = params.toString();
   return qs ? `?${qs}` : "";

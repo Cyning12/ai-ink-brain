@@ -10,6 +10,7 @@ import {
 import { formatDateTime } from "@/lib/ops/format";
 import {
   buildQueryString,
+  hasActiveIssueFilters,
   parseFilter,
   scanTagStyle,
 } from "@/lib/ops/filter";
@@ -184,6 +185,7 @@ function FilterBar({
 }) {
   const currentLabels = filter.labels ?? [];
   const currentScanTag = filter.scanTag;
+  const currentModuleId = filter.moduleId;
 
   function toggleLabel(label: string): string[] {
     if (currentLabels.includes(label)) {
@@ -265,8 +267,23 @@ function FilterBar({
         </div>
       )}
 
+      {/* Graph 矩阵 module 筛选 */}
+      {currentModuleId && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-xs text-[color:var(--color-muted-foreground)]">
+            模块:
+          </span>
+          <Link
+            href={`/ops/kimi-code/issues${buildQueryString(filter, { moduleId: undefined, page: 1 })}`}
+            className="inline-flex rounded-md border border-[color:var(--color-foreground)] bg-[color:var(--color-foreground)] px-2 py-0.5 text-xs font-medium text-[color:var(--color-background)] transition-colors"
+          >
+            {currentModuleId}
+          </Link>
+        </div>
+      )}
+
       {/* Clear filters */}
-      {(filter.state || (filter.labels && filter.labels.length > 0) || filter.scanTag) && (
+      {hasActiveIssueFilters(filter) && (
         <Link
           href="/ops/kimi-code/issues"
           className="rounded-md border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 transition-colors hover:bg-red-100"
@@ -360,9 +377,7 @@ export default async function OpsKimiCodeIssuesPage({
                 暂无 Issue 数据
               </p>
               <p className="mt-1 text-sm text-[color:var(--color-muted-foreground)] opacity-70">
-                {filter.state ||
-                (filter.labels && filter.labels.length > 0) ||
-                filter.scanTag
+                {hasActiveIssueFilters(filter)
                   ? "尝试调整筛选条件"
                   : "请确认 GHA sync 已首跑成功"}
               </p>
