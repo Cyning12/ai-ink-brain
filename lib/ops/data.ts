@@ -290,6 +290,36 @@ function tierCountsFromScanTags(scanTags: string[]): {
   return { p0, p1, p2 };
 }
 
+export async function getGraphModuleIssuesFromBff(): Promise<GraphModuleRow[]> {
+  const res = await fetchOpsRaw("/api/py/ops/graph/module-issues?state=open", {
+    method: "GET",
+  });
+
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new OpsDataError(
+      `获取 graph module issues 失败：${res.status}${detail ? ` · ${detail}` : ""}`,
+    );
+  }
+
+  const body = (await res.json()) as { modules?: Array<Record<string, unknown>> };
+  const modules = body.modules ?? [];
+
+  return modules.map((mod) => ({
+    module_id: String(mod.module_id ?? ""),
+    module_name: String(mod.label ?? mod.module_id ?? ""),
+    issue_count: Number(mod.open_issue_count ?? 0),
+    open_count: Number(mod.open_issue_count ?? 0),
+    p0_count: Number(mod.p0_count ?? 0),
+    p1_count: Number(mod.p1_count ?? 0),
+    p2_count: Number(mod.p2_count ?? 0),
+    issue_numbers: Array.isArray(mod.issue_numbers)
+      ? (mod.issue_numbers as unknown[]).map((n) => Number(n))
+      : [],
+  }));
+}
+
+/** Supabase 直查矩阵；Graph Tab 已改用 getGraphModuleIssuesFromBff（Python API）。 */
 export async function getGraphModuleIssues(
   repoId: string,
 ): Promise<GraphModuleRow[]> {

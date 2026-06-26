@@ -1,0 +1,22 @@
+{
+  "modules": [
+    {
+      "module_id": "parser",
+      "label": "Parser",
+      "open_issue_count": 3,
+      "p0_count": 1,
+      "p1_count": 1,
+      "p2_count": 1,
+      "issue_numbers": [201, 202, 204]
+    },
+    {
+      "module_id": "graph",
+      "label": "Graph",
+      "open_issue_count": 4,
+      "p0_count": 0,
+      "p1_count": 1,
+      "p2_count": 3,
+      "issue_numbers": [203, 206, 207, 208]
+    }
+  ]
+}
