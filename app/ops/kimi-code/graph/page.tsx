@@ -3,7 +3,7 @@ import Link from "next/link";
 import {
   getKimiCodeRepo,
   getLatestGraphSnapshot,
-  getGraphModuleIssues,
+  getGraphModuleIssuesFromBff,
   OpsDataError,
   type GraphSnapshotSummary,
   type GraphModuleRow,
@@ -25,7 +25,7 @@ async function loadPageData(): Promise<PageData> {
     }
     const [snapshot, modules] = await Promise.all([
       getLatestGraphSnapshot(repo.id),
-      getGraphModuleIssues(repo.id),
+      getGraphModuleIssuesFromBff(),
     ]);
     return { kind: "loaded", snapshot, modules };
   } catch (err) {

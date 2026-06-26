@@ -1,13 +1,15 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   getLatestScanSnapshot,
   getLatestGraphSnapshot,
   getGraphModuleIssues,
+  getGraphModuleIssuesFromBff,
   OpsDataError,
   type ScanSnapshotSummary,
   type GraphSnapshotSummary,
 } from "@/lib/ops/data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { fetchOpsRaw } from "@/lib/server/forward-ops-request";
 import {
   buildQueryString,
   parseFilter,
@@ -16,14 +18,25 @@ import {
 import scanFixture from "@/tests/fixtures/ops_scan_snapshot_v1.json";
 import graphSnapshotFixture from "@/tests/fixtures/graph_snapshot_sample_v1.json";
 import graphModuleOpenFixture from "@/tests/fixtures/graph_module_issues_open_v1.json";
+import graphModuleMatrixApiFixture from "@/tests/fixtures/graph_module_matrix_api_v1.json";
 
 vi.mock("@/lib/supabase/server", () => ({
   createSupabaseServerClient: vi.fn(),
 }));
 
+vi.mock("@/lib/server/forward-ops-request", () => ({
+  fetchOpsRaw: vi.fn(),
+}));
+
 const mockClient = createSupabaseServerClient as ReturnType<
   typeof vi.fn
 >;
+
+const mockFetchOpsRaw = fetchOpsRaw as ReturnType<typeof vi.fn>;
+
+beforeEach(() => {
+  mockFetchOpsRaw.mockReset();
+});
 
 function makeSupabaseChain(result: {
   data: unknown;
@@ -237,6 +250,36 @@ describe("getGraphModuleIssues", () => {
     await expect(getGraphModuleIssues("repo-1")).rejects.toBeInstanceOf(
       OpsDataError,
     );
+  });
+});
+
+describe("getGraphModuleIssuesFromBff", () => {
+  it("maps Python module matrix response to GraphModuleRow", async () => {
+    mockFetchOpsRaw.mockResolvedValue(
+      new Response(JSON.stringify(graphModuleMatrixApiFixture), { status: 200 }),
+    );
+
+    const rows = await getGraphModuleIssuesFromBff();
+
+    expect(mockFetchOpsRaw).toHaveBeenCalledWith(
+      "/api/py/ops/graph/module-issues?state=open",
+      { method: "GET" },
+    );
+    expect(rows).toHaveLength(2);
+    const parser = rows.find((row) => row.module_id === "parser");
+    expect(parser?.module_name).toBe("Parser");
+    expect(parser?.issue_count).toBe(3);
+    expect(parser?.open_count).toBe(3);
+    expect(parser?.p0_count).toBe(1);
+    expect(parser?.issue_numbers).toEqual([201, 202, 204]);
+  });
+
+  it("throws OpsDataError when Python API returns non-OK", async () => {
+    mockFetchOpsRaw.mockResolvedValue(
+      new Response("upstream error", { status: 502 }),
+    );
+
+    await expect(getGraphModuleIssuesFromBff()).rejects.toBeInstanceOf(OpsDataError);
   });
 });
 
