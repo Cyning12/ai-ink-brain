@@ -1,5 +1,8 @@
-import { getOpsDeskSecret } from "@/lib/auth/ops-env";
-import { getOpsDeskSessionFromRequest } from "@/lib/auth/ops-session";
+import { getOpsDeskAuthMode, getOpsDeskSecret } from "@/lib/auth/ops-env";
+import {
+  getOpsDeskSessionFromRequest,
+  type ParsedOpsDeskSession,
+} from "@/lib/auth/ops-session";
 
 export const runtime = "nodejs";
 
@@ -11,6 +14,23 @@ export type OpsSessionPayload = {
 };
 
 export async function GET(request: Request): Promise<Response> {
+  if (getOpsDeskAuthMode() === "db") {
+    const session = await getOpsDeskSessionFromRequest(request, "");
+    if (!session) {
+      return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+    }
+    const payload: OpsSessionPayload = {
+      ok: true,
+      role: session.role,
+      configured: true,
+      expiresAt:
+        session.expiresAt === undefined
+          ? undefined
+          : new Date(session.expiresAt).toISOString(),
+    };
+    return Response.json(payload);
+  }
+
   const secret = getOpsDeskSecret();
   if (!secret) {
     return Response.json(
@@ -19,7 +39,10 @@ export async function GET(request: Request): Promise<Response> {
     );
   }
 
-  const session = await getOpsDeskSessionFromRequest(request, secret);
+  const session: ParsedOpsDeskSession | null = await getOpsDeskSessionFromRequest(
+    request,
+    secret,
+  );
   if (!session) {
     return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }

@@ -146,7 +146,7 @@ ai-ink-brain-api-python
 | 「#545 适合我做吗」（P1 Demo · 实施时从 ISSUE_SCAN 选较新 open issue） | **Deep** | `issue_analyst` → Review → Orchestrator 总结 |
 | 「PR 周期时间趋势」            | **Fast** | `GET /ops/metrics/cycle-time`              |
 | 「Read 工具相关 open issue」 | **Fast** | `GET /ops/issues?…`（P2 可加 graph filter）    |
-| 开放复杂问                  | **Deep** | `fallback` 子图 + Review                     |
+| 开放复杂问                  | **Fallback** | **ReAct** Tool Loop + Review → synthesize（§4.6.7） |
 
 
 Phase 2+：受限 NL→SQL（单表/视图）· 须 SQL 审计。
@@ -212,6 +212,18 @@ POST /ops/chat/messages
 | **P1-a** | 手写 FSM 实现 Orchestrator + issue_analyst + review；**表结构 LangGraph-ready** |
 | **P1-b** | 引入 `langgraph` · Postgres/Supabase checkpointer · 图节点与 P1-a 等价          |
 
+
+#### 4.6.7 双模式编排 · FSM 主路径 + ReAct fallback（P3-1）
+
+| 模式 | 意图 / 触发 | 执行 |
+| --- | --- | --- |
+| **FSM 主路径** | `metrics_*` · `issue_list` · `issue_contribution` 等结构化意图 | fast 模板/metrics API · 或 deep=`issue_analyst`→Review→synthesize（§4.6.1） |
+| **ReAct fallback** | `fallback` · 规则识别的开放复杂问 | `OpsToolRegistry` 多步 **think→tool_call→observe** 循环（`max_steps` 有界）→ Review → synthesize |
+
+- **共用**：`ops_runs` · `ops_run_events` · Langfuse · Review 规则闸（§4.6.4）
+- **Tool Protocol**：声明式注册（name · JSON schema · handler · `read_only`）；只读 ops 工具与 FSM 子 Agent 工具集对齐
+- **非范围**：浏览器自动化 · 向量 RAG · LangGraph 图迁移（仍属 P1-b 可选）
+- **task**：[`task_ops_desk_p3_react_fallback_v1.md`](../../../../docs/harness/tasks/active/task_ops_desk_p3_react_fallback_v1.md)
 
 #### 4.6.6 可观测 · 前端
 
@@ -426,9 +438,9 @@ Cyning12/kimi-code @ cyning/meta · graph.json（GHA 只读 sync）
 | P2-2 | `ops-desk-p2-scan-ingest`       | `ai-ink-brain-api-python` | ISSUE_SCAN → `ops_scan_snapshots` + `scan_analyst`                     | P0-2          |
 | P2-3 | `ops-desk-p2-manual-sync`       | `ai-ink-brain` + GHA      | maintainer 手动 sync + 日志 UI                                             | P0-2          |
 | P2-4 | `ops-desk-p2-thinking-chain-v2` | `ai-ink-brain`            | evidence/reasoning/suggestion 完整 UI                                    | P1-5          |
-
-
-> **废止**：`ops-desk-p1-analysis-job`（R1）并入 P1-2 + P1-3。
+| P2-5 | Langfuse / metrics / Provider 等 | 见 PLAN §12.4 | P2-4 后并行收尾 |
+| P3-1 | `ops-desk-p3-react-fallback`    | `ai-ink-brain-api-python`（+ 前端按需） | ReAct fallback · Tool Protocol · 与 FSM 共用 events                      | P2-5f script CLOSE |
+| P3-2 | `ops-desk-p3-auth`              | 双仓                        | DB session · OAuth 选做 · Hermes 只读展示（见 PLAN P3-2）                  | P3-1          |
 
 ---
 
@@ -546,6 +558,7 @@ Cyning12/kimi-code @ cyning/meta · graph.json（GHA 只读 sync）
 
 | 版本   | 日期         | 说明                                                               |
 | ---- | ---------- | ---------------------------------------------------------------- |
+| v1.6 | 2026-06-25 | §4.4 fallback→ReAct · §4.6.7 双模式编排 · §13 P3-1/P3-2 task 链 |
 | v1.5 | 2026-06-23 | §4.5 / R5 · graph 远程真值 **`Cyning12/kimi-code`**（非 kimi-code-meta 仓）· 链 POINTER |
 | v1.4 | 2026-06-21 | HG-SPEC-SIGNOFF approved · §5/§7 N1/N2 · §4.4 Demo 深析 issue 改为 ISSUE_SCAN 较新候选（默认 #545） |
 | v1.3 | 2026-06-18 | R9 · §4.7 领域本体 · 链 ONTOLOGY_ops_desk                             |

@@ -1,10 +1,13 @@
 import {
   getOpsDeskDemoToken,
+  getOpsDeskAuthMode,
   getOpsDeskMaintainerSecret,
   getOpsDeskSecret,
 } from "@/lib/auth/ops-env";
+import { fetchOpsSessionFromPython } from "@/lib/server/ops-auth-proxy";
 
 export const OPS_DESK_TOKEN_COOKIE = "ops_desk_token";
+export const OPS_DESK_SESSION_COOKIE = "ops_desk_session";
 
 export type OpsDeskRole = "viewer" | "maintainer";
 
@@ -127,7 +130,7 @@ export async function parseOpsDeskTokenCookie(
   return { role, expiresAt: exp === 0 ? undefined : exp * 1000 };
 }
 
-/** 优先 Bearer token（适合 curl），其次 Cookie。 */
+/** 优先 Bearer token（适合 curl），其次 DB session Cookie，最后 legacy HMAC Cookie。 */
 export async function getOpsDeskSessionFromRequest(
   request: Request,
   secret: string,
@@ -137,6 +140,27 @@ export async function getOpsDeskSessionFromRequest(
     const role = resolveOpsDeskRole(bearer);
     if (role) return { role };
   }
+
+  if (getOpsDeskAuthMode() === "db") {
+    const sessionId = parseCookie(
+      request.headers.get("cookie"),
+      OPS_DESK_SESSION_COOKIE,
+    );
+    if (sessionId) {
+      const remote = await fetchOpsSessionFromPython(sessionId);
+      if (remote?.role) {
+        if (remote.expiresAt !== undefined && remote.expiresAt <= Date.now()) {
+          return null;
+        }
+        return {
+          role: remote.role,
+          expiresAt: remote.expiresAt,
+        };
+      }
+    }
+    return null;
+  }
+
   return parseOpsDeskTokenCookie(request.headers.get("cookie"), secret);
 }
 
@@ -144,6 +168,14 @@ export async function getOpsDeskSessionFromRequest(
 export async function requireOpsDeskAccess(
   request: Request,
 ): Promise<Response | null> {
+  if (getOpsDeskAuthMode() === "db") {
+    const session = await getOpsDeskSessionFromRequest(request, "");
+    if (!session) {
+      return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+    }
+    return null;
+  }
+
   const secret = getOpsDeskSecret();
   if (!secret) {
     return Response.json(
@@ -161,6 +193,17 @@ export async function requireOpsDeskAccess(
 export async function requireOpsDeskMaintainer(
   request: Request,
 ): Promise<Response | null> {
+  if (getOpsDeskAuthMode() === "db") {
+    const session = await getOpsDeskSessionFromRequest(request, "");
+    if (!session || session.role !== "maintainer") {
+      return Response.json(
+        { ok: false, error: "Forbidden: maintainer required" },
+        { status: 403 },
+      );
+    }
+    return null;
+  }
+
   const secret = getOpsDeskSecret();
   if (!secret) {
     return Response.json(
@@ -190,4 +233,18 @@ export function opsDeskTokenCookieHeader(
 export function opsDeskLogoutCookieHeader(): string {
   const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
   return `${OPS_DESK_TOKEN_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure}`;
+}
+
+export function opsDeskSessionCookieHeader(
+  sessionId: string,
+  ttlSeconds?: number,
+): string {
+  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  const maxAge = ttlSeconds ? `; Max-Age=${ttlSeconds}` : "";
+  return `${OPS_DESK_SESSION_COOKIE}=${sessionId}; Path=/; HttpOnly; SameSite=Lax${maxAge}${secure}`;
+}
+
+export function opsDeskSessionLogoutCookieHeader(): string {
+  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  return `${OPS_DESK_SESSION_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure}`;
 }

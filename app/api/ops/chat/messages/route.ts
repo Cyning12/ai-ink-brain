@@ -14,5 +14,5 @@ export async function POST(request: Request): Promise<Response> {
     method: "POST",
     headers: { "Content-Type": contentType },
     body,
-  });
+  }, request);
 }

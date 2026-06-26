@@ -13,8 +13,8 @@ import { MetricCard } from "@/components/ops/metric-card";
 import { ScanSummaryCard } from "@/components/ops/scan-summary-card";
 import { SyncControls, SyncPanelProvider, SyncRunHistoryLive } from "@/components/ops/sync-panel";
 import { TrendChart } from "@/components/ops/trend-chart";
+import { getOpsDeskAuthMode, getOpsDeskSecret } from "@/lib/auth/ops-env";
 import { getOpsDeskSessionFromRequest } from "@/lib/auth/ops-session";
-import { getOpsDeskSecret } from "@/lib/auth/ops-env";
 import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
@@ -36,16 +36,14 @@ async function loadPageData(): Promise<PageData> {
       getRecentSyncRuns(repo.id, 10),
     ]);
 
-    const secret = getOpsDeskSecret();
-    let isMaintainer = false;
-    if (secret) {
-      const h = await headers();
-      const session = await getOpsDeskSessionFromRequest(
-        new Request("http://localhost", { headers: h }),
-        secret,
-      );
-      isMaintainer = session?.role === "maintainer";
-    }
+    const h = await headers();
+    const secretForSession =
+      getOpsDeskAuthMode() === "db" ? "" : (getOpsDeskSecret() ?? "");
+    const session = await getOpsDeskSessionFromRequest(
+      new Request("http://localhost", { headers: h }),
+      secretForSession,
+    );
+    const isMaintainer = session?.role === "maintainer";
 
     return { kind: "loaded", metrics, scanSnapshot, syncRuns, isMaintainer };
   } catch (err) {

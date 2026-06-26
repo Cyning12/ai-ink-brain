@@ -1,12 +1,12 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
 function LoginForm() {
-  const router = useRouter();
   const params = useSearchParams();
   const demoToken = params.get("token") ?? "";
+  const sessionExpired = params.get("expired") === "1";
 
   const [token, setToken] = useState(demoToken);
   const [loading, setLoading] = useState(false);
@@ -36,7 +36,8 @@ function LoginForm() {
         setError(data.error ?? "登录失败");
         return;
       }
-      router.replace("/ops/kimi-code");
+      // 硬跳转：确保 Set-Cookie 后的首次导航带上 ops_desk_session
+      window.location.assign("/ops/kimi-code");
     } finally {
       setLoading(false);
     }
@@ -57,6 +58,12 @@ function LoginForm() {
         请输入邀请秘钥以进入 Kimi Code 看板
       </p>
 
+      {sessionExpired && (
+        <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          登录已过期，请重新登录
+        </p>
+      )}
+
       <div className="mt-6 space-y-4">
         <label className="block text-sm text-[color:var(--color-muted-foreground)]">
           秘钥
@@ -64,7 +71,7 @@ function LoginForm() {
             type="password"
             value={token}
             onChange={(e) => setToken(e.target.value)}
-            placeholder="OPS_DESK_SECRET"
+            placeholder="邀请秘钥"
             className="mt-1 block w-full rounded-lg border border-[color:var(--color-border)] bg-transparent px-3 py-2 text-sm text-[color:var(--color-foreground)] outline-none focus:ring-2 focus:ring-[color:var(--color-ring)]"
             disabled={loading}
             autoFocus

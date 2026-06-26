@@ -14,5 +14,5 @@ export async function GET(
   const { id } = await params;
   return forwardOpsRequest(`/api/py/ops/runs/${encodeURIComponent(id)}`, {
     method: "GET",
-  });
+  }, request);
 }

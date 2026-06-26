@@ -1,6 +1,12 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
 
-import { forwardOpsRequest } from "@/lib/server/forward-ops-request";
+import { fetchOpsRaw, forwardOpsRequest } from "@/lib/server/forward-ops-request";
+
+vi.mock("next/headers", () => ({
+  headers: vi.fn(),
+}));
+
+import { headers } from "next/headers";
 
 describe("forwardOpsRequest", () => {
   afterEach(() => {
@@ -9,6 +15,7 @@ describe("forwardOpsRequest", () => {
   });
 
   it("未配置 OPS_DESK_SECRET 时返回 503", async () => {
+    vi.stubEnv("OPS_DESK_AUTH_MODE", "legacy");
     vi.stubEnv("OPS_DESK_SECRET", "");
     vi.stubEnv("PY_API_URL", "http://py.local");
     const res = await forwardOpsRequest("/ops/chat/messages", { method: "POST", body: "{}" });
@@ -19,6 +26,7 @@ describe("forwardOpsRequest", () => {
   });
 
   it("转发时注入 x-ops-secret 头", async () => {
+    vi.stubEnv("OPS_DESK_AUTH_MODE", "legacy");
     vi.stubEnv("OPS_DESK_SECRET", "ops-secret-123");
     vi.stubEnv("PY_API_URL", "http://py.local");
 
@@ -45,6 +53,7 @@ describe("forwardOpsRequest", () => {
   });
 
   it("Python 不可达时返回结构化 503", async () => {
+    vi.stubEnv("OPS_DESK_AUTH_MODE", "legacy");
     vi.stubEnv("OPS_DESK_SECRET", "ops-secret-123");
     vi.stubEnv("PY_API_URL", "http://py.local");
 
@@ -56,5 +65,29 @@ describe("forwardOpsRequest", () => {
     const data = (await res.json()) as Record<string, unknown>;
     expect(data.ok).toBe(false);
     expect(String(data.error)).toContain("无法连接");
+  });
+
+  it("db 模式 RSC 无显式 Request 时从 headers() 读取 ops_desk_session", async () => {
+    vi.stubEnv("OPS_DESK_AUTH_MODE", "db");
+    vi.stubEnv("PY_API_URL", "http://py.local");
+
+    vi.mocked(headers).mockResolvedValue(
+      new Headers({ cookie: "ops_desk_session=sess-abc" }),
+    );
+
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ runs: [] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = await fetchOpsRaw("/api/py/ops/sync/runs?limit=10", { method: "GET" });
+    expect(res.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const hdrs = new Headers(init.headers);
+    expect(hdrs.get("x-ops-session")).toBe("sess-abc");
   });
 });

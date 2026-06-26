@@ -1,14 +1,43 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getAdminApiSecret } from "@/lib/auth/admin-env";
+import { getOpsDeskAuthMode, getOpsDeskSecret } from "@/lib/auth/ops-env";
 import { getAdminTokenFromRequest } from "@/lib/auth/parse-admin-token";
-import { getOpsDeskSecret } from "@/lib/auth/ops-env";
 import {
+  getOpsDeskSessionFromRequest,
   getOpsDeskTokenFromRequest,
+  OPS_DESK_SESSION_COOKIE,
   parseOpsDeskTokenCookie,
   resolveOpsDeskRole,
 } from "@/lib/auth/ops-session";
 import { parseSiteMode } from "@/lib/site-mode";
+
+const OPS_PUBLIC_PATHS = new Set([
+  "/ops/login",
+  "/api/ops/login",
+  "/api/ops/logout",
+]);
+
+async function resolveOpsMiddlewareSession(
+  request: NextRequest,
+): Promise<{ role: "viewer" | "maintainer" } | null> {
+  if (getOpsDeskAuthMode() === "db") {
+    return getOpsDeskSessionFromRequest(request, "");
+  }
+
+  const secret = getOpsDeskSecret();
+  if (!secret) {
+    return null;
+  }
+
+  const bearer = getOpsDeskTokenFromRequest(request);
+  const roleFromBearer = bearer ? resolveOpsDeskRole(bearer) : null;
+  if (roleFromBearer) {
+    return { role: roleFromBearer };
+  }
+
+  return parseOpsDeskTokenCookie(request.headers.get("cookie"), secret);
+}
 
 export async function middleware(request: NextRequest) {
   if (request.method === "OPTIONS") {
@@ -55,32 +84,41 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/api/ops/");
 
   if (isOpsPath) {
-    const secret = getOpsDeskSecret();
-    if (!secret) {
-      return new NextResponse("OPS_DESK_SECRET 未配置，已拒绝访问 Ops Desk", {
-        status: 503,
-      });
+    // db 模式：不强制前端 OPS_DESK_SECRET；legacy 仍依赖
+    if (getOpsDeskAuthMode() !== "db") {
+      const secret = getOpsDeskSecret();
+      if (!secret) {
+        return new NextResponse("OPS_DESK_SECRET 未配置，已拒绝访问 Ops Desk", {
+          status: 503,
+        });
+      }
     }
 
-    // 登录页与登录 API 本身无需预认证
-    if (pathname === "/ops/login" || pathname === "/api/ops/login") {
+    if (OPS_PUBLIC_PATHS.has(pathname)) {
       return NextResponse.next();
     }
 
-    const bearer = getOpsDeskTokenFromRequest(request);
-    const roleFromBearer = bearer ? resolveOpsDeskRole(bearer) : null;
-    const session = roleFromBearer
-      ? { role: roleFromBearer }
-      : await parseOpsDeskTokenCookie(request.headers.get("cookie"), secret);
+    const session = await resolveOpsMiddlewareSession(request);
 
     if (!session) {
       if (pathname.startsWith("/api/ops/")) {
-        return NextResponse.json(
-          { ok: false, error: "Unauthorized" },
+        const res = NextResponse.json(
+          { ok: false, error: "Unauthorized", code: "SESSION_EXPIRED" },
           { status: 401 },
         );
+        if (getOpsDeskAuthMode() === "db") {
+          res.cookies.set(OPS_DESK_SESSION_COOKIE, "", { path: "/", maxAge: 0 });
+        }
+        return res;
       }
-      return NextResponse.redirect(new URL("/ops/login", request.url), 302);
+      const res = NextResponse.redirect(
+        new URL("/ops/login?expired=1", request.url),
+        302,
+      );
+      if (getOpsDeskAuthMode() === "db") {
+        res.cookies.set(OPS_DESK_SESSION_COOKIE, "", { path: "/", maxAge: 0 });
+      }
+      return res;
     }
 
     return NextResponse.next();

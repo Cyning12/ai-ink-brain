@@ -24,7 +24,7 @@ export type OpsRun = {
   repo_id: string;
   session_id: string | null;
   query: string;
-  route: "fast" | "deep";
+  route: "fast" | "deep" | "react";
   status: "queued" | "running" | "done" | "failed" | "partial";
   final_answer: Record<string, unknown> | null;
   retry_token: string | null;
@@ -59,7 +59,7 @@ export type OpsChatModelsResponse = {
 
 export type OpsChatMessagesResponse = {
   run_id: string;
-  route: "fast" | "deep";
+  route: "fast" | "deep" | "react";
   status: OpsRun["status"];
   answer?: string;
 };
@@ -212,6 +212,69 @@ export function isRunActive(status: OpsRun["status"]): boolean {
   return status === "queued" || status === "running";
 }
 
+/** 终答区是否可展示：运行中 / 轮询中不展示。 */
+export function isOpsRunComplete(options: {
+  status?: OpsRun["status"] | null;
+  loading: boolean;
+  polling: boolean;
+}): boolean {
+  if (options.loading || options.polling) return false;
+  if (!options.status) return false;
+  return !isRunActive(options.status);
+}
+
+/** 单条 event 复制 JSON。 */
+export function serializeOpsEventForCopy(event: OpsRunEvent): string {
+  return JSON.stringify(
+    {
+      seq: event.seq,
+      agent_role: event.agent_role,
+      event_type: event.event_type,
+      payload: event.payload,
+    },
+    null,
+    2,
+  );
+}
+
+/** 全部 events 复制 JSON。 */
+export function serializeOpsEventsForCopy(events: OpsRunEvent[]): string {
+  return JSON.stringify(
+    events.map((event) => ({
+      seq: event.seq,
+      agent_role: event.agent_role,
+      event_type: event.event_type,
+      payload: event.payload,
+    })),
+    null,
+    2,
+  );
+}
+
+/** 写入剪贴板（浏览器环境）。 */
+export async function copyTextToClipboard(text: string): Promise<boolean> {
+  if (typeof navigator === "undefined" || !navigator.clipboard?.writeText) {
+    return false;
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** ReAct 路径相关 event 类型。 */
+export function isReactEventType(eventType: string): boolean {
+  return (
+    eventType === "agent.react_step" ||
+    eventType === "agent.tool_call" ||
+    eventType === "agent.tool_result" ||
+    eventType === "agent.final_answer" ||
+    eventType === "react.max_steps"
+  );
+}
+
 /** 合并新事件，按 seq 去重并排序。 */
 export function mergeOpsEvents(existing: OpsRunEvent[], incoming: OpsRunEvent[]): OpsRunEvent[] {
   const map = new Map<number, OpsRunEvent>();
@@ -361,6 +424,26 @@ export function formatOpsEventSummary(event: OpsRunEvent): string {
       const step = typeof payload.step === "string" ? payload.step : "";
       return `LLM 调用 · ${model}${step ? ` · ${step}` : ""}`;
     }
+    case "agent.react_step": {
+      const stepNo = typeof payload.step === "number" ? payload.step : "—";
+      const thought = typeof payload.thought === "string" ? payload.thought.trim() : "";
+      const preview = thought ? ` · ${thought.slice(0, 80)}${thought.length > 80 ? "…" : ""}` : "";
+      return `ReAct 思考 · 第 ${stepNo} 步${preview}`;
+    }
+    case "agent.tool_call": {
+      const tool = typeof payload.tool === "string" ? payload.tool : "—";
+      return `ReAct 调用工具 · ${tool}`;
+    }
+    case "agent.tool_result": {
+      const tool = typeof payload.tool === "string" ? payload.tool : "—";
+      const ok = payload.ok === true;
+      const summary = typeof payload.summary === "string" ? payload.summary.slice(0, 60) : "";
+      return `ReAct 工具结果 · ${tool} · ${ok ? "成功" : "失败"}${summary ? ` · ${summary}` : ""}`;
+    }
+    case "agent.final_answer":
+      return "ReAct 步内终答";
+    case "react.max_steps":
+      return `ReAct 达最大步数 · ${typeof payload.max_steps === "number" ? payload.max_steps : "—"}`;
     default:
       return event.event_type;
   }

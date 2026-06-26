@@ -8,5 +8,5 @@ export async function GET(request: Request): Promise<Response> {
   const denied = await requireOpsDeskAccess(request);
   if (denied) return denied;
 
-  return forwardOpsRequest("/api/py/ops/chat/models", { method: "GET" });
+  return forwardOpsRequest("/api/py/ops/chat/models", { method: "GET" }, request);
 }
