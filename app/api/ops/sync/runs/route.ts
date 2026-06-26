@@ -10,5 +10,6 @@ export async function GET(request: Request): Promise<Response> {
   return forwardOpsRequest(
     `/api/py/ops/sync/runs?limit=${encodeURIComponent(String(safeLimit))}`,
     { method: "GET" },
+    request,
   );
 }

@@ -2,20 +2,22 @@ import { headers } from "next/headers";
 import Link from "next/link";
 
 import { OpsLogoutButton } from "@/components/ops/ops-logout-button";
-import { getOpsDeskSecret } from "@/lib/auth/ops-env";
+import { OpsSessionGuard } from "@/components/ops/ops-session-guard";
+import { getOpsDeskAuthMode, getOpsDeskSecret } from "@/lib/auth/ops-env";
 import {
   getOpsDeskSessionFromRequest,
   type ParsedOpsDeskSession,
 } from "@/lib/auth/ops-session";
 
 async function getOpsSession(): Promise<ParsedOpsDeskSession | null> {
+  const h = await headers();
+  const req = new Request("http://localhost", { headers: h });
+  if (getOpsDeskAuthMode() === "db") {
+    return getOpsDeskSessionFromRequest(req, "");
+  }
   const secret = getOpsDeskSecret();
   if (!secret) return null;
-  const h = await headers();
-  return getOpsDeskSessionFromRequest(
-    new Request("http://localhost", { headers: h }),
-    secret,
-  );
+  return getOpsDeskSessionFromRequest(req, secret);
 }
 
 function isActive(pathname: string, href: string): boolean {
@@ -94,7 +96,10 @@ export default async function OpsKimiCodeLayout({
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1 p-6 md:p-10">{children}</main>
+      <main className="min-w-0 flex-1 p-6 md:p-10">
+        <OpsSessionGuard expiresAtMs={session?.expiresAt} />
+        {children}
+      </main>
     </div>
   );
 }

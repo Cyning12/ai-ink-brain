@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { ThinkingChainTimeline } from "@/components/ops/ThinkingChainTimeline";
 import {
+  copyTextToClipboard,
   extractOpsFinalAnswer,
   extractOpsLlmModelsUsed,
   extractOpsModelFallbackChain,
@@ -12,8 +13,11 @@ import {
   fetchOpsRunEvents,
   formatModelFallbackChainLabel,
   formatOpsEventSummary,
+  isOpsRunComplete,
   isRunActive,
   mergeOpsEvents,
+  serializeOpsEventForCopy,
+  serializeOpsEventsForCopy,
   sendOpsChatMessage,
   type OpsChatModel,
   type OpsRun,
@@ -128,8 +132,15 @@ export function OpsChatClient() {
   }, [runId, polling]);
 
   const finalAnswer = extractOpsFinalAnswer(events) || (run?.final_answer?.answer as string) || "";
+  const runComplete = isOpsRunComplete({
+    status: run?.status ?? null,
+    loading,
+    polling,
+  });
+  const showFinalAnswer = runComplete && Boolean(finalAnswer.trim());
 
   const isDeep = run?.route === "deep";
+  const isReact = run?.route === "react";
   const modelFallbackSteps = extractOpsModelFallbackChain(events);
   const llmModelsUsed = extractOpsLlmModelsUsed(events);
   const modelChainLabel = formatModelFallbackChainLabel(
@@ -219,13 +230,62 @@ export function OpsChatClient() {
         </section>
       ) : null}
 
-      {finalAnswer ? (
+      {/* ReAct 路径：独立推理链区块 */}
+      {isReact ? (
         <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
-          <div className="border-b border-[color:var(--color-border)] px-4 py-3">
-            <div className="font-serif text-sm text-[#2c2c2c]">最终答案</div>
+          <div className="flex items-start justify-between gap-2 border-b border-[color:var(--color-border)] px-4 py-3">
+            <div>
+              <div className="font-serif text-sm text-[#2c2c2c]">ReAct 推理链</div>
+              <div className="mt-0.5 text-[11px] text-slate-500">
+                多步工具调用 · 运行中仅展示事件 · 完成后展示终答
+              </div>
+            </div>
+            {events.length > 0 ? (
+              <button
+                type="button"
+                onClick={() => void copyTextToClipboard(serializeOpsEventsForCopy(events))}
+                className="shrink-0 rounded-md border border-slate-200 bg-white/80 px-2 py-0.5 text-[10px] text-slate-600 hover:border-slate-300"
+              >
+                复制全部
+              </button>
+            ) : null}
           </div>
-          <div className="px-4 py-4">
-            <div className="whitespace-pre-wrap text-sm text-slate-800">{finalAnswer}</div>
+          <div className="max-h-[60vh] overflow-auto px-4 py-3">
+            {events.length === 0 ? (
+              <p className="text-[12px] leading-relaxed text-slate-500">
+                {loading || polling ? "等待 ReAct 事件流…" : "发送复杂对比类问题后，此处展示 ReAct 步。"}
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {events.map((e) => (
+                  <li
+                    key={e.seq}
+                    className="rounded-lg border border-violet-200/70 bg-violet-50/30 px-3 py-2 text-sm"
+                  >
+                    <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+                      <span className="font-mono">seq {e.seq}</span>
+                      <span>·</span>
+                      <span className="font-mono text-slate-700">{e.agent_role}</span>
+                      <span>·</span>
+                      <span className="font-mono text-violet-900/80">{e.event_type}</span>
+                      <button
+                        type="button"
+                        onClick={() => void copyTextToClipboard(serializeOpsEventForCopy(e))}
+                        className="rounded-md border border-slate-200 bg-white/80 px-2 py-0.5 text-[10px] text-slate-600"
+                      >
+                        复制
+                      </button>
+                    </div>
+                    <div className="mt-1 text-slate-800">{formatOpsEventSummary(e)}</div>
+                    {Object.keys(e.payload ?? {}).length > 0 ? (
+                      <pre className="mt-2 max-h-[24vh] overflow-auto whitespace-pre-wrap break-words rounded border border-slate-200/60 bg-white/80 p-2 font-mono text-[10px] text-slate-700">
+                        {JSON.stringify(e.payload, null, 2)}
+                      </pre>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </section>
       ) : null}
@@ -249,14 +309,25 @@ export function OpsChatClient() {
             )}
           </div>
         </section>
-      ) : (
+      ) : !isReact ? (
         /* Fast 路径：保持原有事件列表 UI 不变 */
         <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
-          <div className="border-b border-[color:var(--color-border)] px-4 py-3">
-            <div className="font-serif text-sm text-[#2c2c2c]">运行事件</div>
-            <div className="mt-0.5 text-[11px] text-slate-500">
-              seq 递增 · 按 after_seq 增量合并
+          <div className="flex items-start justify-between gap-2 border-b border-[color:var(--color-border)] px-4 py-3">
+            <div>
+              <div className="font-serif text-sm text-[#2c2c2c]">运行事件</div>
+              <div className="mt-0.5 text-[11px] text-slate-500">
+                seq 递增 · 按 after_seq 增量合并
+              </div>
             </div>
+            {events.length > 0 ? (
+              <button
+                type="button"
+                onClick={() => void copyTextToClipboard(serializeOpsEventsForCopy(events))}
+                className="shrink-0 rounded-md border border-slate-200 bg-white/80 px-2 py-0.5 text-[10px] text-slate-600 hover:border-slate-300"
+              >
+                复制全部
+              </button>
+            ) : null}
           </div>
           <div className="max-h-[60vh] overflow-auto px-4 py-3">
             {events.length === 0 ? (
@@ -276,6 +347,13 @@ export function OpsChatClient() {
                       <span className="font-mono text-slate-700">{e.agent_role}</span>
                       <span>·</span>
                       <span className="font-mono text-indigo-900/80">{e.event_type}</span>
+                      <button
+                        type="button"
+                        onClick={() => void copyTextToClipboard(serializeOpsEventForCopy(e))}
+                        className="rounded-md border border-slate-200 bg-white/80 px-2 py-0.5 text-[10px] text-slate-600"
+                      >
+                        复制
+                      </button>
                     </div>
                     <div className="mt-1 text-slate-800">{formatOpsEventSummary(e)}</div>
                     {Object.keys(e.payload ?? {}).length > 0 ? (
@@ -289,7 +367,29 @@ export function OpsChatClient() {
             )}
           </div>
         </section>
-      )}
+      ) : null}
+
+      {showFinalAnswer ? (
+        <section className="rounded-2xl border border-[color:var(--color-border)] bg-white/40">
+          <div className="border-b border-[color:var(--color-border)] px-4 py-3">
+            <div className="font-serif text-sm text-[#2c2c2c]">最终答案</div>
+            {run?.status ? (
+              <div className="mt-0.5 text-[11px] text-slate-500">
+                run 已结束 · status={run.status}
+              </div>
+            ) : null}
+          </div>
+          <div className="px-4 py-4">
+            <div className="whitespace-pre-wrap text-sm text-slate-800">{finalAnswer}</div>
+          </div>
+        </section>
+      ) : null}
+
+      {!showFinalAnswer && (loading || polling || (run && isRunActive(run.status))) ? (
+        <p className="text-center text-[11px] text-slate-500">
+          运行中… 事件流更新后将在 run 结束时展示最终答案
+        </p>
+      ) : null}
     </div>
   );
 }

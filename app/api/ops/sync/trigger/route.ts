@@ -11,5 +11,5 @@ export async function POST(request: Request): Promise<Response> {
   return forwardOpsRequest("/api/py/ops/sync/trigger", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-  });
+  }, request);
 }

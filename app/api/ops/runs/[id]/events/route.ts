@@ -17,5 +17,5 @@ export async function GET(
   const query = `?after_seq=${encodeURIComponent(afterSeq)}`;
   return forwardOpsRequest(`/api/py/ops/runs/${encodeURIComponent(id)}/events${query}`, {
     method: "GET",
-  });
+  }, request);
 }

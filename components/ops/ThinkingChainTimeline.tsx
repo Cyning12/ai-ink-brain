@@ -3,13 +3,34 @@
 import { useMemo } from "react";
 
 import {
+  copyTextToClipboard,
   formatOpsEventSummary,
   isReviewEventType,
   partitionThinkingChain,
+  serializeOpsEventForCopy,
+  serializeOpsEventsForCopy,
   type OpsCitation,
   type OpsRunEvent,
   type ThinkingChainPhase,
 } from "@/lib/ops/chat";
+
+function CopyButton({
+  label,
+  onCopy,
+}: {
+  label: string;
+  onCopy: () => Promise<void>;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => void onCopy()}
+      className="rounded-md border border-slate-200 bg-white/80 px-2 py-0.5 text-[10px] text-slate-600 hover:border-slate-300 hover:text-slate-800"
+    >
+      {label}
+    </button>
+  );
+}
 
 function PhaseBadge({ phase }: { phase: ThinkingChainPhase }) {
   const styles: Record<ThinkingChainPhase, string> = {
@@ -134,7 +155,13 @@ function AnalysisCard({
   );
 }
 
-export function ThinkingChainTimeline({ events }: { events: OpsRunEvent[] }) {
+export function ThinkingChainTimeline({
+  events,
+  showCopyButtons = true,
+}: {
+  events: OpsRunEvent[];
+  showCopyButtons?: boolean;
+}) {
   const chain = useMemo(() => partitionThinkingChain(events), [events]);
 
   if (!events.length) {
@@ -146,7 +173,18 @@ export function ThinkingChainTimeline({ events }: { events: OpsRunEvent[] }) {
   }
 
   return (
-    <ul className="space-y-3">
+    <div className="space-y-3">
+      {showCopyButtons ? (
+        <div className="flex justify-end">
+          <CopyButton
+            label="复制全部"
+            onCopy={async () => {
+              await copyTextToClipboard(serializeOpsEventsForCopy(events));
+            }}
+          />
+        </div>
+      ) : null}
+      <ul className="space-y-3">
       {chain.map((item) => {
         const { event, phase, toolResult, review } = item;
         const isToolResult = event.event_type === "agent.tool.result";
@@ -169,6 +207,14 @@ export function ThinkingChainTimeline({ events }: { events: OpsRunEvent[] }) {
               <span>·</span>
               <span className="font-mono text-indigo-900/80">{event.event_type}</span>
               <PhaseBadge phase={phase} />
+              {showCopyButtons ? (
+                <CopyButton
+                  label="复制"
+                  onCopy={async () => {
+                    await copyTextToClipboard(serializeOpsEventForCopy(event));
+                  }}
+                />
+              ) : null}
             </div>
             <div className="mt-1 text-slate-800">{formatOpsEventSummary(event)}</div>
 
@@ -199,6 +245,7 @@ export function ThinkingChainTimeline({ events }: { events: OpsRunEvent[] }) {
           </li>
         );
       })}
-    </ul>
+      </ul>
+    </div>
   );
 }

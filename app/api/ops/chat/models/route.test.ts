@@ -41,8 +41,9 @@ describe("GET /api/ops/chat/models", () => {
       ),
     );
 
-    const res = await GET(new Request("http://localhost/api/ops/chat/models"));
+    const req = new Request("http://localhost/api/ops/chat/models");
+    const res = await GET(req);
     expect(res.status).toBe(200);
-    expect(forwardOpsRequest).toHaveBeenCalledWith("/api/py/ops/chat/models", { method: "GET" });
+    expect(forwardOpsRequest).toHaveBeenCalledWith("/api/py/ops/chat/models", { method: "GET" }, req);
   });
 });

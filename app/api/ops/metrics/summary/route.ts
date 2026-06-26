@@ -15,5 +15,6 @@ export async function GET(request: Request): Promise<Response> {
   return forwardOpsRequest(
     `/api/py/ops/metrics/summary?days=${encodeURIComponent(String(days))}`,
     { method: "GET" },
+    request,
   );
 }
