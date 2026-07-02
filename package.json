@@ -17,6 +17,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ci": "vitest run",
+    "ci:local": "sh scripts/ci-local.sh",
+    "tech-graph:check": "pnpm tech-graph:graph-check && pnpm tech-graph:equivalence-check && pnpm tech-graph:manifest-check && pnpm tech-graph:schema-check",
     "tech-graph:graph-export": "sh -c 'python3 \"${PWD}/../ai-ink-brain-api-python/tools/tech_graph_graph_export.py\" --input \"${PWD}/docs/_tech_graph\" --output \"${PWD}/docs/_tech_graph/graph.json\"'",
     "tech-graph:manifest-check": "sh -c 'python3 \"${PWD}/../ai-ink-brain-api-python/tools/tech_graph_manifest_check.py\" --repo frontend --repo-root \"${PWD}\" --manifest \"${PWD}/docs/_tech_graph/_manifest.json\"'",
     "tech-graph:graph-check": "sh -c 'python3 \"${PWD}/../ai-ink-brain-api-python/tools/tech_graph_graph_export.py\" --input \"${PWD}/docs/_tech_graph\" --output \"${PWD}/docs/_tech_graph/graph.json\" --check'",
