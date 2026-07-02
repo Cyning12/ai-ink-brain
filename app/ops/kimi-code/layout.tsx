@@ -86,6 +86,17 @@ export default async function OpsKimiCodeLayout({
           >
             Chat
           </Link>
+          <Link
+            href="/ops/kimi-code/sessions"
+            className={[
+              "block rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              isActive(pathname, "/ops/kimi-code/sessions")
+                ? "bg-[color:var(--color-wash)] text-[color:var(--color-foreground)]"
+                : "text-[color:var(--color-foreground)] hover:bg-[color:var(--color-wash)]",
+            ].join(" ")}
+          >
+            Sessions
+          </Link>
         </nav>
 
         <div className="mt-8 flex items-center justify-between border-t border-[color:var(--color-border)] pt-4">
