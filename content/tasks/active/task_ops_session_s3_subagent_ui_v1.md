@@ -27,7 +27,7 @@
 | human_gate_id | status | blocks_hats | 说明 |
 | --- | --- | --- | --- |
 | HG-TASK-DRAFT | `approved` | 20-task-audit, 30 | 00 起草 · 2026-07-02 |
-| HG-AUDIT-R1 | `pending` | 30 | 20 R1 后人签 |
+| HG-AUDIT-R1 | `approved` | 30 | 20 R1 后人签 · 2026-07-02 · API `1fbb5a7d` |
 
 ---
 
@@ -68,4 +68,4 @@ S2 已交付授权区与 `dispatched` 占位回复。本 task 在 Session 续聊
 
 ## 给 Cursor
 
-`ops-session-s3-subagent-ui` · Open `ai-ink-brain/` · **HG-AUDIT-R1 pending 拒开工** · PR 批次暂定 S4 后
+`ops-session-s3-subagent-ui` · Open `ai-ink-brain/` · **HG-AUDIT-R1 approved** · PR 批次暂定 S4 后

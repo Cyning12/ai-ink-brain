@@ -43,6 +43,7 @@
     { "method": "GET", "path": "/api/ops/runs/[id]/events" },
     { "method": "GET", "path": "/api/ops/sessions" },
     { "method": "GET", "path": "/api/ops/sessions/[session_id]" },
+    { "method": "GET", "path": "/api/ops/sessions/[session_id]/deliverables" },
     { "method": "GET", "path": "/api/ops/sessions/[session_id]/events" },
     { "method": "GET", "path": "/api/py/chat/history" },
     { "method": "GET", "path": "/api/py/chat/suggested-questions" },

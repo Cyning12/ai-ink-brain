@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { OpsChatClient } from "@/components/ops/OpsChatClient";
 import { OpsSessionAuthPanel } from "@/components/ops/OpsSessionAuthPanel";
+import { OpsSessionDeliverablesPanel } from "@/components/ops/OpsSessionDeliverablesPanel";
 import { copyTextToClipboard } from "@/lib/ops/chat";
 import { formatDateTime } from "@/lib/ops/format";
 import {
@@ -42,7 +43,7 @@ function hintForAuthAction(action: OpsSessionAuthAction, apiMessage?: string): S
       tone: "success",
       text:
         apiMessage ??
-        "已授权 · Session 已进入 dispatched。HG-SESSION-PLAN 已签收。可继续在下方对话；深度 subagent 派工将在 S3 提供（当前为占位回复）。",
+        "已授权 · Session 已进入 dispatched。可在下方继续深析；subagent 产出将写入 deliverables。",
     };
   }
   if (action === "revise") {
@@ -130,7 +131,7 @@ export function OpsSessionDetailClient({ sessionId }: { sessionId: string }) {
     );
   }
 
-  const { meta, gate_summary: gateSummary, recent_messages: recentMessages } = detail;
+  const { meta, gate_summary: gateSummary, recent_messages: recentMessages, deliverables = [] } = detail;
   const showAuthPanel = meta.status === "awaiting_auth";
   const isBlocked = meta.status === "blocked";
   const pendingGates = gateSummary.pending.length > 0 ? gateSummary.pending : meta.gate_summary?.pending ?? [];
@@ -181,7 +182,7 @@ export function OpsSessionDetailClient({ sessionId }: { sessionId: string }) {
 
       {meta.status === "dispatched" && !statusHint ? (
         <section className="rounded-xl border border-emerald-200/80 bg-emerald-50/60 px-4 py-3 text-sm text-emerald-950">
-          已派工（dispatched）· 计划已授权。继续在下方对话可获得 S2 占位说明；深度分析与 subagent 派工将在 S3 提供。
+          已派工 · 计划已授权。在下方 Chat 发送问题将走 deep / ReAct / fast 编排，事件流与单轮 Ops Chat 一致；产出见交付物区。
         </section>
       ) : null}
 
@@ -261,6 +262,16 @@ export function OpsSessionDetailClient({ sessionId }: { sessionId: string }) {
             ))}
           </ul>
         </section>
+      ) : null}
+
+      {deliverables.length > 0 ? (
+        <OpsSessionDeliverablesPanel
+          deliverables={deliverables}
+          onCopyFeedback={(label) => {
+            setCopyFeedback(`已复制${label}`);
+            window.setTimeout(() => setCopyFeedback(null), 2000);
+          }}
+        />
       ) : null}
 
       <OpsChatClient

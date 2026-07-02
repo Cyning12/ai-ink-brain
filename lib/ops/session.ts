@@ -25,6 +25,21 @@ export type OpsSessionListResponse = {
   offset: number;
 };
 
+export type OpsSessionDeliverableFile = {
+  name: string;
+  path: string;
+  type?: string | null;
+  route?: string | null;
+};
+
+export type OpsSessionDeliverable = {
+  run_id: string;
+  path: string;
+  type?: string | null;
+  route?: string | null;
+  files?: OpsSessionDeliverableFile[];
+};
+
 export type OpsSessionDetailResponse = {
   session_id: string;
   meta: OpsSessionMeta;
@@ -33,6 +48,12 @@ export type OpsSessionDetailResponse = {
     approved: string[];
   };
   recent_messages: OpsSessionRecentMessage[];
+  deliverables?: OpsSessionDeliverable[];
+};
+
+export type OpsSessionDeliverablesResponse = {
+  session_id: string;
+  items: OpsSessionDeliverable[];
 };
 
 export type OpsSessionRecentMessage = {
@@ -202,6 +223,16 @@ export async function postOpsSessionAuth(
     ok: true,
     data: data as Extract<OpsSessionAuthResult, { ok: true }>["data"],
   };
+}
+
+export async function fetchOpsSessionDeliverables(
+  sessionId: string,
+): Promise<OpsSessionDeliverablesResponse | null> {
+  const res = await fetch(
+    `/api/ops/sessions/${encodeURIComponent(sessionId)}/deliverables`,
+  );
+  if (!res.ok) return null;
+  return res.json().catch(() => null);
 }
 
 export async function fetchOpsSessionEvents(
