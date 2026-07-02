@@ -32,16 +32,29 @@ export type OpsSessionDetailResponse = {
     pending: string[];
     approved: string[];
   };
-  recent_messages: Array<{
-    run_id: string;
-    role: string;
-    content_preview: string;
-    answer_preview?: string | null;
-    route?: string;
-    status?: string;
-    created_at?: string;
-  }>;
+  recent_messages: OpsSessionRecentMessage[];
 };
+
+export type OpsSessionRecentMessage = {
+  run_id: string;
+  role: string;
+  content_preview: string;
+  answer_preview?: string | null;
+  route?: string;
+  status?: string;
+  created_at?: string;
+};
+
+export function serializeOpsSessionRecentMessage(msg: OpsSessionRecentMessage): string {
+  const lines = [`run_id: ${msg.run_id}`, `user: ${msg.content_preview}`];
+  if (msg.route) lines.push(`route: ${msg.route}`);
+  if (msg.answer_preview) lines.push(`assistant: ${msg.answer_preview}`);
+  return lines.join("\n");
+}
+
+export function serializeOpsSessionRecentMessages(messages: OpsSessionRecentMessage[]): string {
+  return messages.map(serializeOpsSessionRecentMessage).join("\n\n---\n\n");
+}
 
 export type OpsSessionCreateResponse = {
   session_id: string;
@@ -55,7 +68,24 @@ export type OpsSessionEventsResponse = {
 };
 
 export type OpsSessionSendResult =
-  | { ok: true; data: OpsChatMessagesResponse & { session_id: string } }
+  | { ok: true; data: OpsChatMessagesResponse & { session_id: string; awaiting_auth?: boolean; plan_summary?: string } }
+  | { ok: false; error: string };
+
+export type OpsSessionAuthAction = "approve" | "revise" | "cancel";
+
+export type OpsSessionAuthResult =
+  | {
+      ok: true;
+      data: {
+        session_id: string;
+        action: OpsSessionAuthAction;
+        status: string;
+        message?: string;
+        answer?: string;
+        idempotent?: boolean;
+        gate_summary?: { pending: string[]; approved: string[] };
+      };
+    }
   | { ok: false; error: string };
 
 export async function fetchOpsSessions(params?: {
@@ -131,6 +161,47 @@ export async function sendOpsSessionMessage(
   }
 
   return { ok: true, data: data as OpsChatMessagesResponse & { session_id: string } };
+}
+
+export async function postOpsSessionAuth(
+  sessionId: string,
+  action: OpsSessionAuthAction,
+): Promise<OpsSessionAuthResult> {
+  const res = await fetch(`/api/ops/sessions/${encodeURIComponent(sessionId)}/auth`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action }),
+  });
+
+  const text = await res.text().catch(() => "");
+  let data: unknown;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = null;
+  }
+
+  if (!res.ok) {
+    let err = `${res.status} ${res.statusText}`;
+    if (typeof data === "object" && data !== null) {
+      const record = data as Record<string, unknown>;
+      if (typeof record.error === "string") err = record.error;
+      else if (typeof record.detail === "object" && record.detail !== null) {
+        const detail = record.detail as Record<string, unknown>;
+        if (typeof detail.message === "string") err = detail.message;
+      }
+    }
+    return { ok: false, error: err };
+  }
+
+  if (typeof data !== "object" || data === null) {
+    return { ok: false, error: "BFF 返回格式异常" };
+  }
+
+  return {
+    ok: true,
+    data: data as Extract<OpsSessionAuthResult, { ok: true }>["data"],
+  };
 }
 
 export async function fetchOpsSessionEvents(

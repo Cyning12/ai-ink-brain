@@ -1,11 +1,13 @@
 # Task · Ops Session S2 LangGraph 00 UI（授权区 · auth BFF · 计划呈现）
 
-> **状态**：`draft`  
+> **状态**：`done（2026-07-02 本地验收通过）`  
 > **epic**：Session Orchestrator · S2 `ops-session-s2-langgraph-00`  
 > **schedule_ref**：SPEC §12.1 S2 · §6.3 · §9.3  
 > **关联 SPEC**：[`SPEC_ops_session_orchestrator_v1_zh.md`](../../docs/tasks/specs/SPEC_ops_session_orchestrator_v1_zh.md) §6 · §9.3 · §12 S2  
-> **配对后端**：[`task_ops_session_s2_langgraph_00_api_v1.md`](../../../ai-ink-brain-api-python/docs/tasks/active/task_ops_session_s2_langgraph_00_api_v1.md)  
-> **前置**：S1 UI done · PR #106 · 后端 S2 API 契约冻结后联调
+> **配对后端**：[`task_ops_session_s2_langgraph_00_api_v1.md`](../../../ai-ink-brain-api-python/docs/tasks/done/task_ops_session_s2_langgraph_00_api_v1.md)  
+> **本地验收**：[`CHECKLIST_ops_session_s2_local_acceptance_v1_zh.md`](../../../docs/harness/reviews/CHECKLIST_ops_session_s2_local_acceptance_v1_zh.md)  
+> **PR**：暂缓 · 与 S3/S4 合并批次开 PR（`task/ops-session-s2-langgraph-00-ui`）  
+> **前置**：S1 UI done · PR #106 · 后端 S2 API 联调通过
 
 ---
 
@@ -27,7 +29,7 @@
 | human_gate_id | status | blocks_hats | 说明 |
 | --- | --- | --- | --- |
 | HG-TASK-DRAFT | `approved` | 20-task-audit, 30 | 00 起草 · 2026-07-02 |
-| HG-AUDIT-R1 | `pending` | 30 | 20 R1 后人签 |
+| HG-AUDIT-R1 | `approved` | 30 | 20 R1 后人签 · 2026-07-02 |
 
 ---
 

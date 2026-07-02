@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { OpsCollapsibleSection } from "@/components/ops/OpsCollapsibleSection";
+import { OpsThinkingHint } from "@/components/ops/OpsThinkingHint";
 import { ThinkingChainTimeline } from "@/components/ops/ThinkingChainTimeline";
 import {
   copyTextToClipboard,
@@ -88,13 +89,16 @@ export function OpsChatClient({
     const { data } = result;
     setRunId(data.run_id);
 
-    if (data.route === "fast" && typeof data.answer === "string") {
+    if (
+      (data.route === "fast" || data.route === "session_00") &&
+      typeof data.answer === "string"
+    ) {
       setRun({
         id: data.run_id,
         repo_id: "",
         session_id: sessionId ?? null,
         query: message,
-        route: "fast",
+        route: data.route === "session_00" ? "session_00" : "fast",
         status: data.status,
         final_answer: { answer: data.answer },
         retry_token: null,
@@ -176,16 +180,17 @@ export function OpsChatClient({
       : "seq 递增 · 按 after_seq 增量合并";
   const runEventsEmptyHint = isReact
     ? loading || polling
-      ? "等待 ReAct 事件流…"
+      ? "thinking……"
       : "发送复杂对比类问题后，此处展示 ReAct 步。"
     : isDeep
       ? loading || polling
-        ? "等待事件流…"
+        ? "thinking……"
         : "发送问题后，此处展示 Deep 思考链。"
       : loading || polling
-        ? "等待事件流…"
+        ? "thinking……"
         : "发送问题后，此处展示 ops_run_events 时间线。";
   const showRunEventsSection = isReact || isDeep || !isReact;
+  const isThinking = loading || polling || (run ? isRunActive(run.status) : false);
 
   return (
     <div className="space-y-6">
@@ -307,13 +312,21 @@ export function OpsChatClient({
         >
           {isDeep ? (
             events.length === 0 ? (
-              <p className="text-[12px] leading-relaxed text-slate-500">{runEventsEmptyHint}</p>
+              isThinking ? (
+                <OpsThinkingHint />
+              ) : (
+                <p className="text-[12px] leading-relaxed text-slate-500">{runEventsEmptyHint}</p>
+              )
             ) : (
               <ThinkingChainTimeline events={events} showCopyButtons={false} />
             )
           ) : isReact ? (
             events.length === 0 ? (
-              <p className="text-[12px] leading-relaxed text-slate-500">{runEventsEmptyHint}</p>
+              isThinking ? (
+                <OpsThinkingHint />
+              ) : (
+                <p className="text-[12px] leading-relaxed text-slate-500">{runEventsEmptyHint}</p>
+              )
             ) : (
               <ul className="space-y-2">
                 {events.map((e) => (
@@ -346,7 +359,11 @@ export function OpsChatClient({
               </ul>
             )
           ) : events.length === 0 ? (
-            <p className="text-[12px] leading-relaxed text-slate-500">{runEventsEmptyHint}</p>
+            isThinking ? (
+              <OpsThinkingHint />
+            ) : (
+              <p className="text-[12px] leading-relaxed text-slate-500">{runEventsEmptyHint}</p>
+            )
           ) : (
             <ul className="space-y-2">
               {events.map((e) => (
@@ -381,10 +398,8 @@ export function OpsChatClient({
         </OpsCollapsibleSection>
       ) : null}
 
-      {!showFinalAnswer && (loading || polling || (run && isRunActive(run.status))) ? (
-        <p className="text-center text-[11px] text-slate-500">
-          运行中… 事件流更新后将在 run 结束时展示最终答案
-        </p>
+      {!showFinalAnswer && isThinking ? (
+        <OpsThinkingHint label="thinking…… 完成后将展示最终答案" />
       ) : null}
     </div>
   );

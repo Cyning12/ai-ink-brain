@@ -58,6 +58,7 @@
     { "method": "POST", "path": "/api/ops/login" },
     { "method": "POST", "path": "/api/ops/logout" },
     { "method": "POST", "path": "/api/ops/sessions" },
+    { "method": "POST", "path": "/api/ops/sessions/[session_id]/auth" },
     { "method": "POST", "path": "/api/ops/sessions/[session_id]/messages" },
     { "method": "GET", "path": "/api/ops/sync/runs" },
     { "method": "POST", "path": "/api/ops/sync/trigger" },
