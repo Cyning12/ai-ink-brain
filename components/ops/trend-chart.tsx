@@ -24,6 +24,8 @@ export function TrendChart({ data }: { data: TrendPoint[] }) {
     .map((d, i) => `${xFor(i)},${yFor(d.mergedPrs)}`)
     .join(" ");
 
+  const issuesColor = "#3B6EA8";
+  const prsColor = "#2F8F5B";
   const xTicks = [0, Math.floor((data.length - 1) / 2), data.length - 1];
 
   return (
@@ -59,10 +61,10 @@ export function TrendChart({ data }: { data: TrendPoint[] }) {
             {/* closed issues line */}
             <polyline
               fill="none"
-              stroke="var(--color-foreground)"
+              stroke={issuesColor}
               strokeWidth={2}
               points={issuesPoints}
-              opacity={0.8}
+              opacity={0.9}
             />
             {data.map((d, i) => (
               <circle
@@ -70,18 +72,18 @@ export function TrendChart({ data }: { data: TrendPoint[] }) {
                 cx={xFor(i)}
                 cy={yFor(d.closedIssues)}
                 r={2.5}
-                fill="var(--color-foreground)"
+                fill={issuesColor}
               />
             ))}
 
             {/* merged PRs line */}
             <polyline
               fill="none"
-              stroke="var(--color-muted-foreground)"
+              stroke={prsColor}
               strokeWidth={2}
               strokeDasharray="4 4"
               points={prsPoints}
-              opacity={0.8}
+              opacity={0.9}
             />
             {data.map((d, i) => (
               <circle
@@ -89,7 +91,7 @@ export function TrendChart({ data }: { data: TrendPoint[] }) {
                 cx={xFor(i)}
                 cy={yFor(d.mergedPrs)}
                 r={2.5}
-                fill="var(--color-muted-foreground)"
+                fill={prsColor}
               />
             ))}
 
@@ -112,11 +114,14 @@ export function TrendChart({ data }: { data: TrendPoint[] }) {
 
       <div className="mt-3 flex flex-wrap gap-4 text-xs text-[color:var(--color-muted-foreground)]">
         <div className="flex items-center gap-1.5">
-          <span className="h-0.5 w-4 bg-[color:var(--color-foreground)]" />
+          <span className="h-0.5 w-4" style={{ backgroundColor: issuesColor }} />
           Closed Issues
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="h-0.5 w-4 border-t border-dashed border-[color:var(--color-muted-foreground)]" />
+          <span
+            className="h-0.5 w-4 border-t border-dashed"
+            style={{ borderColor: prsColor }}
+          />
           Merged PRs
         </div>
       </div>

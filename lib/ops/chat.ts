@@ -24,7 +24,7 @@ export type OpsRun = {
   repo_id: string;
   session_id: string | null;
   query: string;
-  route: "fast" | "deep" | "react";
+  route: "fast" | "deep" | "react" | "session_00";
   status: "queued" | "running" | "done" | "failed" | "partial";
   final_answer: Record<string, unknown> | null;
   retry_token: string | null;
@@ -59,7 +59,7 @@ export type OpsChatModelsResponse = {
 
 export type OpsChatMessagesResponse = {
   run_id: string;
-  route: "fast" | "deep" | "react";
+  route: "fast" | "deep" | "react" | "session_00";
   status: OpsRun["status"];
   answer?: string;
 };

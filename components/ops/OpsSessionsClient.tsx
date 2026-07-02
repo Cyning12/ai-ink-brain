@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import { formatDateTime } from "@/lib/ops/format";
@@ -14,6 +15,10 @@ function statusStyle(status: string): string {
   switch (status) {
     case "planning":
       return "bg-sky-50 text-sky-800 border-sky-200";
+    case "awaiting_auth":
+      return "bg-amber-50 text-amber-900 border-amber-200";
+    case "dispatched":
+      return "bg-emerald-50 text-emerald-800 border-emerald-200";
     case "done":
       return "bg-emerald-50 text-emerald-700 border-emerald-200";
     case "blocked":
@@ -24,12 +29,14 @@ function statusStyle(status: string): string {
 }
 
 export function OpsSessionsClient() {
+  const router = useRouter();
   const [items, setItems] = useState<OpsSessionMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [slug, setSlug] = useState("");
   const [title, setTitle] = useState("");
   const [creating, setCreating] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -53,23 +60,41 @@ export function OpsSessionsClient() {
   const handleCreate = useCallback(async () => {
     const s = slug.trim();
     const t = title.trim();
-    if (!s || !t || creating) return;
+    if (!s || !t || creating || redirecting) return;
 
     setCreating(true);
     setError(null);
     const created = await createOpsSession({ slug: s, title: t });
-    setCreating(false);
     if (!created) {
+      setCreating(false);
       setError("创建 session 失败");
       return;
     }
     setSlug("");
     setTitle("");
-    window.location.href = `/ops/kimi-code/sessions/${encodeURIComponent(created.session_id)}`;
-  }, [slug, title, creating]);
+    setRedirecting(true);
+    router.push(`/ops/kimi-code/sessions/${encodeURIComponent(created.session_id)}`);
+  }, [slug, title, creating, redirecting, router]);
+
+  const busy = creating || redirecting;
 
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-6">
+      {busy ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#2c2c2c]/20 backdrop-blur-[1px]"
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+        >
+          <div className="flex items-center gap-3 rounded-2xl border border-[color:var(--color-border)] bg-white px-5 py-4 shadow-lg">
+            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" />
+            <span className="text-sm text-slate-700">
+              {redirecting ? "正在进入 Session…" : "正在创建 Session…"}
+            </span>
+          </div>
+        </div>
+      ) : null}
       <div>
         <h1 className="font-serif text-2xl font-semibold tracking-tight text-[color:var(--color-foreground)]">
           Sessions
@@ -98,10 +123,10 @@ export function OpsSessionsClient() {
         <button
           type="button"
           onClick={() => void handleCreate()}
-          disabled={creating || !slug.trim() || !title.trim()}
+          disabled={busy || !slug.trim() || !title.trim()}
           className="rounded-xl bg-[#2c2c2c] px-4 py-2 text-sm text-[#f9f9f7] disabled:opacity-40"
         >
-          {creating ? "创建中…" : "创建并进入"}
+          {busy ? (redirecting ? "跳转中…" : "创建中…") : "创建并进入"}
         </button>
       </section>
 
