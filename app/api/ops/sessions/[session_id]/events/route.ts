@@ -1,0 +1,21 @@
+import { requireOpsDeskAccess } from "@/lib/auth/ops-session";
+import { forwardOpsRequest } from "@/lib/server/forward-ops-request";
+
+export const runtime = "nodejs";
+
+/** GET /api/ops/sessions/{session_id}/events → Python GET /ops/sessions/{session_id}/events */
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ session_id: string }> },
+): Promise<Response> {
+  const denied = await requireOpsDeskAccess(request);
+  if (denied) return denied;
+
+  const { session_id } = await params;
+  const url = new URL(request.url);
+  const qs = url.searchParams.toString();
+  const upstream = qs
+    ? `/api/py/ops/sessions/${encodeURIComponent(session_id)}/events?${qs}`
+    : `/api/py/ops/sessions/${encodeURIComponent(session_id)}/events`;
+  return forwardOpsRequest(upstream, { method: "GET" }, request);
+}

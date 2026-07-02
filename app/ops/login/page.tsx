@@ -10,6 +10,7 @@ function LoginForm() {
 
   const [token, setToken] = useState(demoToken);
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,13 +35,30 @@ function LoginForm() {
       };
       if (!res.ok || !data.ok) {
         setError(data.error ?? "登录失败");
+        setLoading(false);
         return;
       }
-      // 硬跳转：确保 Set-Cookie 后的首次导航带上 ops_desk_session
+      // 成功：保持 loading/redirecting，避免按钮可再次点击；硬跳转确保 cookie 生效
+      setRedirecting(true);
       window.location.assign("/ops/kimi-code");
-    } finally {
+    } catch {
+      setError("网络异常，请重试");
       setLoading(false);
     }
+  }
+
+  if (redirecting) {
+    return (
+      <div
+        className="mx-auto w-full max-w-sm rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-background)] p-8 text-center shadow-sm"
+        aria-busy="true"
+        aria-label="正在进入总览"
+      >
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-[color:var(--color-border)] border-t-[color:var(--color-foreground)]" />
+        <p className="mt-4 font-serif text-lg text-[color:var(--color-foreground)]">登录成功</p>
+        <p className="mt-2 text-sm text-[color:var(--color-muted-foreground)]">正在进入总览…</p>
+      </div>
+    );
   }
 
   return (
@@ -84,10 +102,10 @@ function LoginForm() {
 
         <button
           type="submit"
-          disabled={loading || !token.trim()}
+          disabled={loading || redirecting || !token.trim()}
           className="w-full rounded-lg bg-[color:var(--color-foreground)] px-4 py-2 text-sm font-medium text-[color:var(--color-background)] transition-opacity hover:opacity-90 disabled:opacity-40"
         >
-          {loading ? "校验中…" : "进入"}
+          {loading || redirecting ? "正在进入…" : "进入"}
         </button>
       </div>
     </form>

@@ -24,10 +24,23 @@ import {
   type OpsRun,
   type OpsRunEvent,
 } from "@/lib/ops/chat";
+import { sendOpsSessionMessage } from "@/lib/ops/session";
 
 const POLL_INTERVAL_MS = 1200;
 
-export function OpsChatClient() {
+type OpsChatClientProps = {
+  sessionId?: string;
+  title?: string;
+  subtitle?: string;
+  onRunComplete?: (runId: string) => void;
+};
+
+export function OpsChatClient({
+  sessionId,
+  title = "Ops Chat",
+  subtitle = "基于 ops_run_events 的 Orchestrator 对话 · after_seq 增量轮询",
+  onRunComplete,
+}: OpsChatClientProps = {}) {
   const [draft, setDraft] = useState("");
   const [models, setModels] = useState<OpsChatModel[]>([]);
   const [selectedModel, setSelectedModel] = useState("");
@@ -63,7 +76,9 @@ export function OpsChatClient() {
     setPolling(false);
     setEventsExpanded(true);
 
-    const result = await sendOpsChatMessage(message, undefined, selectedModel || undefined);
+    const result = sessionId
+      ? await sendOpsSessionMessage(sessionId, message, selectedModel || undefined)
+      : await sendOpsChatMessage(message, undefined, selectedModel || undefined);
     if (!result.ok) {
       setError(result.error);
       setLoading(false);
@@ -77,7 +92,7 @@ export function OpsChatClient() {
       setRun({
         id: data.run_id,
         repo_id: "",
-        session_id: null,
+        session_id: sessionId ?? null,
         query: message,
         route: "fast",
         status: data.status,
@@ -93,7 +108,7 @@ export function OpsChatClient() {
 
     setLoading(false);
     setPolling(true);
-  }, [draft, loading, selectedModel]);
+  }, [draft, loading, selectedModel, sessionId]);
 
   useEffect(() => {
     if (!runId || !polling) return;
@@ -123,6 +138,7 @@ export function OpsChatClient() {
         timer = window.setTimeout(() => void tick(latestSeq), POLL_INTERVAL_MS);
       } else {
         setPolling(false);
+        onRunComplete?.(currentRunId);
       }
     }
 
@@ -132,7 +148,7 @@ export function OpsChatClient() {
       cancelled = true;
       if (timer != null) window.clearTimeout(timer);
     };
-  }, [runId, polling]);
+  }, [runId, polling, onRunComplete]);
 
   const finalAnswer = extractOpsFinalAnswer(events) || (run?.final_answer?.answer as string) || "";
   const runComplete = isOpsRunComplete({
@@ -176,11 +192,14 @@ export function OpsChatClient() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-serif text-2xl font-semibold tracking-tight text-[color:var(--color-foreground)]">
-            Ops Chat
+            {title}
           </h1>
           <p className="mt-1 text-xs text-[color:var(--color-muted-foreground)]">
-            基于 ops_run_events 的 Orchestrator 对话 · after_seq 增量轮询
+            {subtitle}
           </p>
+          {sessionId ? (
+            <p className="mt-1 font-mono text-[10px] text-slate-500">{sessionId}</p>
+          ) : null}
         </div>
       </div>
 
