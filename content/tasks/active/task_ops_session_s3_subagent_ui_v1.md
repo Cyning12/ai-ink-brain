@@ -66,6 +66,36 @@ S2 已交付授权区与 `dispatched` 占位回复。本 task 在 Session 续聊
 
 ---
 
+### 自检结论（执行者）
+
+| 项 | 结果 |
+| --- | --- |
+| **日期** | 2026-07-02 |
+| **分支** | `task/ops-session-s3-subagent-ui` |
+| **commit** | `d5fda45` |
+
+**命令与退出码**
+
+```text
+pnpm lint              → 0 error（4 既有 warning）
+pnpm test              → 152 passed
+pnpm build             → 绿
+pnpm tech-graph:check  → OK routes=35
+```
+
+**验收项**
+
+| 验收标准 | pass/fail |
+| --- | --- |
+| dispatched 事件流（复用 OpsChatClient） | pass（实现层 · 待浏览器 §3.4） |
+| deliverables 可浏览 | pass |
+| S2 授权/planning 不退化 | pass（代码未改 auth 组件逻辑） |
+| Vitest deliverables BFF | pass |
+
+**已知未测**：浏览器人工验收 §3 · `pnpm ci:local` 全量（lint+test+build 已分项绿）。
+
+---
+
 ## 给 Cursor
 
 `ops-session-s3-subagent-ui` · Open `ai-ink-brain/` · **HG-AUDIT-R1 approved** · PR 批次暂定 S4 后
