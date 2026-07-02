@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { OpsChatClient } from "@/components/ops/OpsChatClient";
 import { OpsSessionAuthPanel } from "@/components/ops/OpsSessionAuthPanel";
 import { OpsSessionDeliverablesPanel } from "@/components/ops/OpsSessionDeliverablesPanel";
+import { OpsSessionPromotePanel } from "@/components/ops/OpsSessionPromotePanel";
 import { copyTextToClipboard } from "@/lib/ops/chat";
 import { formatDateTime } from "@/lib/ops/format";
 import {
@@ -271,6 +272,14 @@ export function OpsSessionDetailClient({ sessionId }: { sessionId: string }) {
             setCopyFeedback(`已复制${label}`);
             window.setTimeout(() => setCopyFeedback(null), 2000);
           }}
+        />
+      ) : null}
+
+      {meta.status === "dispatched" ? (
+        <OpsSessionPromotePanel
+          sessionId={sessionId}
+          status={meta.status}
+          onPromoteComplete={() => void refreshDetail()}
         />
       ) : null}
 

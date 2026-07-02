@@ -225,6 +225,94 @@ export async function postOpsSessionAuth(
   };
 }
 
+export type OpsSessionTargetRepo = "ai-ink-brain-api-python" | "ai-ink-brain";
+
+export type OpsSessionPromotePreview = {
+  session_id: string;
+  source_task_path: string;
+  target_repo: string;
+  target_branch: string;
+  target_task_path: string;
+  target_exists: boolean;
+  conflict: boolean;
+  gate_summary: { pending: string[]; approved: string[] };
+  probe_available: boolean;
+  verify_hint?: string;
+  slug?: string;
+  title?: string;
+};
+
+export type OpsSessionPromoteResult = {
+  session_id: string;
+  status: string;
+  target_repo: string;
+  target_branch: string;
+  target_task_path: string;
+  verify_passed: boolean;
+  verify_report?: Record<string, unknown>;
+  gate_summary?: { pending: string[]; approved: string[] };
+  message?: string;
+};
+
+function parseOpsApiError(data: unknown, fallback: string): string {
+  if (typeof data !== "object" || data === null) return fallback;
+  const record = data as Record<string, unknown>;
+  if (typeof record.error === "string") return record.error;
+  if (typeof record.detail === "object" && record.detail !== null) {
+    const detail = record.detail as Record<string, unknown>;
+    const code = typeof detail.code === "string" ? detail.code : "";
+    const message = typeof detail.message === "string" ? detail.message : "";
+    if (code && message) return `${code}: ${message}`;
+    if (message) return message;
+  }
+  return fallback;
+}
+
+export async function fetchOpsSessionPromotePreview(
+  sessionId: string,
+  targetRepo: OpsSessionTargetRepo,
+  targetBranch: string,
+): Promise<OpsSessionPromotePreview | null> {
+  const qs = new URLSearchParams({
+    target_repo: targetRepo,
+    target_branch: targetBranch,
+  });
+  const res = await fetch(
+    `/api/ops/sessions/${encodeURIComponent(sessionId)}/promote/preview?${qs.toString()}`,
+  );
+  if (!res.ok) return null;
+  return res.json().catch(() => null);
+}
+
+export type OpsSessionPromotePostResult =
+  | { ok: true; data: OpsSessionPromoteResult }
+  | { ok: false; error: string };
+
+export async function postOpsSessionPromote(
+  sessionId: string,
+  body: { target_repo: OpsSessionTargetRepo; target_branch: string; confirm: boolean },
+): Promise<OpsSessionPromotePostResult> {
+  const res = await fetch(`/api/ops/sessions/${encodeURIComponent(sessionId)}/promote`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const text = await res.text().catch(() => "");
+  let data: unknown;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = null;
+  }
+  if (!res.ok) {
+    return { ok: false, error: parseOpsApiError(data, `${res.status} ${res.statusText}`) };
+  }
+  if (typeof data !== "object" || data === null) {
+    return { ok: false, error: "BFF 返回格式异常" };
+  }
+  return { ok: true, data: data as OpsSessionPromoteResult };
+}
+
 export async function fetchOpsSessionDeliverables(
   sessionId: string,
 ): Promise<OpsSessionDeliverablesResponse | null> {
