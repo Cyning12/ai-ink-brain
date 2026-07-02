@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   fetchOpsSessionPromotePreview,
@@ -14,6 +14,8 @@ const TARGET_REPOS: { id: OpsSessionTargetRepo; label: string }[] = [
   { id: "ai-ink-brain-api-python", label: "api-python" },
   { id: "ai-ink-brain", label: "Ink 前端" },
 ];
+
+const BRANCH_DEBOUNCE_MS = 400;
 
 type OpsSessionPromotePanelProps = {
   sessionId: string;
@@ -32,12 +34,20 @@ export function OpsSessionPromotePanel({
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [promoting, setPromoting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [verifyReport, setVerifyReport] = useState<Record<string, unknown> | null>(null);
   const [result, setResult] = useState<OpsSessionPromoteResult | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const prevRepoRef = useRef(targetRepo);
+
+  const resetPromoteFeedback = useCallback(() => {
+    setError(null);
+    setVerifyReport(null);
+    setResult(null);
+    setConfirmOpen(false);
+  }, []);
 
   const loadPreview = useCallback(async () => {
     setLoadingPreview(true);
-    setError(null);
     const data = await fetchOpsSessionPromotePreview(sessionId, targetRepo, targetBranch);
     setLoadingPreview(false);
     if (!data) {
@@ -48,27 +58,38 @@ export function OpsSessionPromotePanel({
     setPreview(data);
   }, [sessionId, targetBranch, targetRepo]);
 
+  // 目标仓/分支变更后自动刷新（分支防抖）
   useEffect(() => {
     if (status !== "dispatched") return;
-    let cancelled = false;
-    void fetchOpsSessionPromotePreview(sessionId, targetRepo, targetBranch).then((data) => {
-      if (cancelled) return;
-      if (!data) {
-        setError("无法加载 promote 预览");
-        setPreview(null);
-        return;
-      }
-      setPreview(data);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [sessionId, targetBranch, targetRepo, status]);
+    const repoChanged = prevRepoRef.current !== targetRepo;
+    prevRepoRef.current = targetRepo;
+    const delay = repoChanged ? 0 : BRANCH_DEBOUNCE_MS;
+    const timer = setTimeout(() => {
+      void loadPreview();
+    }, delay);
+    return () => clearTimeout(timer);
+  }, [sessionId, status, targetBranch, targetRepo, loadPreview]);
+
+  const handleTargetRepoChange = useCallback(
+    (value: OpsSessionTargetRepo) => {
+      resetPromoteFeedback();
+      setTargetRepo(value);
+    },
+    [resetPromoteFeedback],
+  );
+
+  const handleTargetBranchChange = useCallback(
+    (value: string) => {
+      resetPromoteFeedback();
+      setTargetBranch(value);
+    },
+    [resetPromoteFeedback],
+  );
 
   const handlePromote = useCallback(async () => {
     setPromoting(true);
     setError(null);
-    setResult(null);
+    setVerifyReport(null);
     const res = await postOpsSessionPromote(sessionId, {
       target_repo: targetRepo,
       target_branch: targetBranch,
@@ -78,13 +99,22 @@ export function OpsSessionPromotePanel({
     setConfirmOpen(false);
     if (!res.ok) {
       setError(res.error);
+      if (res.verifyReport) setVerifyReport(res.verifyReport);
       return;
     }
     setResult(res.data);
+    void loadPreview();
     onPromoteComplete?.();
-  }, [onPromoteComplete, sessionId, targetBranch, targetRepo]);
+  }, [loadPreview, onPromoteComplete, sessionId, targetBranch, targetRepo]);
 
   if (status !== "dispatched") return null;
+
+  const promotedThisSelection =
+    result !== null &&
+    result.target_repo === targetRepo &&
+    result.target_branch === targetBranch;
+  const alreadyOnDisk = preview?.conflict === true;
+  const promoteClosed = promotedThisSelection || alreadyOnDisk;
 
   return (
     <section className="rounded-2xl border border-indigo-200/80 bg-indigo-50/40 px-4 py-4">
@@ -101,7 +131,7 @@ export function OpsSessionPromotePanel({
           目标仓
           <select
             value={targetRepo}
-            onChange={(e) => setTargetRepo(e.target.value as OpsSessionTargetRepo)}
+            onChange={(e) => handleTargetRepoChange(e.target.value as OpsSessionTargetRepo)}
             className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm"
           >
             {TARGET_REPOS.map((r) => (
@@ -115,18 +145,13 @@ export function OpsSessionPromotePanel({
           目标分支
           <input
             value={targetBranch}
-            onChange={(e) => setTargetBranch(e.target.value)}
+            onChange={(e) => handleTargetBranchChange(e.target.value)}
             className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm font-mono"
           />
         </label>
-        <button
-          type="button"
-          onClick={() => void loadPreview()}
-          disabled={loadingPreview}
-          className="self-end rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700"
-        >
-          {loadingPreview ? "…" : "刷新预览"}
-        </button>
+        {loadingPreview ? (
+          <span className="self-end text-[11px] text-slate-500">预览刷新中…</span>
+        ) : null}
       </div>
 
       {preview ? (
@@ -134,7 +159,9 @@ export function OpsSessionPromotePanel({
           <div className="font-mono">源：{preview.source_task_path}</div>
           <div className="mt-1 font-mono break-all">目标：{preview.target_task_path}</div>
           {preview.conflict ? (
-            <div className="mt-1 text-rose-700">目标文件已存在 · promote 将冲突</div>
+            <div className="mt-1 text-emerald-800">
+              目标路径已有 task 文件 · 无需重复 promote
+            </div>
           ) : null}
           {!preview.probe_available ? (
             <div className="mt-1 text-amber-800">probe CLI 不可用 · promote 将 503</div>
@@ -142,12 +169,20 @@ export function OpsSessionPromotePanel({
           <div className="mt-1 text-slate-500">
             待签收闸：{preview.gate_summary.pending.join(" · ") || "无"}
           </div>
+          <div className="mt-1 text-slate-500">
+            二次确认 promote 将自动签收 HG-EXEC-AUTH；HG-AUDIT-R1 在业务仓开工前签收
+          </div>
         </div>
       ) : null}
 
       {error ? (
         <div className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-900">
           {error}
+          {verifyReport ? (
+            <pre className="mt-2 max-h-40 overflow-auto rounded border border-rose-200/60 bg-white/80 p-2 font-mono text-[10px]">
+              {JSON.stringify(verifyReport, null, 2)}
+            </pre>
+          ) : null}
         </div>
       ) : null}
 
@@ -164,10 +199,17 @@ export function OpsSessionPromotePanel({
       ) : null}
 
       <div className="mt-3">
-        {!confirmOpen ? (
+        {promoteClosed ? (
+          <div className="rounded-lg border border-emerald-200/80 bg-emerald-50/80 px-3 py-2 text-sm text-emerald-950">
+            <div className="font-medium">✓ 已 promote 至当前目标路径</div>
+            <p className="mt-1 text-[11px] text-emerald-900/90">
+              请在目标仓手动 git commit。切换目标仓/分支可 promote 到其他路径。
+            </p>
+          </div>
+        ) : !confirmOpen ? (
           <button
             type="button"
-            disabled={promoting || preview?.conflict}
+            disabled={promoting || loadingPreview || !preview}
             onClick={() => setConfirmOpen(true)}
             className="rounded-xl bg-indigo-900 px-4 py-2 text-sm text-white disabled:opacity-40"
           >

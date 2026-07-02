@@ -286,7 +286,22 @@ export async function fetchOpsSessionPromotePreview(
 
 export type OpsSessionPromotePostResult =
   | { ok: true; data: OpsSessionPromoteResult }
-  | { ok: false; error: string };
+  | { ok: false; error: string; verifyReport?: Record<string, unknown> };
+
+function extractVerifyReport(data: unknown): Record<string, unknown> | undefined {
+  if (typeof data !== "object" || data === null) return undefined;
+  const record = data as Record<string, unknown>;
+  if (typeof record.detail === "object" && record.detail !== null) {
+    const detail = record.detail as Record<string, unknown>;
+    if (typeof detail.verify_report === "object" && detail.verify_report !== null) {
+      return detail.verify_report as Record<string, unknown>;
+    }
+  }
+  if (typeof record.verify_report === "object" && record.verify_report !== null) {
+    return record.verify_report as Record<string, unknown>;
+  }
+  return undefined;
+}
 
 export async function postOpsSessionPromote(
   sessionId: string,
@@ -305,7 +320,11 @@ export async function postOpsSessionPromote(
     data = null;
   }
   if (!res.ok) {
-    return { ok: false, error: parseOpsApiError(data, `${res.status} ${res.statusText}`) };
+    return {
+      ok: false,
+      error: parseOpsApiError(data, `${res.status} ${res.statusText}`),
+      verifyReport: extractVerifyReport(data),
+    };
   }
   if (typeof data !== "object" || data === null) {
     return { ok: false, error: "BFF 返回格式异常" };
