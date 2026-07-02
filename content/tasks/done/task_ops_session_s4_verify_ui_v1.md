@@ -1,6 +1,6 @@
 # Task · Ops Session S4 Verify UI（promote 向导 · verify 报告 · HG-PROMOTE）
 
-> **状态**：`30 done` · 待本地验收 `HG-S4-LOCAL-ACCEPTANCE`  
+> **状态**：`done（2026-07-02 · HG-S4-LOCAL-ACCEPTANCE）`  
 > **epic**：Session Orchestrator · S4 `ops-session-s4-verify`  
 > **schedule_ref**：SPEC §5.3 · §9.3 · §12.1 S4 · BLOCKERS B4  
 > **关联 SPEC**：`[SPEC_ops_session_orchestrator_v1_zh.md](../../docs/tasks/specs/SPEC_ops_session_orchestrator_v1_zh.md)` §5.3 · §9.3 · §10.5  
