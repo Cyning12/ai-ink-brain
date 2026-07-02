@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { OpsChatClient } from "@/components/ops/OpsChatClient";
 import { formatDateTime } from "@/lib/ops/format";
@@ -11,6 +11,13 @@ export function OpsSessionDetailClient({ sessionId }: { sessionId: string }) {
   const [detail, setDetail] = useState<OpsSessionDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+
+  const refreshDetail = useCallback(async () => {
+    const data = await fetchOpsSession(sessionId);
+    if (!data) return;
+    setDetail(data);
+    setNotFound(false);
+  }, [sessionId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -88,6 +95,7 @@ export function OpsSessionDetailClient({ sessionId }: { sessionId: string }) {
         sessionId={sessionId}
         title={meta.title}
         subtitle={`Session 多轮续聊 · status=${meta.status}`}
+        onRunComplete={() => void refreshDetail()}
       />
     </div>
   );

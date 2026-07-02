@@ -32,12 +32,14 @@ type OpsChatClientProps = {
   sessionId?: string;
   title?: string;
   subtitle?: string;
+  onRunComplete?: (runId: string) => void;
 };
 
 export function OpsChatClient({
   sessionId,
   title = "Ops Chat",
   subtitle = "基于 ops_run_events 的 Orchestrator 对话 · after_seq 增量轮询",
+  onRunComplete,
 }: OpsChatClientProps = {}) {
   const [draft, setDraft] = useState("");
   const [models, setModels] = useState<OpsChatModel[]>([]);
@@ -136,6 +138,7 @@ export function OpsChatClient({
         timer = window.setTimeout(() => void tick(latestSeq), POLL_INTERVAL_MS);
       } else {
         setPolling(false);
+        onRunComplete?.(currentRunId);
       }
     }
 
@@ -145,7 +148,7 @@ export function OpsChatClient({
       cancelled = true;
       if (timer != null) window.clearTimeout(timer);
     };
-  }, [runId, polling]);
+  }, [runId, polling, onRunComplete]);
 
   const finalAnswer = extractOpsFinalAnswer(events) || (run?.final_answer?.answer as string) || "";
   const runComplete = isOpsRunComplete({
