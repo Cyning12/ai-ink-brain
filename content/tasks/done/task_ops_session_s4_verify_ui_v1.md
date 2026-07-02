@@ -4,7 +4,7 @@
 > **epic**：Session Orchestrator · S4 `ops-session-s4-verify`  
 > **schedule_ref**：SPEC §5.3 · §9.3 · §12.1 S4 · BLOCKERS B4  
 > **关联 SPEC**：`[SPEC_ops_session_orchestrator_v1_zh.md](../../docs/tasks/specs/SPEC_ops_session_orchestrator_v1_zh.md)` §5.3 · §9.3 · §10.5  
-> **配对后端**：`[task_ops_session_s4_verify_api_v1.md](../../../ai-ink-brain-api-python/docs/tasks/active/task_ops_session_s4_verify_api_v1.md)`  
+> **配对后端**：[`task_ops_session_s4_verify_api_v1.md`](../../../ai-ink-brain-api-python/docs/tasks/done/task_ops_session_s4_verify_api_v1.md)  
 > **前置**：`[task_ops_session_s3_subagent_ui_v1.md](../done/task_ops_session_s3_subagent_ui_v1.md)` · HG-S3-LOCAL-ACCEPTANCE
 
 ---
