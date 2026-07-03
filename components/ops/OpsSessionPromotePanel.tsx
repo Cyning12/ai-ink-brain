@@ -235,7 +235,7 @@ export function OpsSessionPromotePanel({
           <div className="mt-1 text-[10px] text-slate-500">
             源 {diffSummary.source_lines} 行 · 目标 {diffSummary.target_lines} 行
           </div>
-          {diffSummary.added.length > 0 ? (
+          {diffSummary.added && diffSummary.added.length > 0 ? (
             <div className="mt-2">
               <div className="text-[10px] text-emerald-700">新增</div>
               <ul className="mt-1 space-y-0.5">
@@ -247,7 +247,7 @@ export function OpsSessionPromotePanel({
               </ul>
             </div>
           ) : null}
-          {diffSummary.removed.length > 0 ? (
+          {diffSummary.removed && diffSummary.removed.length > 0 ? (
             <div className="mt-2">
               <div className="text-[10px] text-rose-700">删除</div>
               <ul className="mt-1 space-y-0.5">
@@ -259,7 +259,7 @@ export function OpsSessionPromotePanel({
               </ul>
             </div>
           ) : null}
-          {diffSummary.changed.length > 0 ? (
+          {diffSummary.changed && diffSummary.changed.length > 0 ? (
             <div className="mt-2">
               <div className="text-[10px] text-amber-700">变更字段</div>
               <ul className="mt-1 space-y-1">

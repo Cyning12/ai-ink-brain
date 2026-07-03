@@ -257,7 +257,7 @@ export function OpsSessionGraphPromotePanel({
                 <div className="mt-0.5 text-[10px] text-slate-500">
                   源 {diff.source_lines} 行 · 目标 {diff.target_lines} 行
                 </div>
-                {diff.added.length > 0 ? (
+                {diff.added && diff.added.length > 0 ? (
                   <ul className="mt-1 space-y-0.5">
                     {diff.added.map((line, idx) => (
                       <li key={`added-${idx}`} className="font-mono text-[10px] text-emerald-800">
@@ -266,7 +266,7 @@ export function OpsSessionGraphPromotePanel({
                     ))}
                   </ul>
                 ) : null}
-                {diff.removed.length > 0 ? (
+                {diff.removed && diff.removed.length > 0 ? (
                   <ul className="mt-1 space-y-0.5">
                     {diff.removed.map((line, idx) => (
                       <li key={`removed-${idx}`} className="font-mono text-[10px] text-rose-800">
@@ -275,7 +275,7 @@ export function OpsSessionGraphPromotePanel({
                     ))}
                   </ul>
                 ) : null}
-                {diff.changed.length > 0 ? (
+                {diff.changed && diff.changed.length > 0 ? (
                   <ul className="mt-1 space-y-0.5">
                     {diff.changed.map((line, idx) => (
                       <li key={`changed-${idx}`} className="font-mono text-[10px] text-amber-800">
