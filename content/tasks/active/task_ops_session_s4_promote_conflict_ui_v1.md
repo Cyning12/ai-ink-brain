@@ -47,6 +47,7 @@ S4 UI 已实现 promote 向导与 verify 报告展示。S4.2 在后端增加 ove
 - [x] overwrite 二次确认对话框
 - [x] merge 草稿预览区 +「确认合并版」按钮 + `HG-PROMOTE-OVERWRITE` 闸展示
 - [x] BFF 转发 `conflict_action` 参数
+- [x] `HG-PROMOTE-OVERWRITE` pending 且选择 overwrite/merge 时显示「授权 overwrite/merge」按钮，调用 `POST /api/ops/sessions/{id}/auth`
 - [x] Vitest：冲突策略切换、二次确认、merge 预览 mock
 - [x] S4 UI 路径不退化
 
@@ -76,6 +77,7 @@ S4 UI 已实现 promote 向导与 verify 报告展示。S4.2 在后端增加 ove
 - [x] 策略切换后请求体正确
 - [x] overwrite 二次确认生效
 - [x] merge 预览可展示并可确认
+- [x] overwrite/merge 策略下 `HG-PROMOTE-OVERWRITE` 授权按钮可见并可调用
 - [x] S4 UI 不退化
 - [x] `pnpm lint` / `test` / `build` 绿
 
@@ -90,8 +92,9 @@ S4 UI 已实现 promote 向导与 verify 报告展示。S4.2 在后端增加 ove
 
 ```text
 pnpm lint  → 0 errors, 4 pre-existing warnings
-pnpm test  → 35 passed (163 tests)
+pnpm test  → 173 passed (37 files)
 pnpm build → success
+pnpm tech-graph:check → success
 ```
 
 ---

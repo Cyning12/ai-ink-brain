@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   fetchOpsSessionPromotePreview,
+  postOpsSessionAuth,
   postOpsSessionPromote,
   type ConflictAction,
   type OpsSessionPromotePreview,
@@ -46,6 +47,7 @@ export function OpsSessionPromotePanel({
   const [result, setResult] = useState<OpsSessionPromoteResult | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [conflictAction, setConflictAction] = useState<ConflictAction>("block");
+  const [authorizingGate, setAuthorizingGate] = useState(false);
   const prevRepoRef = useRef(targetRepo);
 
   const resetPromoteFeedback = useCallback(() => {
@@ -130,6 +132,19 @@ export function OpsSessionPromotePanel({
     void loadPreview();
     onPromoteComplete?.();
   }, [conflictAction, loadPreview, onPromoteComplete, sessionId, targetBranch, targetRepo]);
+
+  const handleAuthorizeOverwrite = useCallback(async () => {
+    setAuthorizingGate(true);
+    setError(null);
+    const res = await postOpsSessionAuth(sessionId, "approve", HG_PROMOTE_OVERWRITE);
+    setAuthorizingGate(false);
+    if (!res.ok) {
+      setError(res.error);
+      return;
+    }
+    void loadPreview();
+    onPromoteComplete?.();
+  }, [loadPreview, onPromoteComplete, sessionId]);
 
   if (status !== "dispatched") return null;
 
@@ -326,6 +341,23 @@ export function OpsSessionPromotePanel({
               {JSON.stringify(result.verify_report, null, 2)}
             </pre>
           ) : null}
+        </div>
+      ) : null}
+
+      {overwriteGatePending ? (
+        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+          <div className="text-[11px] text-amber-900">
+            <span className="font-mono">{HG_PROMOTE_OVERWRITE}</span> 待签收 · 授权后可执行{" "}
+            {conflictAction === "overwrite" ? "overwrite" : "merge"}
+          </div>
+          <button
+            type="button"
+            onClick={() => void handleAuthorizeOverwrite()}
+            disabled={authorizingGate}
+            className="mt-2 rounded-lg bg-indigo-900 px-3 py-1.5 text-xs text-white disabled:opacity-40"
+          >
+            {authorizingGate ? "授权中…" : "授权 overwrite/merge"}
+          </button>
         </div>
       ) : null}
 

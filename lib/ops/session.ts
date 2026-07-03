@@ -187,11 +187,14 @@ export async function sendOpsSessionMessage(
 export async function postOpsSessionAuth(
   sessionId: string,
   action: OpsSessionAuthAction,
+  gateId?: string,
 ): Promise<OpsSessionAuthResult> {
+  const body: { action: OpsSessionAuthAction; gate_id?: string } = { action };
+  if (gateId) body.gate_id = gateId;
   const res = await fetch(`/api/ops/sessions/${encodeURIComponent(sessionId)}/auth`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action }),
+    body: JSON.stringify(body),
   });
 
   const text = await res.text().catch(() => "");

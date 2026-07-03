@@ -48,6 +48,7 @@ S5.2 API 提供 graph_delta promote 能力，UI 需提供：graph_delta 文件�
 - [x] 展示 `HG-PROMOTE-GRAPH` pending/approved 状态
 - [x] 提供目标仓/分支选择、冲突策略选择（同 S4.2 UI）
 - [x] BFF：`GET/POST /api/ops/sessions/[id]/promote/graph`
+- [x] `HG-PROMOTE-GRAPH` pending 时显示「授权图谱 Promote」按钮，调用 `POST /api/ops/sessions/{id}/auth`
 - [x] Vitest mock BFF 与状态切换
 - [x] S4/S5 UI 路径不退化
 
@@ -78,6 +79,7 @@ S5.2 API 提供 graph_delta promote 能力，UI 需提供：graph_delta 文件�
 - [x] 目标路径与 diff 可展示
 - [x] 人签状态与按钮禁用联动
 - [x] promote 后结果横幅/错误展示
+- [x] `HG-PROMOTE-GRAPH` 授权按钮可见并可调用
 - [x] S4/S5 UI 不退化
 - [x] `pnpm lint` / `test` / `build` 绿
 
@@ -94,6 +96,7 @@ S5.2 API 提供 graph_delta promote 能力，UI 需提供：graph_delta 文件�
 pnpm lint  → 0 errors, 4 pre-existing warnings
 pnpm test  → 173 passed (37 files)
 pnpm build → success
+pnpm tech-graph:check → success
 ```
 
 ---
