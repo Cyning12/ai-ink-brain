@@ -7,6 +7,7 @@ import { OpsChatClient } from "@/components/ops/OpsChatClient";
 import { OpsSessionAuthPanel } from "@/components/ops/OpsSessionAuthPanel";
 import { OpsSessionDeliverablesPanel } from "@/components/ops/OpsSessionDeliverablesPanel";
 import { OpsSessionPromotePanel } from "@/components/ops/OpsSessionPromotePanel";
+import { OpsSessionGraphPromotePanel } from "@/components/ops/OpsSessionGraphPromotePanel";
 import { copyTextToClipboard } from "@/lib/ops/chat";
 import { formatDateTime } from "@/lib/ops/format";
 import {
@@ -277,6 +278,14 @@ export function OpsSessionDetailClient({ sessionId }: { sessionId: string }) {
 
       {meta.status === "dispatched" ? (
         <OpsSessionPromotePanel
+          sessionId={sessionId}
+          status={meta.status}
+          onPromoteComplete={() => void refreshDetail()}
+        />
+      ) : null}
+
+      {meta.status === "dispatched" ? (
+        <OpsSessionGraphPromotePanel
           sessionId={sessionId}
           status={meta.status}
           onPromoteComplete={() => void refreshDetail()}
