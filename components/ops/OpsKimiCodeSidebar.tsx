@@ -4,8 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { OpsLogoutButton } from "@/components/ops/ops-logout-button";
+import { isOpsSessionsFeatureEnabled } from "@/lib/ops/sessions-feature";
 
-type NavItem = { href: string; label: string };
+type NavItem = { href: string; label: string; sessionsOnly?: boolean };
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/ops/kimi-code", label: "总览" },
@@ -14,7 +15,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/ops/kimi-code/graph", label: "Graph" },
   { href: "/ops/kimi-code/metrics", label: "Metrics" },
   { href: "/ops/kimi-code/chat", label: "Chat" },
-  { href: "/ops/kimi-code/sessions", label: "Sessions" },
+  { href: "/ops/kimi-code/sessions", label: "Sessions", sessionsOnly: true },
 ];
 
 function isActive(pathname: string, href: string): boolean {
@@ -44,6 +45,8 @@ type OpsKimiCodeSidebarProps = {
 
 export function OpsKimiCodeSidebar({ roleLabel }: OpsKimiCodeSidebarProps) {
   const pathname = usePathname();
+  const sessionsEnabled = isOpsSessionsFeatureEnabled();
+  const navItems = NAV_ITEMS.filter((item) => !item.sessionsOnly || sessionsEnabled);
 
   return (
     <aside className="w-full border-b border-[color:var(--color-border)] bg-[color:var(--color-background)] px-6 py-6 md:w-56 md:border-b-0 md:border-r">
@@ -60,7 +63,7 @@ export function OpsKimiCodeSidebar({ roleLabel }: OpsKimiCodeSidebarProps) {
       </div>
 
       <nav className="space-y-0.5">
-        {NAV_ITEMS.map((item) => (
+        {navItems.map((item) => (
           <Link key={item.href} href={item.href} className={navLinkClass(isActive(pathname, item.href))}>
             {item.label}
           </Link>
