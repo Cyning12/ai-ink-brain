@@ -187,11 +187,14 @@ export async function sendOpsSessionMessage(
 export async function postOpsSessionAuth(
   sessionId: string,
   action: OpsSessionAuthAction,
+  gateId?: string,
 ): Promise<OpsSessionAuthResult> {
+  const body: { action: OpsSessionAuthAction; gate_id?: string } = { action };
+  if (gateId) body.gate_id = gateId;
   const res = await fetch(`/api/ops/sessions/${encodeURIComponent(sessionId)}/auth`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action }),
+    body: JSON.stringify(body),
   });
 
   const text = await res.text().catch(() => "");
@@ -227,6 +230,27 @@ export async function postOpsSessionAuth(
 
 export type OpsSessionTargetRepo = "ai-ink-brain-api-python" | "ai-ink-brain";
 
+export type ConflictAction = "block" | "overwrite" | "merge";
+
+export type OpsSessionPromoteDiffField = {
+  field: string;
+  source: string;
+  target: string;
+};
+
+export type OpsSessionPromoteDiffSummary = {
+  source_lines: number;
+  target_lines: number;
+  added: string[];
+  removed: string[];
+  changed: OpsSessionPromoteDiffField[];
+};
+
+export type OpsSessionPromoteMergeDraft = {
+  path: string;
+  content: string;
+};
+
 export type OpsSessionPromotePreview = {
   session_id: string;
   source_task_path: string;
@@ -235,6 +259,9 @@ export type OpsSessionPromotePreview = {
   target_task_path: string;
   target_exists: boolean;
   conflict: boolean;
+  conflict_action?: ConflictAction;
+  diff_summary?: OpsSessionPromoteDiffSummary;
+  merge_draft?: OpsSessionPromoteMergeDraft;
   gate_summary: { pending: string[]; approved: string[] };
   probe_available: boolean;
   verify_hint?: string;
@@ -249,6 +276,8 @@ export type OpsSessionPromoteResult = {
   target_branch: string;
   target_task_path: string;
   verify_passed: boolean;
+  conflict_action?: ConflictAction;
+  merge_draft_path?: string;
   verify_report?: Record<string, unknown>;
   gate_summary?: { pending: string[]; approved: string[] };
   message?: string;
@@ -305,7 +334,12 @@ function extractVerifyReport(data: unknown): Record<string, unknown> | undefined
 
 export async function postOpsSessionPromote(
   sessionId: string,
-  body: { target_repo: OpsSessionTargetRepo; target_branch: string; confirm: boolean },
+  body: {
+    target_repo: OpsSessionTargetRepo;
+    target_branch: string;
+    confirm: boolean;
+    conflict_action?: ConflictAction;
+  },
 ): Promise<OpsSessionPromotePostResult> {
   const res = await fetch(`/api/ops/sessions/${encodeURIComponent(sessionId)}/promote`, {
     method: "POST",
@@ -330,6 +364,100 @@ export async function postOpsSessionPromote(
     return { ok: false, error: "BFF 返回格式异常" };
   }
   return { ok: true, data: data as OpsSessionPromoteResult };
+}
+
+export type OpsSessionGraphPromoteFile = {
+  name: string;
+  source_path: string;
+  target_path: string;
+  exists: boolean;
+};
+
+export type OpsSessionGraphPromoteDiff = {
+  path: string;
+  source_lines: number;
+  target_lines: number;
+  added: string[];
+  removed: string[];
+  changed: string[];
+};
+
+export type OpsSessionGraphPromotePreview = {
+  session_id: string;
+  target_repo: string;
+  target_branch: string;
+  source_dir: string;
+  target_dir: string;
+  files: OpsSessionGraphPromoteFile[];
+  diff_summary: OpsSessionGraphPromoteDiff[];
+  conflict: boolean;
+  conflict_action?: ConflictAction;
+  gate_summary: { pending: string[]; approved: string[] };
+  empty: boolean;
+};
+
+export type OpsSessionGraphPromoteResult = {
+  session_id: string;
+  status: string;
+  target_repo: string;
+  target_branch: string;
+  copied_files: string[];
+  conflict_action?: ConflictAction;
+  gate_summary?: { pending: string[]; approved: string[] };
+  message?: string;
+};
+
+export async function fetchOpsSessionGraphPromotePreview(
+  sessionId: string,
+  targetRepo: OpsSessionTargetRepo,
+  targetBranch: string,
+): Promise<OpsSessionGraphPromotePreview | null> {
+  const qs = new URLSearchParams({
+    target_repo: targetRepo,
+    target_branch: targetBranch,
+  });
+  const res = await fetch(
+    `/api/ops/sessions/${encodeURIComponent(sessionId)}/promote/graph?${qs.toString()}`,
+  );
+  if (!res.ok) return null;
+  return res.json().catch(() => null);
+}
+
+export type OpsSessionGraphPromotePostResult =
+  | { ok: true; data: OpsSessionGraphPromoteResult }
+  | { ok: false; error: string };
+
+export async function postOpsSessionGraphPromote(
+  sessionId: string,
+  body: {
+    target_repo: OpsSessionTargetRepo;
+    target_branch: string;
+    confirm: boolean;
+    conflict_action?: ConflictAction;
+  },
+): Promise<OpsSessionGraphPromotePostResult> {
+  const res = await fetch(`/api/ops/sessions/${encodeURIComponent(sessionId)}/promote/graph`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const text = await res.text().catch(() => "");
+  let data: unknown;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = null;
+  }
+  if (!res.ok) {
+    return {
+      ok: false,
+      error: parseOpsApiError(data, `${res.status} ${res.statusText}`),
+    };
+  }
+  if (typeof data !== "object" || data === null) {
+    return { ok: false, error: "BFF 返回格式异常" };
+  }
+  return { ok: true, data: data as OpsSessionGraphPromoteResult };
 }
 
 export async function fetchOpsSessionDeliverables(

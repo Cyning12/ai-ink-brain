@@ -22,9 +22,9 @@ export function ScanSummaryCard({
     );
   }
 
-  const p0Count = snapshot.p0_items.length;
-  const p1Count = snapshot.p1_items.length;
-  const p2Count = snapshot.p2_items.length;
+  const p0Count = snapshot.p0_items?.length ?? 0;
+  const p1Count = snapshot.p1_items?.length ?? 0;
+  const p2Count = snapshot.p2_items?.length ?? 0;
   const total = snapshot.total_open ?? p0Count + p1Count + p2Count;
 
   return (

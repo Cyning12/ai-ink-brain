@@ -3,14 +3,19 @@
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
-/** db 模式：session 到期后自动跳转登录页（含页面停留 · 切 tab · 软导航）。 */
-export function OpsSessionGuard({ expiresAtMs }: { expiresAtMs?: number }) {
+const INITIAL_POLL_DELAY_MS = 2_000;
+/** setTimeout 上限（约 24.8 天）；超出须靠 poll 续期，不能单次 timer 覆盖到 2026 */
+const MAX_TIMEOUT_MS = 2_147_483_647;
+
+/** db 模式：session 到期后自动跳转登录页（以 BFF session API 为准）。 */
+export function OpsSessionGuard() {
   const pathname = usePathname();
 
   useEffect(() => {
     let expiryTimer: ReturnType<typeof setTimeout> | undefined;
     let pollTimer: ReturnType<typeof setTimeout> | undefined;
     let cancelled = false;
+    let consecutiveAuthFailures = 0;
 
     function goLogin() {
       if (cancelled) return;
@@ -23,14 +28,43 @@ export function OpsSessionGuard({ expiresAtMs }: { expiresAtMs?: number }) {
       }, delayMs);
     }
 
+    function scheduleExpiry(expiresAtIso: string) {
+      if (expiryTimer) clearTimeout(expiryTimer);
+      const remaining = new Date(expiresAtIso).getTime() - Date.now();
+      if (remaining <= 0) {
+        goLogin();
+        return;
+      }
+      // 勿把数年后的 remaining 直接塞进 setTimeout（浏览器会当成 ~1ms，立刻踢人）
+      if (remaining <= MAX_TIMEOUT_MS) {
+        expiryTimer = setTimeout(goLogin, remaining);
+      }
+    }
+
     async function pollSession() {
       if (cancelled) return;
       try {
-        const res = await fetch("/api/ops/auth/session", { cache: "no-store" });
-        if (!res.ok) {
-          goLogin();
+        const res = await fetch("/api/ops/auth/session", {
+          cache: "no-store",
+          credentials: "include",
+        });
+        if (res.status === 503) {
+          consecutiveAuthFailures = 0;
+          schedulePoll(30_000);
           return;
         }
+        if (!res.ok) {
+          consecutiveAuthFailures += 1;
+          // 避免单次抖动（middleware/Python 慢）误踢
+          if (consecutiveAuthFailures >= 2) {
+            goLogin();
+            return;
+          }
+          schedulePoll(2_000);
+          return;
+        }
+        consecutiveAuthFailures = 0;
+
         const data = (await res.json()) as { expiresAt?: string };
         if (data.expiresAt) {
           const remaining = new Date(data.expiresAt).getTime() - Date.now();
@@ -38,7 +72,7 @@ export function OpsSessionGuard({ expiresAtMs }: { expiresAtMs?: number }) {
             goLogin();
             return;
           }
-          // 临近过期更密 poll；远则最多 30s
+          scheduleExpiry(data.expiresAt);
           const delay =
             remaining <= 60_000 ? Math.max(500, remaining) : Math.min(remaining, 30_000);
           schedulePoll(delay);
@@ -50,16 +84,7 @@ export function OpsSessionGuard({ expiresAtMs }: { expiresAtMs?: number }) {
       schedulePoll(30_000);
     }
 
-    if (expiresAtMs !== undefined) {
-      const remaining = expiresAtMs - Date.now();
-      if (remaining <= 0) {
-        goLogin();
-        return;
-      }
-      expiryTimer = setTimeout(goLogin, remaining);
-    }
-
-    void pollSession();
+    schedulePoll(INITIAL_POLL_DELAY_MS);
 
     function onVisible() {
       if (document.visibilityState === "visible") {
@@ -74,7 +99,7 @@ export function OpsSessionGuard({ expiresAtMs }: { expiresAtMs?: number }) {
       if (pollTimer) clearTimeout(pollTimer);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [expiresAtMs, pathname]);
+  }, [pathname]);
 
   return null;
 }

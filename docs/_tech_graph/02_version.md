@@ -49,6 +49,8 @@ timeline
   2026-06-25 : 6ad947a auto: app/api/ops/chat/models/route.test.ts
   2026-06-26 : 494d2eb auto: app/api/ops/auth/session/route.ts
   2026-07-02 : d163b68 auto: app/api/ops/sessions/[session_id]/events/route.ts
+  2026-07-03 : 7861ed9 auto: app/api/ops/sessions/[session_id]/promote/graph/route.test.ts
+  2026-07-06 : 750ce3a auto: app/api/ops/auth/session/route.ts
 ```
 
 **Verify（P1）**：PR 门禁 workflow **`quality`** 含 **`pnpm test`**、**`tech_graph_graph_export --check`** 与 **`tech_graph_graph_equivalence_check`**（graph_v2，与 `docs/tasks/specs/MIGRATION-tech_graph_v2_frontend_playbook_v1_zh.md` 一致）。

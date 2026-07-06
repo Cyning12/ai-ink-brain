@@ -6,26 +6,74 @@ import {
 } from "@/lib/auth/ops-env";
 import { mapOpsDbLoginError } from "@/lib/auth/ops-login-error";
 import {
+  applyOpsDeskSessionCookie,
+  applyOpsDeskTokenCookie,
   buildOpsDeskTokenCookieValue,
-  opsDeskSessionCookieHeader,
-  opsDeskTokenCookieHeader,
   resolveOpsDeskRole,
 } from "@/lib/auth/ops-session";
 import { fetchPyApiRaw } from "@/lib/py-service-proxy";
+import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-export async function POST(request: Request): Promise<Response> {
-  let body: { token?: unknown };
-  try {
-    body = (await request.json()) as { token?: unknown };
-  } catch {
-    return Response.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
-  }
+type LoginBody = { token?: unknown; redirect?: unknown };
 
+function isFormLogin(request: Request): boolean {
+  const contentType = request.headers.get("content-type") ?? "";
+  return (
+    contentType.includes("application/x-www-form-urlencoded") ||
+    contentType.includes("multipart/form-data")
+  );
+}
+
+async function parseLoginBody(request: Request): Promise<LoginBody> {
+  if (isFormLogin(request)) {
+    const form = await request.formData();
+    return {
+      token: form.get("token"),
+      redirect: form.get("redirect"),
+    };
+  }
+  try {
+    return (await request.json()) as LoginBody;
+  } catch {
+    return {};
+  }
+}
+
+function resolveRedirectPath(raw: unknown): string {
+  const value = typeof raw === "string" ? raw.trim() : "";
+  if (value.startsWith("/ops/") && !value.startsWith("//")) {
+    return value;
+  }
+  return "/ops/kimi-code";
+}
+
+function loginFailureResponse(
+  request: Request,
+  status: number,
+  error: string,
+  code?: string,
+): Response {
+  if (isFormLogin(request)) {
+    const url = new URL("/ops/login", request.url);
+    url.searchParams.set("error", "1");
+    if (code) url.searchParams.set("code", code);
+    return NextResponse.redirect(url, 303);
+  }
+  return Response.json(
+    { ok: false, error, ...(code ? { code } : {}) },
+    { status },
+  );
+}
+
+export async function POST(request: Request): Promise<Response> {
+  const body = await parseLoginBody(request);
   const rawToken = typeof body.token === "string" ? body.token.trim() : "";
+  const redirectTo = resolveRedirectPath(body.redirect);
+
   if (!rawToken) {
-    return Response.json({ ok: false, error: "请提供 token" }, { status: 400 });
+    return loginFailureResponse(request, 400, "请提供 token");
   }
 
   if (getOpsDeskAuthMode() === "db") {
@@ -46,55 +94,53 @@ export async function POST(request: Request): Promise<Response> {
       if (!upstream.ok || !payload.session_id) {
         const detail =
           payload.detail && typeof payload.detail === "object" ? payload.detail : undefined;
-        return Response.json(
-          {
-            ok: false,
-            error: mapOpsDbLoginError(detail, "登录失败"),
-            code:
-              detail && typeof (detail as { code?: unknown }).code === "string"
-                ? (detail as { code: string }).code
-                : undefined,
-          },
-          { status: upstream.status >= 400 ? upstream.status : 503 },
+        const code =
+          detail && typeof (detail as { code?: unknown }).code === "string"
+            ? (detail as { code: string }).code
+            : undefined;
+        return loginFailureResponse(
+          request,
+          upstream.status >= 400 ? upstream.status : 503,
+          mapOpsDbLoginError(detail, "登录失败"),
+          code,
         );
       }
       const maxAge = cookieMaxAgeSecFromExpiresAt(payload.expires_at);
-      return new Response(JSON.stringify({ ok: true, role: payload.role }), {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          "Set-Cookie": opsDeskSessionCookieHeader(payload.session_id, maxAge),
-        },
-      });
+
+      if (isFormLogin(request)) {
+        const response = NextResponse.redirect(new URL(redirectTo, request.url), 303);
+        applyOpsDeskSessionCookie(response, payload.session_id, maxAge);
+        return response;
+      }
+
+      const jsonResponse = NextResponse.json({ ok: true, role: payload.role });
+      applyOpsDeskSessionCookie(jsonResponse, payload.session_id, maxAge);
+      return jsonResponse;
     } catch {
-      return Response.json(
-        { ok: false, error: "无法连接 Python 鉴权服务" },
-        { status: 503 },
-      );
+      return loginFailureResponse(request, 503, "无法连接 Python 鉴权服务");
     }
   }
 
   const secret = getOpsDeskSecret();
   if (!secret) {
-    return Response.json(
-      { ok: false, error: "服务端未配置环境变量：OPS_DESK_SECRET" },
-      { status: 503 },
-    );
+    return loginFailureResponse(request, 503, "服务端未配置环境变量：OPS_DESK_SECRET");
   }
 
   const role = resolveOpsDeskRole(rawToken);
   if (!role) {
-    return Response.json({ ok: false, error: "Invalid token" }, { status: 401 });
+    return loginFailureResponse(request, 401, "Invalid token", "INVITE_INVALID");
   }
 
   const ttl = getOpsDeskSessionTtlSeconds();
   const cookieValue = await buildOpsDeskTokenCookieValue(role, secret, ttl);
 
-  return new Response(JSON.stringify({ ok: true, role }), {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json",
-      "Set-Cookie": opsDeskTokenCookieHeader(cookieValue, ttl),
-    },
-  });
+  if (isFormLogin(request)) {
+    const response = NextResponse.redirect(new URL(redirectTo, request.url), 303);
+    applyOpsDeskTokenCookie(response, cookieValue, ttl);
+    return response;
+  }
+
+  const jsonResponse = NextResponse.json({ ok: true, role });
+  applyOpsDeskTokenCookie(jsonResponse, cookieValue, ttl);
+  return jsonResponse;
 }
