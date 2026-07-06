@@ -1,6 +1,6 @@
 import { getOpsDeskAuthMode, getOpsDeskSecret } from "@/lib/auth/ops-env";
 import {
-  getOpsDeskSessionFromRequest,
+  lookupOpsDeskSession,
   type ParsedOpsDeskSession,
 } from "@/lib/auth/ops-session";
 
@@ -11,14 +11,22 @@ export type OpsSessionPayload = {
   role?: "viewer" | "maintainer";
   configured?: boolean;
   expiresAt?: string;
+  error?: string;
 };
 
 export async function GET(request: Request): Promise<Response> {
   if (getOpsDeskAuthMode() === "db") {
-    const session = await getOpsDeskSessionFromRequest(request, "");
-    if (!session) {
+    const lookup = await lookupOpsDeskSession(request, "");
+    if (lookup.status === "unavailable") {
+      return Response.json(
+        { ok: false, error: "鉴权服务暂不可用，请稍后重试" },
+        { status: 503 },
+      );
+    }
+    if (lookup.status !== "authenticated") {
       return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
     }
+    const session = lookup.session;
     const payload: OpsSessionPayload = {
       ok: true,
       role: session.role,
@@ -39,14 +47,18 @@ export async function GET(request: Request): Promise<Response> {
     );
   }
 
-  const session: ParsedOpsDeskSession | null = await getOpsDeskSessionFromRequest(
-    request,
-    secret,
-  );
-  if (!session) {
+  const lookup = await lookupOpsDeskSession(request, secret);
+  if (lookup.status === "unauthenticated") {
     return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
+  if (lookup.status === "unavailable") {
+    return Response.json(
+      { ok: false, error: "鉴权服务暂不可用，请稍后重试" },
+      { status: 503 },
+    );
+  }
 
+  const session: ParsedOpsDeskSession = lookup.session;
   const payload: OpsSessionPayload = {
     ok: true,
     role: session.role,

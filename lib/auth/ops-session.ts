@@ -1,3 +1,4 @@
+import type { NextResponse } from "next/server";
 import {
   getOpsDeskDemoToken,
   getOpsDeskAuthMode,
@@ -15,6 +16,11 @@ export type ParsedOpsDeskSession = {
   role: OpsDeskRole;
   expiresAt?: number;
 };
+
+export type OpsDeskSessionLookup =
+  | { status: "authenticated"; session: ParsedOpsDeskSession }
+  | { status: "unauthenticated" }
+  | { status: "unavailable" };
 
 async function importHmacKey(secret: string): Promise<CryptoKey> {
   return crypto.subtle.importKey(
@@ -131,14 +137,16 @@ export async function parseOpsDeskTokenCookie(
 }
 
 /** 优先 Bearer token（适合 curl），其次 DB session Cookie，最后 legacy HMAC Cookie。 */
-export async function getOpsDeskSessionFromRequest(
+export async function lookupOpsDeskSession(
   request: Request,
   secret: string,
-): Promise<ParsedOpsDeskSession | null> {
+): Promise<OpsDeskSessionLookup> {
   const bearer = getOpsDeskTokenFromRequest(request);
   if (bearer) {
     const role = resolveOpsDeskRole(bearer);
-    if (role) return { role };
+    if (role) {
+      return { status: "authenticated", session: { role } };
+    }
   }
 
   if (getOpsDeskAuthMode() === "db") {
@@ -146,22 +154,41 @@ export async function getOpsDeskSessionFromRequest(
       request.headers.get("cookie"),
       OPS_DESK_SESSION_COOKIE,
     );
-    if (sessionId) {
-      const remote = await fetchOpsSessionFromPython(sessionId);
-      if (remote?.role) {
-        if (remote.expiresAt !== undefined && remote.expiresAt <= Date.now()) {
-          return null;
-        }
-        return {
-          role: remote.role,
-          expiresAt: remote.expiresAt,
-        };
-      }
+    if (!sessionId) {
+      return { status: "unauthenticated" };
     }
-    return null;
+    const remote = await fetchOpsSessionFromPython(sessionId);
+    if (remote.ok) {
+      if (remote.expiresAt !== undefined && remote.expiresAt <= Date.now()) {
+        return { status: "unauthenticated" };
+      }
+      return {
+        status: "authenticated",
+        session: { role: remote.role, expiresAt: remote.expiresAt },
+      };
+    }
+    if (remote.reason === "unauthorized") {
+      return { status: "unauthenticated" };
+    }
+    return { status: "unavailable" };
   }
 
-  return parseOpsDeskTokenCookie(request.headers.get("cookie"), secret);
+  const legacy = await parseOpsDeskTokenCookie(
+    request.headers.get("cookie"),
+    secret,
+  );
+  if (legacy) {
+    return { status: "authenticated", session: legacy };
+  }
+  return { status: "unauthenticated" };
+}
+
+export async function getOpsDeskSessionFromRequest(
+  request: Request,
+  secret: string,
+): Promise<ParsedOpsDeskSession | null> {
+  const lookup = await lookupOpsDeskSession(request, secret);
+  return lookup.status === "authenticated" ? lookup.session : null;
 }
 
 /** 路由级二次校验；返回 Response 表示拒绝，null 表示通过。 */
@@ -242,6 +269,40 @@ export function opsDeskSessionCookieHeader(
   const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
   const maxAge = ttlSeconds ? `; Max-Age=${ttlSeconds}` : "";
   return `${OPS_DESK_SESSION_COOKIE}=${sessionId}; Path=/; HttpOnly; SameSite=Lax${maxAge}${secure}`;
+}
+
+/** 通过 NextResponse.cookies 写入 session（比裸 Set-Cookie 头更可靠）。 */
+export function applyOpsDeskSessionCookie(
+  response: NextResponse,
+  sessionId: string,
+  ttlSeconds?: number,
+): void {
+  response.cookies.set({
+    name: OPS_DESK_SESSION_COOKIE,
+    value: sessionId,
+    path: "/",
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    ...(ttlSeconds !== undefined && ttlSeconds > 0 ? { maxAge: ttlSeconds } : {}),
+  });
+}
+
+/** 通过 NextResponse.cookies 写入 legacy token。 */
+export function applyOpsDeskTokenCookie(
+  response: NextResponse,
+  value: string,
+  ttlSeconds?: number,
+): void {
+  response.cookies.set({
+    name: OPS_DESK_TOKEN_COOKIE,
+    value,
+    path: "/",
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    ...(ttlSeconds !== undefined && ttlSeconds > 0 ? { maxAge: ttlSeconds } : {}),
+  });
 }
 
 export function opsDeskSessionLogoutCookieHeader(): string {
