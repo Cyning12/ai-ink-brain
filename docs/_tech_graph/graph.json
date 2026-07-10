@@ -2383,6 +2383,21 @@
     {
       "anchors": [
         {
+          "path": "app/api/ops/runs/[runId]/artifacts/route.ts",
+          "symbol": "GET handler"
+        }
+      ],
+      "from": "BFF_ARTIFACTS",
+      "graph_id": "14_flow_ops_chat",
+      "label": "",
+      "mark": "->",
+      "sync": true,
+      "to": "OPS_PY",
+      "type": "depends_on"
+    },
+    {
+      "anchors": [
+        {
           "path": "app/api/ops/runs/[id]/events/route.ts",
           "symbol": "GET handler"
         }
@@ -2492,6 +2507,16 @@
       "label": "",
       "mark": "~>",
       "sync": false,
+      "to": "BFF_ARTIFACTS",
+      "type": "async_calls"
+    },
+    {
+      "anchors": [],
+      "from": "PAGE",
+      "graph_id": "14_flow_ops_chat",
+      "label": "",
+      "mark": "~>",
+      "sync": false,
       "to": "BFF_EVT",
       "type": "async_calls"
     },
@@ -2582,7 +2607,7 @@
     }
   ],
   "freeze_id": "TECH_GRAPH_S2_FREEZE_20260519_V2_3",
-  "generated_at": "2026-06-25T02:23:31Z",
+  "generated_at": "2026-07-10T02:35:03Z",
   "graphs": [
     {
       "id": "00_main",
@@ -2681,6 +2706,11 @@
       "graph_id": "11_flow_api",
       "id": "BEARER",
       "label": "BEARER"
+    },
+    {
+      "graph_id": "14_flow_ops_chat",
+      "id": "BFF_ARTIFACTS",
+      "label": "GET /api/ops/runs/{runId}/artifacts"
     },
     {
       "graph_id": "14_flow_ops_chat",

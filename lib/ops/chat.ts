@@ -19,6 +19,42 @@ export type OpsReviewPayload = {
   attempt?: number;
 };
 
+/** OpsRunEvent payload 可携带 schema_version（P0-2）。 */
+export type OpsSchemaVersion = "v1" | string;
+
+/** handoff 事件 schema v1 payload（P0-2）。 */
+export type OpsHandoffPayload = {
+  schema_version?: OpsSchemaVersion;
+  from_route: string;
+  to_route: string;
+  intent: string;
+  slots: Record<string, unknown>;
+  agent: string | null;
+};
+
+/** review 事件 schema v1 payload（P0-2）。 */
+export type OpsReviewV1Payload = {
+  schema_version?: OpsSchemaVersion;
+  verdict: string;
+  rule?: string;
+  message?: string;
+  attempt?: number;
+};
+
+/** clarify.asked 事件 payload（P1-3）。 */
+export type OpsClarifyPayload = {
+  schema_version?: OpsSchemaVersion;
+  clarify_question: string;
+  session_id?: string | null;
+};
+
+/** checkpoint.resume 事件 payload（P1-2）。 */
+export type OpsCheckpointResumePayload = {
+  from_run_id: string;
+  step: number;
+  session_id?: string | null;
+};
+
 export type OpsRun = {
   id: string;
   repo_id: string;
@@ -59,10 +95,104 @@ export type OpsChatModelsResponse = {
 
 export type OpsChatMessagesResponse = {
   run_id: string;
-  route: "fast" | "deep" | "react" | "session_00";
-  status: OpsRun["status"];
+  route: "fast" | "deep" | "react" | "session_00" | "clarify";
+  status: OpsRun["status"] | "clarify";
   answer?: string;
+  needs_clarification?: boolean;
+  clarify_question?: string;
 };
+
+/** 多轮对话中的一轮（F0-3）。 */
+export type OpsChatTurn = {
+  runId: string;
+  query: string;
+  route: OpsRun["route"] | "clarify";
+  status: OpsRun["status"] | "clarify";
+  finalAnswer: string;
+  clarifyQuestion?: string;
+  events: OpsRunEvent[];
+  createdAt: string;
+};
+
+/** 构造一轮对话的初始结构。 */
+export function createOpsChatTurn(options: {
+  runId: string;
+  query: string;
+  route: OpsChatTurn["route"];
+  status: OpsChatTurn["status"];
+  finalAnswer?: string;
+  clarifyQuestion?: string;
+  events?: OpsRunEvent[];
+  createdAt?: string;
+}): OpsChatTurn {
+  return {
+    runId: options.runId,
+    query: options.query,
+    route: options.route,
+    status: options.status,
+    finalAnswer: options.finalAnswer ?? "",
+    clarifyQuestion: options.clarifyQuestion,
+    events: options.events ?? [],
+    createdAt: options.createdAt ?? new Date().toISOString(),
+  };
+}
+
+/** 追加一轮，并可选保留最近 N 轮。 */
+export function appendOpsChatTurn(
+  turns: OpsChatTurn[],
+  turn: OpsChatTurn,
+  options?: { maxTurns?: number },
+): OpsChatTurn[] {
+  const maxTurns = options?.maxTurns ?? 50;
+  const next = [...turns, turn];
+  if (next.length > maxTurns) {
+    return next.slice(next.length - maxTurns);
+  }
+  return next;
+}
+
+/** 按 runId 更新一轮。 */
+export function updateOpsChatTurn(
+  turns: OpsChatTurn[],
+  runId: string,
+  patch: Partial<Omit<OpsChatTurn, "runId">>,
+): OpsChatTurn[] {
+  return turns.map((turn) => (turn.runId === runId ? { ...turn, ...patch } : turn));
+}
+
+/** 从 events 中提取 clarify.asked 问题（F1-1）。 */
+export function findClarifyEvent(events: OpsRunEvent[]): OpsClarifyPayload | null {
+  for (let i = events.length - 1; i >= 0; i -= 1) {
+    const e = events[i];
+    if (e?.event_type === "clarify.asked") {
+      return parseClarifyPayload(e.payload ?? {});
+    }
+  }
+  return null;
+}
+
+/** 从 events 中提取 checkpoint.resume 信息（F1-3）。 */
+export function findCheckpointResumeEvent(events: OpsRunEvent[]): OpsCheckpointResumePayload | null {
+  for (let i = events.length - 1; i >= 0; i -= 1) {
+    const e = events[i];
+    if (e?.event_type === "checkpoint.resume") {
+      return parseCheckpointResumePayload(e.payload ?? {});
+    }
+  }
+  return null;
+}
+
+/** 从 events 中提取 react.max_steps 步数（F1-3）。 */
+export function findReactMaxStepsEvent(events: OpsRunEvent[]): number | null {
+  for (let i = events.length - 1; i >= 0; i -= 1) {
+    const e = events[i];
+    if (e?.event_type === "react.max_steps") {
+      const maxSteps = e.payload?.max_steps;
+      if (typeof maxSteps === "number") return maxSteps;
+    }
+  }
+  return null;
+}
 
 export type OpsRunEventsResponse = {
   run_id: string;
@@ -208,13 +338,13 @@ export async function fetchOpsRunEvents(runId: string, afterSeq = 0): Promise<Op
   return res.json().catch(() => null);
 }
 
-export function isRunActive(status: OpsRun["status"]): boolean {
+export function isRunActive(status: OpsRun["status"] | "clarify"): boolean {
   return status === "queued" || status === "running";
 }
 
 /** 终答区是否可展示：运行中 / 轮询中不展示。 */
 export function isOpsRunComplete(options: {
-  status?: OpsRun["status"] | null;
+  status?: OpsRun["status"] | "clarify" | null;
   loading: boolean;
   polling: boolean;
 }): boolean {
@@ -317,9 +447,55 @@ export function parseReviewPayload(payload: Record<string, unknown>): OpsReviewP
   };
 }
 
-/** 判断 event_type 是否属于 Review 阶段。 */
+/** 解析 handoff 事件 schema v1 payload。 */
+export function parseHandoffPayload(payload: Record<string, unknown>): OpsHandoffPayload {
+  const slots = typeof payload.slots === "object" && payload.slots !== null
+    ? (payload.slots as Record<string, unknown>)
+    : {};
+  return {
+    schema_version: typeof payload.schema_version === "string" ? payload.schema_version : undefined,
+    from_route: typeof payload.from_route === "string" ? payload.from_route : "—",
+    to_route: typeof payload.to_route === "string" ? payload.to_route : "—",
+    intent: typeof payload.intent === "string" ? payload.intent : "—",
+    slots,
+    agent: typeof payload.agent === "string" ? payload.agent : null,
+  };
+}
+
+/** 解析 review 事件 schema v1 payload。 */
+export function parseReviewV1Payload(payload: Record<string, unknown>): OpsReviewV1Payload {
+  return {
+    schema_version: typeof payload.schema_version === "string" ? payload.schema_version : undefined,
+    verdict: typeof payload.verdict === "string" ? payload.verdict : "—",
+    rule: typeof payload.rule === "string" ? payload.rule : undefined,
+    message: typeof payload.message === "string" ? payload.message : undefined,
+    attempt: typeof payload.attempt === "number" ? payload.attempt : undefined,
+  };
+}
+
+/** 解析 clarify.asked 事件 payload。 */
+export function parseClarifyPayload(payload: Record<string, unknown>): OpsClarifyPayload {
+  return {
+    schema_version: typeof payload.schema_version === "string" ? payload.schema_version : undefined,
+    clarify_question: typeof payload.clarify_question === "string" ? payload.clarify_question : "",
+    session_id: typeof payload.session_id === "string" ? payload.session_id : null,
+  };
+}
+
+/** 解析 checkpoint.resume 事件 payload。 */
+export function parseCheckpointResumePayload(
+  payload: Record<string, unknown>,
+): OpsCheckpointResumePayload {
+  return {
+    from_run_id: typeof payload.from_run_id === "string" ? payload.from_run_id : "—",
+    step: typeof payload.step === "number" ? payload.step : 0,
+    session_id: typeof payload.session_id === "string" ? payload.session_id : null,
+  };
+}
+
+/** 判断 event_type 是否属于 Review 阶段（含 schema v1 review）。 */
 export function isReviewEventType(eventType: string): boolean {
-  return eventType === "review.pass" || eventType === "review.fail" || eventType === "review.partial";
+  return eventType === "review.pass" || eventType === "review.fail" || eventType === "review.partial" || eventType === "review";
 }
 
 /** 将事件列表按 Deep run 阶段分区。 */
@@ -331,7 +507,7 @@ export function partitionThinkingChain(events: OpsRunEvent[]): ThinkingChainItem
     const { event_type } = event;
 
     // 阶段切换
-    if (event_type === "agent.delegate.start" || event_type === "agent.tool.result") {
+    if (event_type === "agent.delegate.start" || event_type === "agent.tool.result" || event_type === "handoff") {
       currentPhase = "analysis";
     } else if (isReviewEventType(event_type)) {
       currentPhase = "review";
@@ -394,6 +570,11 @@ export function formatOpsEventSummary(event: OpsRunEvent): string {
       return "运行结束";
     case "router.decision":
       return `路由决策 · ${typeof payload.route === "string" ? payload.route : "—"}`;
+    case "handoff": {
+      const handoff = parseHandoffPayload(payload);
+      const agentPart = handoff.agent ? ` · ${handoff.agent}` : "";
+      return `Handoff · ${handoff.from_route} → ${handoff.to_route} · ${handoff.intent}${agentPart}`;
+    }
     case "agent.delegate.start":
       return `委派 ${typeof payload.agent === "string" ? payload.agent : "—"}`;
     case "agent.tool.result": {
@@ -401,6 +582,13 @@ export function formatOpsEventSummary(event: OpsRunEvent): string {
       const parts: string[] = ["工具返回结果"];
       if (tool.issue_number != null) parts.push(`#${tool.issue_number}`);
       if (tool.confidence != null) parts.push(`置信度 ${tool.confidence.toFixed(2)}`);
+      return parts.join(" · ");
+    }
+    case "review": {
+      const review = parseReviewV1Payload(payload);
+      const parts: string[] = ["Review", review.verdict];
+      if (review.rule) parts.push(review.rule);
+      if (typeof review.attempt === "number") parts.push(`attempt ${review.attempt}`);
       return parts.join(" · ");
     }
     case "review.pass":
@@ -411,6 +599,10 @@ export function formatOpsEventSummary(event: OpsRunEvent): string {
     }
     case "review.partial":
       return "Review 部分通过";
+    case "clarify.asked": {
+      const clarify = parseClarifyPayload(payload);
+      return `需要澄清 · ${clarify.clarify_question || "（无问题文本）"}`;
+    }
     case "final.answer":
       return "生成最终答案";
     case "llm.model.fallback": {
@@ -444,6 +636,18 @@ export function formatOpsEventSummary(event: OpsRunEvent): string {
       return "ReAct 步内终答";
     case "react.max_steps":
       return `ReAct 达最大步数 · ${typeof payload.max_steps === "number" ? payload.max_steps : "—"}`;
+    case "checkpoint.resume": {
+      const cp = parseCheckpointResumePayload(payload);
+      return `Checkpoint 续跑 · 来自 run ${cp.from_run_id} · 第 ${cp.step} 步`;
+    }
+    case "checkpoint.save_failed":
+      return "Checkpoint 保存失败，仍继续运行";
+    case "checkpoint.corrupted":
+      return "Checkpoint 损坏，已冷启动";
+    case "artifact.write_failed": {
+      const kind = typeof payload.kind === "string" ? payload.kind : "—";
+      return `Artifact 写入失败 · kind=${kind}`;
+    }
     default:
       return event.event_type;
   }
