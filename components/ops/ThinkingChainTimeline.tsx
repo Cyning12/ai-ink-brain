@@ -1,11 +1,15 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useMemo } from "react";
 
 import {
   copyTextToClipboard,
   formatOpsEventSummary,
   isReviewEventType,
+  parseClarifyPayload,
+  parseHandoffPayload,
+  parseReviewV1Payload,
   partitionThinkingChain,
   serializeOpsEventForCopy,
   serializeOpsEventsForCopy,
@@ -155,6 +159,71 @@ function AnalysisCard({
   );
 }
 
+function HandoffCard({
+  fromRoute,
+  toRoute,
+  intent,
+  agent,
+  slots,
+}: {
+  fromRoute: string;
+  toRoute: string;
+  intent: string;
+  agent: string | null;
+  slots: Record<string, unknown>;
+}) {
+  return (
+    <div className="mt-2 rounded-lg border border-indigo-200/80 bg-indigo-50/40 px-3 py-2">
+      <div className="flex flex-wrap items-center gap-2 text-[11px] text-indigo-900/70">
+        <span className="font-mono">{fromRoute} → {toRoute}</span>
+        {agent ? <span className="font-mono">· {agent}</span> : null}
+      </div>
+      <div className="mt-1 text-[11px] text-slate-700">
+        意图 <span className="font-mono">{intent}</span>
+      </div>
+      {Object.keys(slots).length > 0 ? (
+        <pre className="mt-2 max-h-[16vh] overflow-auto whitespace-pre-wrap break-words rounded border border-slate-200/60 bg-white/80 p-2 font-mono text-[10px] text-slate-700">
+          {JSON.stringify(slots, null, 2)}
+        </pre>
+      ) : null}
+    </div>
+  );
+}
+
+function ClarifyCard({ question }: { question: string }) {
+  return (
+    <div className="mt-2 rounded-lg border border-violet-200/80 bg-violet-50/40 px-3 py-2">
+      <div className="text-[10px] font-medium text-slate-500">澄清问题</div>
+      <p className="mt-0.5 text-[12px] leading-relaxed text-slate-800">{question || "（无问题文本）"}</p>
+    </div>
+  );
+}
+
+function CheckpointCard({
+  fromRunId,
+  step,
+}: {
+  fromRunId: string;
+  step: number;
+}) {
+  return (
+    <div className="mt-2 rounded-lg border border-emerald-200/80 bg-emerald-50/40 px-3 py-2">
+      <div className="text-[10px] font-medium text-slate-500">Checkpoint 续跑</div>
+      <p className="mt-0.5 text-[11px] leading-relaxed text-slate-800">
+        从运行 <span className="font-mono">{fromRunId}</span> 恢复，已走 <span className="font-mono">{step}</span> 步。
+      </p>
+    </div>
+  );
+}
+
+function ErrorHintCard({ children }: { children: ReactNode }) {
+  return (
+    <div className="mt-2 rounded-lg border border-rose-200/80 bg-rose-50/40 px-3 py-2 text-[11px] leading-relaxed text-rose-900/90">
+      {children}
+    </div>
+  );
+}
+
 export function ThinkingChainTimeline({
   events,
   showCopyButtons = true,
@@ -194,6 +263,19 @@ export function ThinkingChainTimeline({
         if (event.event_type === "review.pass") reviewStatus = "pass";
         else if (event.event_type === "review.fail") reviewStatus = "fail";
         else if (event.event_type === "review.partial") reviewStatus = "partial";
+
+        const isReviewV1 = event.event_type === "review";
+        const reviewV1 = isReviewV1 ? parseReviewV1Payload(event.payload ?? {}) : null;
+        const handoff = event.event_type === "handoff" ? parseHandoffPayload(event.payload ?? {}) : null;
+        const clarify = event.event_type === "clarify.asked" ? parseClarifyPayload(event.payload ?? {}) : null;
+        const checkpointResume = event.event_type === "checkpoint.resume";
+
+        const hasStructuredCard =
+          isToolResult || isReview || isReviewV1 || Boolean(handoff) || Boolean(clarify) ||
+          checkpointResume ||
+          event.event_type === "checkpoint.save_failed" ||
+          event.event_type === "checkpoint.corrupted" ||
+          event.event_type === "artifact.write_failed";
 
         return (
           <li
@@ -237,7 +319,59 @@ export function ThinkingChainTimeline({
               />
             ) : null}
 
-            {Object.keys(event.payload ?? {}).length > 0 && !isToolResult && !isReview ? (
+            {isReviewV1 && reviewV1 ? (
+              <ReviewCard
+                rule={reviewV1.rule}
+                message={reviewV1.message}
+                attempt={reviewV1.attempt}
+                status={
+                  reviewV1.verdict === "pass"
+                    ? "pass"
+                    : reviewV1.verdict === "fail"
+                      ? "fail"
+                      : "partial"
+                }
+              />
+            ) : null}
+
+            {handoff ? (
+              <HandoffCard
+                fromRoute={handoff.from_route}
+                toRoute={handoff.to_route}
+                intent={handoff.intent}
+                agent={handoff.agent}
+                slots={handoff.slots}
+              />
+            ) : null}
+
+            {clarify ? <ClarifyCard question={clarify.clarify_question} /> : null}
+
+            {checkpointResume ? (
+              <CheckpointCard
+                fromRunId={String((event.payload ?? {}).from_run_id ?? "—")}
+                step={typeof (event.payload ?? {}).step === "number" ? (event.payload as { step: number }).step : 0}
+              />
+            ) : null}
+
+            {event.event_type === "checkpoint.save_failed" ? (
+              <ErrorHintCard>Checkpoint 保存失败，本次运行将继续但不保证可恢复。</ErrorHintCard>
+            ) : null}
+
+            {event.event_type === "checkpoint.corrupted" ? (
+              <ErrorHintCard>Checkpoint 损坏，已冷启动新运行。</ErrorHintCard>
+            ) : null}
+
+            {event.event_type === "artifact.write_failed" ? (
+              <ErrorHintCard>
+                Artifact 写入失败
+                {typeof (event.payload ?? {}).kind === "string"
+                  ? ` · kind=${(event.payload as { kind: string }).kind}`
+                  : ""}
+                ，不影响主答案返回。
+              </ErrorHintCard>
+            ) : null}
+
+            {Object.keys(event.payload ?? {}).length > 0 && !hasStructuredCard ? (
               <pre className="mt-2 max-h-[24vh] overflow-auto whitespace-pre-wrap break-words rounded border border-slate-200/60 bg-white/80 p-2 font-mono text-[10px] text-slate-700">
                 {JSON.stringify(event.payload, null, 2)}
               </pre>

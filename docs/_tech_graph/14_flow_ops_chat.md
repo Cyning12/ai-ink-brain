@@ -1,7 +1,7 @@
 ---
 graph_id: 14_flow_ops_chat
 version: 2026-06-22
-generated_at: 2026-07-02T12:27:51Z
+generated_at: 2026-07-10T02:59:58Z
 source: docs/_tech_graph/14_flow_ops_chat.graph.yaml
 ---
 
@@ -22,6 +22,7 @@ flowchart TD
     BFF_MODELS[GET /api/ops/chat/models]
     BFF_RUN[GET /api/ops/runs/{id}]
     BFF_EVT[GET /api/ops/runs/{id}/events]
+    BFF_ARTIFACTS[GET /api/ops/runs/{runId}/artifacts]
     POLL[after_seq 增量轮询]
     OPS_PY[Python /ops/* (api-python)]
     REF_UC[借鉴 UnifiedChatPageClient 壳]
@@ -43,10 +44,13 @@ flowchart TD
     BFF_POST --"::gates"--> NOT_UC
     PAGE --"~>"--> BFF_RUN
     PAGE --"~>"--> BFF_EVT
+    PAGE --"加载 artifacts"--> BFF_ARTIFACTS
     BFF_RUN --> OPS_PY
     // → app/api/ops/runs/[id]/route.ts::GET handler
     BFF_EVT --> OPS_PY
     // → app/api/ops/runs/[id]/events/route.ts::GET handler
+    BFF_ARTIFACTS --> OPS_PY
+    // → app/api/ops/runs/[runId]/artifacts/route.ts::GET handler
     BFF_EVT --"断联续看"--> POLL
     POLL --> TRACE
     TRACE --"after_seq""--> BFF_EVT
@@ -71,6 +75,7 @@ flowchart TD
 | BFF_MODELS | GET /api/ops/chat/models |  |
 | BFF_RUN | GET /api/ops/runs/{id} |  |
 | BFF_EVT | GET /api/ops/runs/{id}/events |  |
+| BFF_ARTIFACTS | GET /api/ops/runs/{runId}/artifacts |  |
 | POLL | after_seq 增量轮询 |  |
 | OPS_PY | Python /ops/* (api-python) |  |
 | REF_UC | 借鉴 UnifiedChatPageClient 壳 |  |
@@ -92,8 +97,10 @@ flowchart TD
 | BFF_POST | NOT_UC | ::gates | gates |  |  |
 | PAGE | BFF_RUN | ~> | async_calls |  |  |
 | PAGE | BFF_EVT | ~> | async_calls |  |  |
+| PAGE | BFF_ARTIFACTS | ~> | async_calls | 加载 artifacts |  |
 | BFF_RUN | OPS_PY | -> | depends_on |  | 1 anchor(s) |
 | BFF_EVT | OPS_PY | -> | depends_on |  | 1 anchor(s) |
+| BFF_ARTIFACTS | OPS_PY | -> | depends_on |  | 1 anchor(s) |
 | BFF_EVT | POLL | ~> | async_calls | 断联续看 |  |
 | POLL | TRACE | -> | depends_on |  |  |
 | TRACE | BFF_EVT | ~> | async_calls | after_seq" |  |
@@ -105,6 +112,8 @@ flowchart TD
 - BFF 校验 `OPS_DESK_SECRET` / ops cookie（见 `12_flow_auth`）
 - Python 信任 BFF · 不在浏览器暴露 service role
 - **禁止**走 `/api/py/unified/chat` 或 `UnifiedChatPageClient` 数据源
+- P0+F0：浏览器持久化 `ops_chat_session_id`；多轮消息线程；events schema v1
+- P1+F1：Artifacts BFF 只读 · clarify 一问交互 · checkpoint 续跑提示
 
 ### 跨仓
 
