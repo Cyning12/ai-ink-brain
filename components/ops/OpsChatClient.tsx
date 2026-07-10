@@ -6,7 +6,7 @@ import { OpsCollapsibleSection } from "@/components/ops/OpsCollapsibleSection";
 import { OpsRunArtifacts } from "@/components/ops/OpsRunArtifacts";
 import { OpsThinkingHint } from "@/components/ops/OpsThinkingHint";
 import { ThinkingChainTimeline } from "@/components/ops/ThinkingChainTimeline";
-import { getOrCreateOpsChatSessionId } from "@/lib/ops/chat-session";
+import { getOrCreateOpsChatSessionId, useOpsChatSessionId } from "@/lib/ops/chat-session";
 import {
   appendOpsChatTurn,
   copyTextToClipboard,
@@ -50,19 +50,8 @@ export function OpsChatClient({
   onRunComplete,
 }: OpsChatClientProps = {}) {
   const externalTrimmed = externalSessionId?.trim() ?? "";
-  // sessionId 来自 localStorage 时须客户端挂载后再解析，避免 SSR hydration 不一致
-  const [sessionId, setSessionId] = useState(externalTrimmed);
-  const [showSessionId, setShowSessionId] = useState(Boolean(externalTrimmed));
-
-  useEffect(() => {
-    if (externalTrimmed) {
-      setSessionId(externalTrimmed);
-      setShowSessionId(true);
-      return;
-    }
-    setSessionId(getOrCreateOpsChatSessionId());
-    setShowSessionId(true);
-  }, [externalTrimmed]);
+  const storedSessionId = useOpsChatSessionId();
+  const sessionId = externalTrimmed || storedSessionId;
 
   const [draft, setDraft] = useState("");
   const [clarifyDraft, setClarifyDraft] = useState("");
@@ -109,9 +98,7 @@ export function OpsChatClient({
       setError(null);
       setEventsExpanded(true);
 
-      const activeSessionId =
-        sessionId || externalTrimmed || getOrCreateOpsChatSessionId();
-      if (!sessionId) setSessionId(activeSessionId);
+      const activeSessionId = sessionId || getOrCreateOpsChatSessionId();
 
       const result = await sendOpsChatMessage(
         message,
@@ -157,7 +144,7 @@ export function OpsChatClient({
       setLoading(false);
       setPolling(true);
     },
-    [draft, externalTrimmed, loading, selectedModel, sessionId],
+    [draft, loading, selectedModel, sessionId],
   );
 
   const handleClarifySubmit = useCallback(() => {
@@ -286,7 +273,7 @@ export function OpsChatClient({
           <p className="mt-1 text-xs text-[color:var(--color-muted-foreground)]">
             {subtitle}
           </p>
-          {showSessionId && sessionId ? (
+          {sessionId ? (
             <p className="mt-1 font-mono text-[10px] text-slate-500">{sessionId}</p>
           ) : null}
         </div>

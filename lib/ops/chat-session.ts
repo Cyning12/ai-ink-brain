@@ -1,5 +1,31 @@
+import { useSyncExternalStore } from "react";
+
 const STORAGE_KEY = "ops_chat_session_id";
 let memoryFallback: string | null = null;
+
+function subscribeToOpsChatSession(callback: () => void): () => void {
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === STORAGE_KEY || event.key === null) callback();
+  };
+  window.addEventListener("storage", onStorage);
+  return () => window.removeEventListener("storage", onStorage);
+}
+
+function readStoredOpsChatSessionId(): string {
+  try {
+    if (typeof localStorage !== "undefined") {
+      return localStorage.getItem(STORAGE_KEY) ?? "";
+    }
+  } catch {
+    // 忽略 localStorage 异常
+  }
+  return memoryFallback ?? "";
+}
+
+/** 客户端订阅 localStorage 中的 session_id；SSR 快照恒为空，避免 hydration 不一致。 */
+export function useOpsChatSessionId(): string {
+  return useSyncExternalStore(subscribeToOpsChatSession, readStoredOpsChatSessionId, () => "");
+}
 
 function generateSessionId(): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
