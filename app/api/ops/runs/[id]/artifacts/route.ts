@@ -3,17 +3,17 @@ import { forwardOpsRequest } from "@/lib/server/forward-ops-request";
 
 export const runtime = "nodejs";
 
-/** GET /api/ops/runs/{runId}/artifacts → Python GET /api/py/ops/runs/{runId}/artifacts */
+/** GET /api/ops/runs/{id}/artifacts → Python GET /api/py/ops/runs/{id}/artifacts */
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ runId: string }> },
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
   const denied = await requireOpsDeskAccess(request);
   if (denied) return denied;
 
-  const { runId } = await params;
+  const { id } = await params;
   return forwardOpsRequest(
-    `/api/py/ops/runs/${encodeURIComponent(runId)}/artifacts`,
+    `/api/py/ops/runs/${encodeURIComponent(id)}/artifacts`,
     { method: "GET" },
     request,
   );

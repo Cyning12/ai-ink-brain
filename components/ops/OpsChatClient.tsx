@@ -6,7 +6,7 @@ import { OpsCollapsibleSection } from "@/components/ops/OpsCollapsibleSection";
 import { OpsRunArtifacts } from "@/components/ops/OpsRunArtifacts";
 import { OpsThinkingHint } from "@/components/ops/OpsThinkingHint";
 import { ThinkingChainTimeline } from "@/components/ops/ThinkingChainTimeline";
-import { getOrCreateOpsChatSessionId } from "@/lib/ops/chat-session";
+import { getOrCreateOpsChatSessionId, useOpsChatSessionId } from "@/lib/ops/chat-session";
 import {
   appendOpsChatTurn,
   copyTextToClipboard,
@@ -49,10 +49,9 @@ export function OpsChatClient({
   subtitle = "基于 ops_run_events 的 Orchestrator 对话 · after_seq 增量轮询",
   onRunComplete,
 }: OpsChatClientProps = {}) {
-  const sessionId = useMemo(
-    () => externalSessionId?.trim() || getOrCreateOpsChatSessionId(),
-    [externalSessionId],
-  );
+  const externalTrimmed = externalSessionId?.trim() ?? "";
+  const storedSessionId = useOpsChatSessionId();
+  const sessionId = externalTrimmed || storedSessionId;
 
   const [draft, setDraft] = useState("");
   const [clarifyDraft, setClarifyDraft] = useState("");
@@ -99,7 +98,13 @@ export function OpsChatClient({
       setError(null);
       setEventsExpanded(true);
 
-      const result = await sendOpsChatMessage(message, sessionId, selectedModel || undefined);
+      const activeSessionId = sessionId || getOrCreateOpsChatSessionId();
+
+      const result = await sendOpsChatMessage(
+        message,
+        activeSessionId,
+        selectedModel || undefined,
+      );
 
       if (!result.ok) {
         setError(result.error);

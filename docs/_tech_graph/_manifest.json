@@ -41,7 +41,7 @@
     { "method": "GET", "path": "/api/ops/metrics/summary" },
     { "method": "GET", "path": "/api/ops/runs/[id]" },
     { "method": "GET", "path": "/api/ops/runs/[id]/events" },
-    { "method": "GET", "path": "/api/ops/runs/[runId]/artifacts" },
+    { "method": "GET", "path": "/api/ops/runs/[id]/artifacts" },
     { "method": "GET", "path": "/api/ops/sessions" },
     { "method": "GET", "path": "/api/ops/sessions/[session_id]" },
     { "method": "GET", "path": "/api/ops/sessions/[session_id]/deliverables" },

@@ -12,7 +12,7 @@ import { requireOpsDeskAccess } from "@/lib/auth/ops-session";
 import { forwardOpsRequest } from "@/lib/server/forward-ops-request";
 import { GET } from "./route";
 
-describe("GET /api/ops/runs/[runId]/artifacts", () => {
+describe("GET /api/ops/runs/[id]/artifacts", () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -24,13 +24,13 @@ describe("GET /api/ops/runs/[runId]/artifacts", () => {
 
     const res = await GET(
       new Request("http://localhost/api/ops/runs/run-1/artifacts"),
-      { params: Promise.resolve({ runId: "run-1" }) },
+      { params: Promise.resolve({ id: "run-1" }) },
     );
     expect(res.status).toBe(401);
     expect(forwardOpsRequest).not.toHaveBeenCalled();
   });
 
-  it("授权后转发 upstream GET /api/py/ops/runs/{runId}/artifacts", async () => {
+  it("授权后转发 upstream GET /api/py/ops/runs/{id}/artifacts", async () => {
     vi.mocked(requireOpsDeskAccess).mockResolvedValue(null);
     vi.mocked(forwardOpsRequest).mockResolvedValue(
       new Response(
@@ -45,7 +45,7 @@ describe("GET /api/ops/runs/[runId]/artifacts", () => {
     );
 
     const req = new Request("http://localhost/api/ops/runs/run-1/artifacts");
-    const res = await GET(req, { params: Promise.resolve({ runId: "run-1" }) });
+    const res = await GET(req, { params: Promise.resolve({ id: "run-1" }) });
     expect(res.status).toBe(200);
     expect(forwardOpsRequest).toHaveBeenCalledWith(
       "/api/py/ops/runs/run-1/artifacts",
@@ -62,12 +62,12 @@ describe("GET /api/ops/runs/[runId]/artifacts", () => {
 
     const res = await GET(
       new Request("http://localhost/api/ops/runs/run-missing/artifacts"),
-      { params: Promise.resolve({ runId: "run-missing" }) },
+      { params: Promise.resolve({ id: "run-missing" }) },
     );
     expect(res.status).toBe(404);
   });
 
-  it("runId 被 URL 编码", async () => {
+  it("id 被 URL 编码", async () => {
     vi.mocked(requireOpsDeskAccess).mockResolvedValue(null);
     vi.mocked(forwardOpsRequest).mockResolvedValue(
       new Response(JSON.stringify({ run_id: "run+special", artifacts: [] }), { status: 200 }),
@@ -75,7 +75,7 @@ describe("GET /api/ops/runs/[runId]/artifacts", () => {
 
     await GET(
       new Request("http://localhost/api/ops/runs/run+special/artifacts"),
-      { params: Promise.resolve({ runId: "run+special" }) },
+      { params: Promise.resolve({ id: "run+special" }) },
     );
     expect(forwardOpsRequest).toHaveBeenCalledWith(
       "/api/py/ops/runs/run%2Bspecial/artifacts",
