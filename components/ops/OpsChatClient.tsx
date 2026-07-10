@@ -49,10 +49,20 @@ export function OpsChatClient({
   subtitle = "基于 ops_run_events 的 Orchestrator 对话 · after_seq 增量轮询",
   onRunComplete,
 }: OpsChatClientProps = {}) {
-  const sessionId = useMemo(
-    () => externalSessionId?.trim() || getOrCreateOpsChatSessionId(),
-    [externalSessionId],
-  );
+  const externalTrimmed = externalSessionId?.trim() ?? "";
+  // sessionId 来自 localStorage 时须客户端挂载后再解析，避免 SSR hydration 不一致
+  const [sessionId, setSessionId] = useState(externalTrimmed);
+  const [showSessionId, setShowSessionId] = useState(Boolean(externalTrimmed));
+
+  useEffect(() => {
+    if (externalTrimmed) {
+      setSessionId(externalTrimmed);
+      setShowSessionId(true);
+      return;
+    }
+    setSessionId(getOrCreateOpsChatSessionId());
+    setShowSessionId(true);
+  }, [externalTrimmed]);
 
   const [draft, setDraft] = useState("");
   const [clarifyDraft, setClarifyDraft] = useState("");
@@ -99,7 +109,15 @@ export function OpsChatClient({
       setError(null);
       setEventsExpanded(true);
 
-      const result = await sendOpsChatMessage(message, sessionId, selectedModel || undefined);
+      const activeSessionId =
+        sessionId || externalTrimmed || getOrCreateOpsChatSessionId();
+      if (!sessionId) setSessionId(activeSessionId);
+
+      const result = await sendOpsChatMessage(
+        message,
+        activeSessionId,
+        selectedModel || undefined,
+      );
 
       if (!result.ok) {
         setError(result.error);
@@ -139,7 +157,7 @@ export function OpsChatClient({
       setLoading(false);
       setPolling(true);
     },
-    [draft, loading, selectedModel, sessionId],
+    [draft, externalTrimmed, loading, selectedModel, sessionId],
   );
 
   const handleClarifySubmit = useCallback(() => {
@@ -268,7 +286,7 @@ export function OpsChatClient({
           <p className="mt-1 text-xs text-[color:var(--color-muted-foreground)]">
             {subtitle}
           </p>
-          {sessionId ? (
+          {showSessionId && sessionId ? (
             <p className="mt-1 font-mono text-[10px] text-slate-500">{sessionId}</p>
           ) : null}
         </div>
