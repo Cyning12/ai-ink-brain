@@ -4,6 +4,14 @@
 
 ---
 
+## Harness 元信息
+
+| 字段 | 值 |
+|------|-----|
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（profile.wiki=false）；本 task 未改 wiki |
+
+
 ## 角色与目标
 
 你是 **Senior Front-end Engineer**。在现有前端项目中对接 **AI-Ink-Brain RAG 后端**（FastAPI，可部署在 Vercel），实现：

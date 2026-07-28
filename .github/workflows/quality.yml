@@ -1,5 +1,5 @@
 # Harness V2 · Verify：PR/push 上 lint + test + build（与 docs/harness/HARNESS_V2_PLAN.md §4 P0/P1 对齐）
-# 纪律包钉：仓根 harness.pin.json → @cyning/harness@2.18.0（upgrade / verify 读 pin；本 job 不跑 npx harness）
+# 纪律包钉：仓根 harness.pin.json → @cyning/harness@2.19.0（upgrade / verify 读 pin；本 job 不跑 npx harness）
 name: quality
 
 on:

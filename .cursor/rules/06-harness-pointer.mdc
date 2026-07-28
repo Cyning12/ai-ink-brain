@@ -7,7 +7,7 @@ globs:
 
 # Harness Starter（Ink 前端 · Cursor）
 
-> **钉版本**：仓根 `harness.pin.json` · `.cyning-harness/manifest.json`（`@cyning/harness@2.18.0`）。  
+> **钉版本**：仓根 `harness.pin.json` · `.cyning-harness/manifest.json`（`@cyning/harness@2.19.0`）。  
 > **本规则**：产品包 `upgrade` 同步的摘要 POINTER；Ink 落盘细则见 `06-harness-content.mdc` · `docs/harness/README.md`。  
 > **prompts**：扩展帽 / HANDOFF 真值 = 工作区 `Projects/docs/harness/prompts/`；本仓 `docs/harness/prompts/` = starter（upgrade 可覆盖）。
 
@@ -19,14 +19,17 @@ globs:
    - `npx --yes @cyning/harness@$(node -p "require('./harness.pin.json').version") verify --target . --task <task路径>`
    - 涉码 / 改 `docs/_tech_graph/` 时加 `--graph`
    - **`HG-AUDIT-R1` pending** → **30 拒改码**
+   - 声称与 task 表冲突 → **STOP**
 4. 过程 invoke：`docs/harness/invokes/by-task/<task_slug>/`
 
-## 关账（2.18+）
+## 关账（2.18+ · 2.19 lint-wiki-delta）
 
 - **缺 `wiki_delta` → close BLOCK**；`none`/`n/a` 须 note。
-- 本仓无 WikiTrack → 默认 `wiki_delta: n/a` + note。
+- 本仓无 WikiTrack（`profile.wiki=false`）→ 默认 `wiki_delta: n/a` + note（维护者明示启用前勿改默认）。
 - `experience_capture=required` 且 `wiki_delta=path` → 经验节须含 `Wiki:` / `wiki_promoted:` / `coding_wiki` 指针。
+- 升版后必跑：`npx @cyning/harness task lint-wiki-delta --target . --scope all`（missing=0）。
 - **禁止**默认 `--allow-*-gap`。
+- **关账**：`task close --file <task> --yes`；**禁止** `task close --target .`。
 
 ## Verify（合并前）
 
@@ -34,4 +37,4 @@ globs:
 
 ## 关键词
 
-`Harness`、`wiki_delta`、`harness.pin.json`、`HG-AUDIT-R1`、`verify`、`拒开工`
+`Harness`、`wiki_delta`、`lint-wiki-delta`、`harness.pin.json`、`HG-AUDIT-R1`、`verify`、`拒开工`
