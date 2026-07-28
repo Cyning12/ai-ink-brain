@@ -22,6 +22,8 @@
 | **git_branch** | `task/ops-session-s5-graph-promote-ui` |
 | **blocked_by** | 后端 `ops-session-s5-graph-promote-api` |
 | **blocks** | Epic §12.3 勾选项 · MVP+ 验收 |
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
 
 ### 人工闸 `human_gate`
 

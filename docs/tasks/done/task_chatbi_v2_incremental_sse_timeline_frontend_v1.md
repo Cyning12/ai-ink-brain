@@ -11,6 +11,13 @@
 
 ---
 
+## Harness 元信息（2.18 迁移补录）
+
+| 字段 | 值 |
+|------|-----|
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
+
 ## 与 SPEC §6 差异（实现真值登记 · 2026-05-08）
 
 | 项 | SPEC **产品目标**（§3.2 / §6） | **当前 `UnifiedChatPageClient` 真值** |

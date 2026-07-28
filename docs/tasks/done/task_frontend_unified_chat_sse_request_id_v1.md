@@ -8,6 +8,13 @@
 > **后端依赖**：`ai-ink-brain-api-python/docs/tasks/task_tech_graph_p6_cross_repo_contract_guardrail_v1.md`（已新增 `done.data.request_id`）
  
 ---
+
+## Harness 元信息（2.18 迁移补录）
+
+| 字段 | 值 |
+|------|-----|
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
  
 ## 背景与目标
  

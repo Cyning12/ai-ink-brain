@@ -8,6 +8,8 @@
 > **git_branch**：`task/tech-graph-v2-frontend-manifest-v1`  
 > **worktree_root**：`ai-ink-brain`（相对工作区根 `Projects/`；所有 git/pnpm 默认 cwd；并行 T3 见 `ai-ink-brain-wt-mermaid-audit`）  
 > **test_strategy**：`required`  
+> **wiki_delta**：`n/a`  
+> **wiki_delta_note**：harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki  
 > **test_strategy_note**：manifest 漂移须 **可失败自动化**；负向用例（删 manifest 中一条 route）须使校验 **exit 1**，与后端 P1 manifest task 同口径。  
 > **freeze_id**：`TECH_GRAPH_S2_FREEZE_20260519_V2_3`（仅约束图谱 freeze 行；manifest schema bump 须本 task 修订记录一行说明）  
 > **audit_profile**：`full`（建议 R1 任务审核后再执行）

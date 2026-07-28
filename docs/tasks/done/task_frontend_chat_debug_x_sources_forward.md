@@ -92,3 +92,10 @@
 - Case B：后端省略 header（超长保护触发）→ 前端应显示 header 不存在，但 marker 解析正常
 - Case C：无命中 → 前端应显示 `sources_used=none`，并提示“无 sources”（不报错）
 
+
+## Harness 元信息（2.18 迁移补录）
+
+| 字段 | 值 |
+|------|-----|
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |

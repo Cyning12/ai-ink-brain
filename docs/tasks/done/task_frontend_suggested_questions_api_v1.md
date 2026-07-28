@@ -24,6 +24,8 @@
 | **git_branch** | `task/frontend-suggested-questions-api-v1`（可选） |
 | **acceptance_interaction** | `required` |
 | **验收清单** | `docs/tasks/reinspect_results/CHECKLIST_task_frontend_suggested_questions_api_v1_acceptance_zh.md` |
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
 
 ---
 

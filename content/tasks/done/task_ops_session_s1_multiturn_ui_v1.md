@@ -20,6 +20,8 @@
 | **test_strategy** | `recommended` |
 | **worktree_root** | `ai-ink-brain/` |
 | **git_branch** | `task/ops-session-s1-multiturn-ui` |
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
 
 ### 人工闸 `human_gate`
 

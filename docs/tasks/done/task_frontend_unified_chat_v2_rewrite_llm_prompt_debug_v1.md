@@ -9,6 +9,13 @@
 
 ---
 
+## Harness 元信息（2.18 迁移补录）
+
+| 字段 | 值 |
+|------|-----|
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
+
 ## 背景与目标
 
 1. **类型与渲染**：`ChainEventType` 增加 **`agent.debug.llm_prompts`**，`ChainEventCard` 可折叠展示 `payload.items[]`（每段含 `phase` / `model` / `messages` 等），支持复制整段 JSON。  

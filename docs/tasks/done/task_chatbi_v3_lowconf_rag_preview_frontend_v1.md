@@ -22,6 +22,8 @@
 | **kpi_rubric** | `KPI_RUBRIC_v1_2`（工作区 [`docs/harness/guides/KPI_RUBRIC_v1_2.md`](../../../docs/harness/guides/KPI_RUBRIC_v1_2.md)） |
 | **kpi_aggregator** | `50`（本仓关账汇总；后端 task 可用 `00`） |
 | **git_branch** | `task/chatbi-v3-lowconf-rag-preview`（与后端同分支名 **建议**；双 PR 互锁） |
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
 
 ### prompts 与落盘（Ink）
 

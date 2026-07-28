@@ -23,6 +23,8 @@
 | **git_branch** | `task/ops-session-s2-langgraph-00-ui` |
 | **blocked_by** | 后端 `ops-session-s2-langgraph-00-api`（auth 契约） |
 | **blocks** | S3 UI 扩展 |
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
 
 ### 人工闸 `human_gate`
 

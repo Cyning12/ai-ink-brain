@@ -5,6 +5,8 @@
 > **状态**：`todo`  
 > **帽子依据**：工作区 `docs/harness/prompts/10-requirements.md`（需求帽结构化输出）  
 > **test_strategy**：`recommended`  
+> **wiki_delta**：`n/a`  
+> **wiki_delta_note**：harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki  
 > **test_strategy_note**：后端已有 `tests/test_chain_chat_events.py`；前端建议 Vitest 测「hydrate + payload 提取」纯函数；全链路 E2E 可选 Playwright，不强制。  
 > **gates_before_code**：`["failure_paths", "§依赖与真值"]`
 

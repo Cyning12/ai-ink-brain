@@ -9,6 +9,8 @@
 > **worktree_root**：`ai-ink-brain-wt-mermaid-audit`（相对 `Projects/`；git worktree；Cursor Open Folder 对准此目录；**禁止**在 `ai-ink-brain` 主 checkout 改图）  
 > **parity 基线**：含 commit `36acb5e`（或已合并 parity 的 `main` / `f4f77b5` 及以后）  
 > **test_strategy**：`required`  
+> **wiki_delta**：`n/a`  
+> **wiki_delta_note**：harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki  
 > **test_strategy_note**：须以 **可失败** 的 `pnpm tech-graph:*` 门禁背书拓扑与导出；改图后 **先** 本地红→绿，再提交。  
 > **freeze_id**：`TECH_GRAPH_S2_FREEZE_20260519_V2_3`（**禁止** 在本 task 内 bump；若审计发现须改 freeze，另开双仓变更请求）
 

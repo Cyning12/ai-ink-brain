@@ -8,6 +8,13 @@
 
 ---
 
+## Harness 元信息（2.18 迁移补录）
+
+| 字段 | 值 |
+|------|-----|
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
+
 ## 1. 产品目标（权威口径）
 
 1. **假登录（Unified）**：单框填入 **ChatBI DB 明文** →「解锁」→ `requestChatbiAccessVerify`（`GET /api/py/chatbi/access/verify`，**`Authorization: Bearer <明文>`**）→ 成功写入 **`localStorage` 键 `chatbi_access_token_plain`**。  

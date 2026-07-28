@@ -10,6 +10,13 @@
 
 ---
 
+## Harness 元信息（2.18 迁移补录）
+
+| 字段 | 值 |
+|------|-----|
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
+
 ## 1. 背景与目标
 
 PR2 后主区答案来自 `unifiedChat.streamingText`，UI 随 SSE 块更新，观感偏「一段段顶字」。v0 在**不改 Python/BFF/Timeline** 前提下，用客户端 `useTypewriterReveal` 在流式过程中匀速揭开全文，结束后与 `streamingText` / `finalAnswer` 对齐。

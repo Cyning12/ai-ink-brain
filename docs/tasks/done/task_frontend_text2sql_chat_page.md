@@ -104,3 +104,10 @@
 - Case B：非查库问题 → 返回 `mode=non_text2sql`，前端应提示“该问题不像结构化查数问题…”
 - Case C：后端 `errors.execute_sql` 非空 → 前端应在 Debug 区明确展示错误信息
 
+
+## Harness 元信息（2.18 迁移补录）
+
+| 字段 | 值 |
+|------|-----|
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |

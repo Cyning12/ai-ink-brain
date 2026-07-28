@@ -24,6 +24,8 @@
 | **git_branch**    | `task/ops-session-s4-verify-ui` |
 | **blocked_by**    | 后端 `ops-session-s4-verify-api`  |
 | **blocks**        | S5 extract UI（若有）· **合并批次 PR**  |
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
 
 
 

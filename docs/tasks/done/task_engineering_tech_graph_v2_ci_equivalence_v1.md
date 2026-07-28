@@ -3,6 +3,8 @@
 > **状态**：`done（2026-05-20 · parity PR #35 → main）`  
 > **关联 SPEC**：`docs/tasks/specs/SPEC-tech_graph_v2_frontend_parity_v1.md` §11 顺序 3  
 > **test_strategy**：`required`  
+> **wiki_delta**：`n/a`  
+> **wiki_delta_note**：harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki  
 > **freeze_id**：`TECH_GRAPH_S2_FREEZE_20260519_V2_3`
 
 ## 范围

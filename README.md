@@ -2,6 +2,8 @@
 
 基于 **Next.js App Router** 的个人知识库与博客前端：Markdown/MDX 内容、水墨风 UI，以及经 BFF 转发的 **Python RAG / 统一对话** 能力。向量存储与生产级检索逻辑以 **配对后端仓库** 为单一事实源；本仓同时保留可选的 **本地 Node RAG** 路径。
 
+**Harness 纪律包**：已接入 `@cyning/harness`（钉版本见仓根 [`harness.pin.json`](harness.pin.json)，当前 **2.18.0** · preset `harness-only`）。过程轨索引：[`docs/harness/README.md`](docs/harness/README.md)。关账须填 `wiki_delta`（缺字段 BLOCK；勿默认 `--allow-*-gap`）。
+
 ## 技术栈（以仓库为准）
 
 | 类别 | 选型 |

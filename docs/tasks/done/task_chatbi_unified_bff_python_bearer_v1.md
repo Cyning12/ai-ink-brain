@@ -7,6 +7,13 @@
 
 ---
 
+## Harness 元信息（2.18 迁移补录）
+
+| 字段 | 值 |
+|------|-----|
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
+
 ## 手动验收（DevTools / curl）— 回填真值
 
 1. Python 可达、`PY_API_URL` 已设；Unified 页 **不** 依赖 Next 侧 `requireAdminApiSecret`。  

@@ -7,6 +7,13 @@
 
 ---
 
+## Harness 元信息（2.18 迁移补录）
+
+| 字段 | 值 |
+|------|-----|
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
+
 ## 背景与目标
 
 后端 P1-C 已在 `IntentDecision.raw_response` 内写入 **`cache`（`hit`/`miss`）**、**`cache_key_hash`**、**`latency_ms`**，用于评测与排障。但当前 **SSE 事件 `agent.intent` 的 payload 未包含上述字段**，且前端 **`ChainEventType` 未纳入 `agent.intent` 等 V2 类型**，导致 **Unified Chat 页面无法看到「意图缓存是否命中」**，与「同一 session 内重复提问为何仍打 LLM」等问题难以对齐解释。

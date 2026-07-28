@@ -6,6 +6,13 @@
 
 ---
 
+## Harness 元信息（2.18 迁移补录）
+
+| 字段 | 值 |
+|------|-----|
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
+
 ## 路径真值（避免相对链失效 · 必读）
 
 本文件位于 **`ai-ink-brain`** 仓：`docs/tasks/done/task_chatbi_v3_plan_execution_token_frontend_v1.md`。

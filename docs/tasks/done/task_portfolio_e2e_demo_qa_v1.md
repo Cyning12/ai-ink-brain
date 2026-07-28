@@ -27,6 +27,8 @@
 | **worktree_root** | `ai-ink-brain`（本仓根） |
 | **acceptance_interaction** | `required` |
 | **验收清单** | [`CHECKLIST_portfolio_e2e_demo_qa_v1_acceptance_zh.md`](../reinspect_results/CHECKLIST_portfolio_e2e_demo_qa_v1_acceptance_zh.md)（规约 [`SPEC-harness_acceptance_checklist_v1_zh.md`](../specs/SPEC-harness_acceptance_checklist_v1_zh.md)） |
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
 
 - **LoopTask 启动 Prompt**：`docs/tasks/specs/PROMPT_looptask_startup_portfolio_w6_v1_zh.md`  
 - **Invoke**：`docs/harness/invokes/by-task/portfolio-e2e-demo-qa-v1/`（`invoke_20260603_00_*` · `invoke_20260603_10_*`）  
