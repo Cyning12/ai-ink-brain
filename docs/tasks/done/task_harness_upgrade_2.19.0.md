@@ -130,4 +130,4 @@
 |----|------|
 | **日期** | 2026-07-28 |
 | **manifest** | `2.19.0` |
-| **PR** | （开 PR 后回填） |
+| **PR** | [#115](https://github.com/Cyning12/ai-ink-brain/pull/115) |
