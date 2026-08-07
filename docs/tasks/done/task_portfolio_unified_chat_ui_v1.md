@@ -24,6 +24,8 @@
 | **git_branch**         | `task/portfolio-visitor-auth-v1`（**续当前分支 · 不新开**） |
 | **harness_mode**       | `**looptask`**                                    |
 | **stop_after_hat**     | `**CLOSE`**                                       |
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
 
 
 - **LoopTask 启动 Prompt**：`docs/tasks/specs/PROMPT_looptask_startup_portfolio_w4_v1_zh.md`  

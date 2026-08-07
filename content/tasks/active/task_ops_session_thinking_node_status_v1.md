@@ -6,6 +6,13 @@
 
 ---
 
+## Harness 元信息（2.18 迁移补录）
+
+| 字段 | 值 |
+|------|-----|
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
+
 ## 背景与目标
 
 S2 已将运行中空态文案统一为 **thinking……** + spinner（`OpsThinkingHint`）。下一版需按 **agent 实际执行节点**（`node_id` / `event_type`）实时更新提示文案，并与 Session 00 图（plan · present · auth · synthesize）及 Deep/ReAct 链对齐。

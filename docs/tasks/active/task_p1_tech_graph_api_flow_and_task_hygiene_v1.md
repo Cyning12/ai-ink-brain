@@ -22,6 +22,8 @@
 | **git_branch** | `task/p1-tech-graph-flow-and-task-hygiene-v1` |
 | **acceptance_interaction** | `not_applicable` |
 | **acceptance_interaction_note** | 纯文档/图谱 |
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
 
 ---
 

@@ -11,6 +11,13 @@
 
 ---
 
+## Harness 元信息（2.18 迁移补录）
+
+| 字段 | 值 |
+|------|-----|
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
+
 ## 背景与目标
 
 Unified Chat 页面（`UnifiedChatPageClient`）已在请求体中通过 **`useSessionId("unified-chat")`** 持久化并回传 **`session_id`**，Python V2 Agent 路径可按该 id 从 `rag_conversation_logs` 加载历史，**后端多轮能力已具备**。

@@ -1,8 +1,29 @@
 # docs/harness（Ink 前端仓 · Harness 产物）
 
-> **目标**：日常读本目录 + `docs/tasks/`；**prompts 真值**在工作区 `Projects/docs/harness/prompts/`（本仓 **不复制**）。  
+> **目标**：日常读本目录 + `docs/tasks/`。  
+> **纪律包钉版本**：仓根 [`harness.pin.json`](../../harness.pin.json) · manifest [`.cyning-harness/manifest.json`](../../.cyning-harness/manifest.json)（当前 **`@cyning/harness@2.18.0`** · preset `harness-only`）。  
+> **prompts 双轨**：工作区 `Projects/docs/harness/prompts/` = Ink 扩展帽 / HANDOFF / 链式 PROMPT **真值**；本仓 `docs/harness/prompts/` = `npx @cyning/harness upgrade` 同步的 **starter 帽**（勿手改；upgrade 会覆盖）。  
 > **对照基线**：`ai-ink-brain-api-python/docs/harness/README.md` §2.1（taxonomy）。  
 > **KPI v1.2**：P0 已于 2026-05-31 落盘；方案见工作区 [`PLAN_frontend_harness_kpi_migration_v1_zh.md`](../../../docs/harness/guides/PLAN_frontend_harness_kpi_migration_v1_zh.md)。
+
+---
+
+## 0. 纪律包接入（2.18.0）
+
+| 项 | 约定 |
+|----|------|
+| 钉 | `harness.pin.json` · `.cyning-harness/manifest.json` → **2.18.0** |
+| 升级 | `npx --yes @cyning/harness@2.18.0 upgrade --yes`（首次无 profile 时先 `init --preset harness-only --ide cursor --yes`） |
+| 关账硬闸 | **`wiki_delta` 缺字段 → close BLOCK**（`none`/`n/a` 须 `wiki_delta_note`）；勿默认 `--allow-wiki-gap` / 其它 `--allow-*-gap` |
+| 本仓 WikiTrack | **未启用** `docs/coding_wiki`（preset 未开 wiki）→ 存量/新建 task 默认 `wiki_delta: n/a` + note |
+| 非范围 | 不做 harness-web `/wiki-graph` Demo；不强制启用 coding_wiki |
+
+常用：
+
+```bash
+npx --yes @cyning/harness@$(node -p "require('./harness.pin.json').version") verify --target . --task docs/tasks/active/<task>.md
+# 涉码 / 改图谱时加 --graph（与仓规一致）
+```
 
 ---
 
@@ -11,8 +32,9 @@
 | 场景 | 路径 |
 |------|------|
 | 本仓 Harness 索引 | 本文件 |
+| 纪律包钉 / QUICKREF | `harness.pin.json` · `.cyning-harness/` |
 | 写 / 审 task | `docs/tasks/templates/TASK_TEMPLATE.md` · `docs/tasks/README.md` |
-| 帽子 / 模板 / HANDOFF | 工作区 `Projects/docs/harness/prompts/`（`@` 或 Open `Projects/`） |
+| 帽子 / 模板 / HANDOFF | 工作区 `Projects/docs/harness/prompts/`（`@` 或 Open `Projects/`）；starter 见本仓 `docs/harness/prompts/` |
 | **10/22 · 思考轮 R0–R5** | 工作区 `10-requirements` v1.5 · `22-task-audit` v1.8；高复杂度 task 见 [`docs/tasks/templates/TASK_TEMPLATE.md`](../tasks/templates/TASK_TEMPLATE.md) §思考轮次 |
 | KPI 评分 | 工作区 [`docs/harness/guides/KPI_RUBRIC_v1_2.md`](../../../docs/harness/guides/KPI_RUBRIC_v1_2.md) |
 | 字段细则 | 工作区 [`docs/harness/HARNESS_V2_PLAN.md`](../../../docs/harness/HARNESS_V2_PLAN.md) §5.7–§5.8 |
@@ -24,11 +46,12 @@
 | 关账前 · 前端交互验收清单 | [`.cursor/skills/harness-close-acceptance-checklist/SKILL.md`](../.cursor/skills/harness-close-acceptance-checklist/SKILL.md) · [`CHECKLIST_TEMPLATE`](../tasks/templates/CHECKLIST_TEMPLATE_acceptance_zh.md) |
 | 跨子仓 Harness task | 工作区 `docs/harness/tasks/`（Open **`Projects/`**） |
 
-**Cursor**：`.cursor/rules/05-harness-semi-auto.mdc`、`.cursor/rules/06-harness-content.mdc`。
+**Cursor**：`.cursor/rules/05-harness-semi-auto.mdc`、`.cursor/rules/06-harness-content.mdc`、`.cursor/rules/06-harness-pointer.mdc`（产品包 sync）。
 
 **Agent 禁止**：
 
-- **禁止**将工作区 `docs/harness/prompts/` **整包复制**到本仓（避免双源漂移）。
+- **禁止**把手改产物当「扩展帽真值」写进本仓 `docs/harness/prompts/`（会被 `upgrade` 覆盖）；扩展帽仍以工作区 `Projects/docs/harness/prompts/` 为准。
+- **禁止**将工作区 prompts **整包手工复制**到本仓（与产品包 sync 的 starter 区分：后者仅由 `init`/`upgrade` 写入）。
 - **禁止**在未 Open `Projects/` 时，默认改工作区 `docs/harness/tasks/` 或 `invokes/` 根下扁平历史索引（除非 task 显式授权）。
 
 ---
@@ -69,15 +92,18 @@ docs/harness/
 
 ---
 
-## 4. 新建 task 必填（KPI v1.2）
+## 4. 新建 task 必填（KPI v1.2 · + wiki_delta 2.18）
 
 | 字段 | 约定 |
 |------|------|
 | `test_strategy` | `required` \| `recommended` \| `not_applicable` |
 | `kpi_rubric` | `KPI_RUBRIC_v1_2` |
 | `kpi_aggregator` | 默认 **`CLOSE`**（长链单窗口试点可用 `00`） |
+| `wiki_delta` | 路径 / `none` / `n/a`（**缺字段 close BLOCK**） |
+| `wiki_delta_note` | `none` / `n/a` 时 **必填**；本仓无 WikiTrack 时用 `n/a` + note |
 | 关账前 | 正文 **`### KPI（00）`**（节名保留；由 `kpi_aggregator` 填写） |
 | `failure_paths` | 建议独立表（见 `TASK_TEMPLATE.md`） |
+| 经验晋升 | `experience_capture=required` 且 `wiki_delta=path` 时，经验节须含 `Wiki:` / `wiki_promoted:` / `coding_wiki` 指针 |
 
 模板真值：`docs/tasks/templates/TASK_TEMPLATE.md`。
 

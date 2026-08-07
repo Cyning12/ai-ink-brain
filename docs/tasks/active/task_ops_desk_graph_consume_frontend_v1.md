@@ -10,6 +10,8 @@
 | **test_strategy** | `recommended` |
 | **git_branch** | `task/ops-desk-graph-consume-frontend` |
 | **freeze_id** | `OPS-DESK-GRAPH-CONSUME-V1` |
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
 
 ---
 

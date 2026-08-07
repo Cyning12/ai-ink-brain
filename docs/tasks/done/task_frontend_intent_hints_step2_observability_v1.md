@@ -26,6 +26,8 @@
 | **acceptance_interaction** | `required` |
 | **acceptance_interaction_note** | Debug 开/关 Unified Chat 烟测；Portfolio Q4 或 mock SSE fixture |
 | **验收清单** | `docs/tasks/reinspect_results/CHECKLIST_frontend_intent_hints_step2_observability_v1_acceptance_zh.md`（关账前创建） |
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
 
 ### 人工闸 `human_gate`
 

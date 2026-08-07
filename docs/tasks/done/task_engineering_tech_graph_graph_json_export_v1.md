@@ -4,6 +4,8 @@
 > **关联规划**：`docs/tech_graph/改进方向.md` **v1.1.3**（方案1 + **R1** + 前端 graph CI 消歧）；`docs/tech_graph/SPEC/json_graph/scheme_1_graph_json.md`  
 > **invoke_snapshot**：`docs/tech_graph/invokes/invoke_20260514_0000_10_tech-graph-scheme1-dual-task-draft.md`；`docs/harness/invokes/invoke_20260514_0031_10_tech-graph-scheme1-exec-converge.md`（链上一节：`docs/harness/invokes/invoke_20260514_20_tech-graph-scheme1-review-hat20.md`）；闸口 A 收口执行：`docs/harness/invokes/invoke_20260515_1200_30_tech-graph-gate-a-closeout.md`  
 > **test_strategy**：`required`  
+> **wiki_delta**：`n/a`  
+> **wiki_delta_note**：harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki  
 > **test_strategy_note**：方案1 价值在 **可 diff 的 `graph.json` + CI**；无自动化则图谱与 JSON 易脱节。与 **改进方向** v1.1.1 / v1.1.3 及 **SPEC scheme_1** 一致：**R1 物理条件已满足**（仅 `docs/_tech_graph/`、仓根无 `_tech_graph/`）时，**应**将 graph 门禁纳入 PR **必绿**；异构克隆仍须先完成 R1 迁移再绑 CI。  
 > **freeze_id**：`TECH_GRAPH_S1_FREEZE_20260514_V1_1_3`
 

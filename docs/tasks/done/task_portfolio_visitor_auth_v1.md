@@ -23,6 +23,8 @@
 | **git_branch** | `task/portfolio-visitor-auth-v1` |
 | **harness_mode** | **`looptask`** |
 | **stop_after_hat** | **`CLOSE`**（本 LoopTask **关账至 KPI + git mv done**） |
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
 
 - **KPI 真值**：工作区 [`docs/harness/guides/KPI_RUBRIC_v1_2.md`](../../../docs/harness/guides/KPI_RUBRIC_v1_2.md)  
 - **LoopTask 启动 Prompt**：`docs/tasks/specs/PROMPT_looptask_startup_portfolio_w3_v1_zh.md`  

@@ -9,6 +9,13 @@
 
 ---
 
+## Harness 元信息（2.18 迁移补录）
+
+| 字段 | 值 |
+|------|-----|
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
+
 ## 背景与目标
 
 目前后端已经支持 `router.evidence`/`router.evidence.details` 事件以及落库 `rag_conversation_logs.metadata.router_debug.router_evidence_details`。但前端缺少一个便捷入口来「按会话/按请求开启 Debug 并触发日志刷新/关闭」，导致排障效率低。

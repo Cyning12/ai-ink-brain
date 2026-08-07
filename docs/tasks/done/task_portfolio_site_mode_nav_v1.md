@@ -21,6 +21,8 @@
 | **kpi_rubric** | `KPI_RUBRIC_v1_2` |
 | **kpi_aggregator** | `CLOSE` |
 | **git_branch** | `task/portfolio-demo-site-v1`（Epic 分支；本 task 可在此分支或子分支实施） |
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
 
 - **KPI 真值**：工作区 [`docs/harness/guides/KPI_RUBRIC_v1_2.md`](../../../docs/harness/guides/KPI_RUBRIC_v1_2.md) · [`HARNESS_V2_PLAN.md`](../../../docs/harness/HARNESS_V2_PLAN.md) §5.8  
 - **prompts**：`@` 工作区 `Projects/docs/harness/prompts/`（**勿**复制到本仓）  

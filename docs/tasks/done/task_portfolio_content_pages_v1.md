@@ -23,6 +23,8 @@
 | **git_branch** | `task/portfolio-content-pages-v1` |
 | **harness_mode** | **`looptask`** |
 | **stop_after_hat** | **`50`** |
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
 
 - **KPI 真值**：工作区 [`docs/harness/guides/KPI_RUBRIC_v1_2.md`](../../../docs/harness/guides/KPI_RUBRIC_v1_2.md) · [`HARNESS_V2_PLAN.md`](../../../docs/harness/HARNESS_V2_PLAN.md) §5.8  
 - **prompts**：`@` 工作区 `Projects/docs/harness/prompts/`  

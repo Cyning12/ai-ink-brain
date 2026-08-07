@@ -22,6 +22,8 @@
 | **git_branch** | `task/ops-desk-p1-chat-ui` |
 | **worktree_root** | `ai-ink-brain/` |
 | **Open Folder** | `ai-ink-brain/` |
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
 
 ---
 

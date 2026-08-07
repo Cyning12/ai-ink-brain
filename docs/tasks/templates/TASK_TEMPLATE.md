@@ -22,6 +22,9 @@
 | **experience_capture** | `required` \| `recommended` \| `not_applicable` |
 | **kpi_rubric** | `KPI_RUBRIC_v1_2` |
 | **kpi_aggregator** | `CLOSE`（默认）\| `00` \| `50` \| `human` |
+| **wiki_delta** | `docs/coding_wiki/<file>.md` 或 `none` / `n/a`（**缺字段 close BLOCK** · `@cyning/harness@2.18+`） |
+| **wiki_delta_note** | （`none` / `n/a` 时 **必填**；本仓未启用 WikiTrack 时填 `n/a` + note） |
+| **wiki_promotion** | `none` / `stable` / `context` / `volatile` / `mixed`（可选） |
 | **git_branch** | `task/<slug>`（可选） |
 | **acceptance_interaction** | `required`（须人在浏览器/Preview 验收）\| `not_applicable`（须一行 `acceptance_interaction_note`） |
 | **验收清单** | `docs/tasks/reinspect_results/CHECKLIST_<task_basename>_acceptance_zh.md`（`required` 时 **关账前必有**；模板见 [`CHECKLIST_TEMPLATE_acceptance_zh.md`](CHECKLIST_TEMPLATE_acceptance_zh.md)） |

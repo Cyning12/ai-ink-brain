@@ -14,6 +14,13 @@
 
 ---
 
+## Harness 元信息（2.18 迁移补录）
+
+| 字段 | 值 |
+|------|-----|
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
+
 ## 1. 背景与目标
 
 **现状真值**：
