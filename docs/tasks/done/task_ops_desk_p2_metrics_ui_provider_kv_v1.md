@@ -7,6 +7,14 @@
 
 ---
 
+## Harness 元信息
+
+| 字段 | 值 |
+|------|-----|
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（profile.wiki=false）；本 task 未改 wiki |
+
+
 ## 元信息
 
 | 字段 | 值 |
@@ -14,8 +22,6 @@
 | **task_slug** | `ops-desk-p2-metrics-ui-provider-kv` |
 | **test_strategy** | `recommended` |
 | **分支** | `task/ops-desk-p2-metrics-ui-provider-kv` |
-| **wiki_delta** | `n/a` |
-| **wiki_delta_note** | harness-only · 无 WikiTrack（未启用 docs/coding_wiki）；本 task 未改 wiki |
 
 ---
 

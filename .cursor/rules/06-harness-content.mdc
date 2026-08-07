@@ -10,7 +10,7 @@ alwaysApply: true
 1. **入口**：[`docs/harness/README.md`](docs/harness/README.md) · [`docs/tasks/README.md`](docs/tasks/README.md)
 2. **prompts**：工作区 `Projects/docs/harness/prompts/`（扩展帽真值）；本仓 `docs/harness/prompts/` 仅 `@cyning/harness` sync 的 starter（勿手改）
 3. **落盘**：invoke → `docs/harness/invokes/by-task/<task_slug>/`；22 → `docs/harness/reviews/`；50 → `docs/tasks/reinspect_results/`
-4. **新建 task**：必填 `test_strategy`、`kpi_rubric: KPI_RUBRIC_v1_2`、`kpi_aggregator`（默认 **CLOSE**）、**`wiki_delta` / `wiki_delta_note`（2.18+）**、关账前 **`### KPI（00）`** — 见 [`docs/tasks/templates/TASK_TEMPLATE.md`](docs/tasks/templates/TASK_TEMPLATE.md)；钉见 `harness.pin.json`
+4. **新建 task**：必填 `test_strategy`、`kpi_rubric: KPI_RUBRIC_v1_2`、`kpi_aggregator`（默认 **CLOSE**）、**`wiki_delta` / `wiki_delta_note`（2.18+）**；升版后 `task lint-wiki-delta --scope all`、关账前 **`### KPI（00）`** — 见 [`docs/tasks/templates/TASK_TEMPLATE.md`](docs/tasks/templates/TASK_TEMPLATE.md)；钉见 `harness.pin.json`
 5. **VERIFY（D5）**：`pnpm lint` → `pnpm test` → `pnpm build`（与根 `AGENTS.md` §8 一致）
 6. **跨子仓 Harness task**：Open **`Projects/`**，读 `docs/harness/tasks/`；遵守工作区 `05-harness-workspace.mdc`
 

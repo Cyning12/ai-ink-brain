@@ -7,6 +7,14 @@
 
 ---
 
+## Harness 元信息
+
+| 字段 | 值 |
+|------|-----|
+| **wiki_delta** | `n/a` |
+| **wiki_delta_note** | harness-only · 无 WikiTrack（profile.wiki=false）；本 task 未改 wiki |
+
+
 ## 1. Open Folder 与分支
 
 | 项 | 值 |

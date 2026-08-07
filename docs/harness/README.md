@@ -1,22 +1,25 @@
 # docs/harness（Ink 前端仓 · Harness 产物）
 
 > **目标**：日常读本目录 + `docs/tasks/`。  
-> **纪律包钉版本**：仓根 [`harness.pin.json`](../../harness.pin.json) · manifest [`.cyning-harness/manifest.json`](../../.cyning-harness/manifest.json)（当前 **`@cyning/harness@2.18.0`** · preset `harness-only`）。  
+> **纪律包钉版本**：仓根 [`harness.pin.json`](../../harness.pin.json) · manifest [`.cyning-harness/manifest.json`](../../.cyning-harness/manifest.json)（当前 **`@cyning/harness@2.19.0`** · preset `harness-only` · `ide=["cursor"]`）。  
+> **WikiTrack**：本波 **暂不启用**（`profile.wiki=false`）；对照 [`POINTER_RUNBOOK_wikitrack_enable_obsidian_v1_zh.md`](./POINTER_RUNBOOK_wikitrack_enable_obsidian_v1_zh.md) §0.5。  
 > **prompts 双轨**：工作区 `Projects/docs/harness/prompts/` = Ink 扩展帽 / HANDOFF / 链式 PROMPT **真值**；本仓 `docs/harness/prompts/` = `npx @cyning/harness upgrade` 同步的 **starter 帽**（勿手改；upgrade 会覆盖）。  
 > **对照基线**：`ai-ink-brain-api-python/docs/harness/README.md` §2.1（taxonomy）。  
 > **KPI v1.2**：P0 已于 2026-05-31 落盘；方案见工作区 [`PLAN_frontend_harness_kpi_migration_v1_zh.md`](../../../docs/harness/guides/PLAN_frontend_harness_kpi_migration_v1_zh.md)。
 
 ---
 
-## 0. 纪律包接入（2.18.0）
+## 0. 纪律包接入（2.19.0）
 
 | 项 | 约定 |
 |----|------|
-| 钉 | `harness.pin.json` · `.cyning-harness/manifest.json` → **2.18.0** |
-| 升级 | `npx --yes @cyning/harness@2.18.0 upgrade --yes`（首次无 profile 时先 `init --preset harness-only --ide cursor --yes`） |
-| 关账硬闸 | **`wiki_delta` 缺字段 → close BLOCK**（`none`/`n/a` 须 `wiki_delta_note`）；勿默认 `--allow-wiki-gap` / 其它 `--allow-*-gap` |
-| 本仓 WikiTrack | **未启用** `docs/coding_wiki`（preset 未开 wiki）→ 存量/新建 task 默认 `wiki_delta: n/a` + note |
-| 非范围 | 不做 harness-web `/wiki-graph` Demo；不强制启用 coding_wiki |
+| 钉 | `harness.pin.json` · `.cyning-harness/manifest.json` → **2.19.0** · `ide=["cursor"]` |
+| 升级 | `npx --yes @cyning/harness@2.19.0 upgrade --yes --target .`（**不带** `--ide`） |
+| 字段扫描 | `task lint-wiki-delta --target . --scope all` → missing=0 |
+| 关账硬闸 | **`wiki_delta` 缺字段 → close BLOCK**；`task close --file … --yes`（**禁** `--target .`）；勿默认 `--allow-*-gap` |
+| 本仓 WikiTrack | **暂不启用**（`profile.wiki=false`）→ 默认 `wiki_delta: n/a` + note；明示启用见 POINTER RUNBOOK |
+| overlay | upgrade 后恢复 `06-harness-pointer.mdc` 等本仓定制 |
+| 非范围 | 无 `/wiki-graph` Demo；不强制 coding_wiki |
 
 常用：
 
